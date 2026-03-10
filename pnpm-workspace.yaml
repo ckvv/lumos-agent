@@ -2,7 +2,16 @@ shellEmulator: true
 
 trustPolicy: no-downgrade
 
+ignoredBuiltDependencies:
+  - core-js
+  - keccak
+  - scrypt
+  - secp256k1
+  - sha3
+  - vue-demi
+  - websocket
 onlyBuiltDependencies:
   - electron
   - electron-winstaller
   - esbuild
+  - simple-git-hooks
