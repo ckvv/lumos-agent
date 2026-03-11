@@ -1,12 +1,12 @@
 # Agent 项目设计与搭建
 
-我想完成一个通用 agent 项目, 项目是基于 electron 的桌面端
+这是一个基于 electron + vite + vue3的启动模板项目, 我想基于此开发一个通用 agent 应用
 
 - 代码风格: eslint + @antfu/eslint-config
 - 语言: TypeScript
-- 前端: Vite + Vue 3 + @vueuse/core + vue-router + Nuxt UI 3 + markstream-vue
-- AI SDK: ai + @ai-sdk/mcp
-- 前后端通信: [orpc](https://orpc.dev/) 框架
+- 前端: Vite + Vue 3 + @vueuse/core + vue-router + Nuxt UI 3 + markstream-vue + tailwindcss
+- AI SDK: ai + @ai-sdk/mcp 当前可以只支持 open ai, 
+- 前与 electron 通信: [orpc](https://orpc.dev/) 框架
 - 参数校验: [zod](https://zod.dev/) 框架
 - 日志: [pino](https://github.com/pinojs/pino) 框架
 
@@ -57,23 +57,3 @@
     ├── 思考过程展示
     └── 快捷键
 ```
-
-## 规划阶段
-
-- [ ] 设计项目架构与撰写实施方案
-- [ ] 用户审批方案
-
-## 执行阶段
-
-- [ ] 初始化 monorepo 项目结构
-- [ ] 搭建前端（Vue 3 + Vite + Nuxt UI 3）
-- [ ] 搭建后端（Hono + Node.js）
-- [ ] 实现核心数据模型与数据库层
-- [ ] 实现后端 API 路由（对话、配置、LLM、MCP、Skill）
-- [ ] 实现前端页面与组件
-- [ ] 前后端联调
-
-## 验证阶段
-
-- [ ] 前后端启动验证
-- [ ] 功能测试
