@@ -1,9 +1,9 @@
+import type { AppLocale } from '#renderer/i18n'
 import type { WritableComputedRef } from 'vue'
-import type { AppLocale } from '@/i18n'
+import { i18n, setLocale, SUPPORTED_LOCALES } from '#renderer/i18n'
 import { computed } from 'vue'
-import { i18n, setLocale, SUPPORTED_LOCALES } from '@/i18n'
 
-export type { AppLocale } from '@/i18n'
+export type { AppLocale } from '#renderer/i18n'
 
 export interface LocaleOption {
   labelKey: `locale.${AppLocale}`

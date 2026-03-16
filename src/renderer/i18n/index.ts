@@ -1,6 +1,6 @@
-import type { AppLocale } from '@/i18n/messages'
+import type { AppLocale } from '#renderer/i18n/messages'
+import { messages } from '#renderer/i18n/messages'
 import { createI18n } from 'vue-i18n'
-import { messages } from '@/i18n/messages'
 
 export const LOCALE_STORAGE_KEY = 'lumos:locale'
 export const DEFAULT_LOCALE: AppLocale = 'zh-CN'
@@ -102,4 +102,4 @@ export function setLocale(locale: AppLocale) {
 
 syncDocumentLanguage(i18n.global.locale.value)
 
-export type { AppLocale } from '@/i18n/messages'
+export type { AppLocale } from '#renderer/i18n/messages'

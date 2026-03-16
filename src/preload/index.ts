@@ -1,1 +1,1 @@
-import './orpc/bridge'
+import '#preload/orpc/bridge'

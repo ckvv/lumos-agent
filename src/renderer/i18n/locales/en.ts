@@ -1,4 +1,4 @@
-import type { MessageSchema } from '@/i18n/locales/zh-CN'
+import type { MessageSchema } from '#renderer/i18n/locales/zh-CN'
 
 export const en = {
   shell: {

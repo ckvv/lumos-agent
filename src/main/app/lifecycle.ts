@@ -1,7 +1,7 @@
 import process from 'node:process'
+import { flushLogs, logger } from '#main/logger'
+import { createMainWindow } from '#main/windows/main-window'
 import { app, BrowserWindow } from 'electron'
-import { flushLogs, logger } from '../logger'
-import { createMainWindow } from '../windows/main-window'
 
 export function registerAppLifecycle() {
   process.on('uncaughtException', (error) => {

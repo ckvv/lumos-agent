@@ -1,8 +1,8 @@
+import { logger } from '#main/logger'
+import { router } from '#main/orpc/router'
+import { ORPC_CONNECT_CHANNEL } from '#shared/orpc/constants'
 import { RPCHandler } from '@orpc/server/message-port'
 import { ipcMain } from 'electron'
-import { ORPC_CONNECT_CHANNEL } from '../../shared/orpc/constants'
-import { logger } from '../logger'
-import { router } from './router'
 
 const rpcHandler = new RPCHandler(router)
 

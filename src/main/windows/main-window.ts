@@ -1,7 +1,7 @@
 import path from 'node:path'
+import { MAIN_WINDOW_CONFIG } from '#main/constants'
+import { logger } from '#main/logger'
 import { BrowserWindow } from 'electron'
-import { MAIN_WINDOW_CONFIG } from '../constants'
-import { logger } from '../logger'
 
 export function createMainWindow() {
   const isDevelopment = Boolean(MAIN_WINDOW_VITE_DEV_SERVER_URL)

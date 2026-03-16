@@ -1,6 +1,6 @@
-import type { MessageSchema } from '@/i18n/locales/zh-CN'
-import { en } from '@/i18n/locales/en'
-import { zhCN } from '@/i18n/locales/zh-CN'
+import type { MessageSchema } from '#renderer/i18n/locales/zh-CN'
+import { en } from '#renderer/i18n/locales/en'
+import { zhCN } from '#renderer/i18n/locales/zh-CN'
 
 export const messages = {
   'zh-CN': zhCN,

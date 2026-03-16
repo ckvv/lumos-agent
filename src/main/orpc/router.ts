@@ -1,6 +1,6 @@
+import { orpcMiddlewares } from '#main/orpc/middlewares'
+import { appRouter } from '#main/orpc/modules/app'
 import { enhanceRouter } from '@orpc/server'
-import { orpcMiddlewares } from './middlewares'
-import { appRouter } from './modules/app'
 
 const modules = {
   app: appRouter,

@@ -1,6 +1,6 @@
-import type { AppInfo } from '../orpc/client'
+import type { AppInfo } from '#renderer/orpc/client'
+import { getORPCClient } from '#renderer/orpc/client'
 import { readonly, shallowRef } from 'vue'
-import { getORPCClient } from '../orpc/client'
 
 const appInfo = shallowRef<AppInfo | null>(null)
 const errorMessage = shallowRef<string | null>(null)

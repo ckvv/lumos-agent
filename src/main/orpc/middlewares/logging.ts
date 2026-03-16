@@ -1,5 +1,5 @@
+import { logger } from '#main/logger'
 import { os } from '@orpc/server'
-import { logger } from '../../logger'
 
 export const loggingMiddleware = os.middleware(async ({ next, path }, input) => {
   const startedAt = performance.now()

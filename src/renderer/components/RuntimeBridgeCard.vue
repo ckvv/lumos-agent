@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { useAppInfo } from '#renderer/composables/useAppInfo'
 import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useAppInfo } from '@/composables/useAppInfo'
 
 const { t } = useI18n()
 const { appInfo, errorMessage, isLoading, refresh } = useAppInfo()

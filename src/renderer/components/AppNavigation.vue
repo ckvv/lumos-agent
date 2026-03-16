@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { router } from '#renderer/router'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { router } from '@/router'
 
 interface NavRoute {
   name: string | symbol

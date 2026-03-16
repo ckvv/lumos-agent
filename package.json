@@ -10,6 +10,12 @@
   },
   "license": "MIT",
   "keywords": [],
+  "imports": {
+    "#main/*": "./src/main/*",
+    "#preload/*": "./src/preload/*",
+    "#renderer/*": "./src/renderer/*",
+    "#shared/*": "./src/shared/*"
+  },
   "main": ".vite/build/main.js",
   "scripts": {
     "start": "electron-forge start",

@@ -1,8 +1,8 @@
+import type { router } from '#main/orpc/router'
 import type { RouterClient } from '@orpc/server'
-import type { router } from '../../main/orpc/router'
+import { ORPC_CONNECT_MESSAGE_TYPE } from '#shared/orpc/constants'
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/message-port'
-import { ORPC_CONNECT_MESSAGE_TYPE } from '../../shared/orpc/constants'
 
 export type Client = RouterClient<typeof router>
 export type AppInfo = Awaited<ReturnType<Client['app']['getInfo']>>

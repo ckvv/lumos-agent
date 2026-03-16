@@ -6,12 +6,17 @@
       "DOM",
       "DOM.Iterable"
     ],
+    "rootDir": ".",
     "module": "esnext",
     "moduleResolution": "bundler",
     "paths": {
-      "@/*": ["./src/renderer/*"]
+      "#main/*": ["./src/main/*"],
+      "#preload/*": ["./src/preload/*"],
+      "#renderer/*": ["./src/renderer/*"],
+      "#shared/*": ["./src/shared/*"]
     },
     "resolveJsonModule": true,
+    "resolvePackageJsonImports": true,
     "types": ["vite/client"],
     "allowJs": false,
     "strict": true,
