@@ -27,6 +27,12 @@ let databaseContext: DatabaseContext | null = null
 let initStatus: DatabaseInitStatus = 'idle'
 let initErrorMessage: string | null = null
 let bootstrapPromise: Promise<DatabaseContext> | null = null
+const drizzleMigrationsTableName = '__drizzle_migrations'
+
+const managedTableColumns = {
+  sessions: ['id', 'user_id', 'is_authenticated', 'created_at', 'updated_at', 'deleted_at'],
+  users: ['id', 'username', 'password_hash', 'created_at', 'updated_at', 'deleted_at'],
+} as const
 
 function getDatabaseFilePath() {
   return path.join(app.getPath('userData'), DATABASE_FILENAME)
@@ -45,9 +51,50 @@ function getMigrationsFolderPath() {
   throw new Error(`Drizzle migrations folder not found. Looked in: ${candidates.join(', ')}`)
 }
 
+function tableExists(client: DatabaseSync, tableName: string) {
+  return client.prepare(
+    'SELECT 1 FROM sqlite_master WHERE type = ? AND name = ? LIMIT 1',
+  ).get('table', tableName) !== undefined
+}
+
+function tableHasColumns(client: DatabaseSync, tableName: string, expectedColumns: readonly string[]) {
+  if (!tableExists(client, tableName))
+    return false
+
+  const rows = client.prepare(`SELECT name FROM pragma_table_info('${tableName}')`).all() as Array<{ name: string }>
+  const currentColumns = new Set(rows.map(row => row.name))
+
+  return expectedColumns.every(column => currentColumns.has(column))
+}
+
+function hasRecordedMigrations(client: DatabaseSync) {
+  if (!tableExists(client, drizzleMigrationsTableName))
+    return false
+
+  return client.prepare(`SELECT 1 FROM "${drizzleMigrationsTableName}" LIMIT 1`).get() !== undefined
+}
+
+function shouldAdoptExistingSchema(client: DatabaseSync) {
+  if (hasRecordedMigrations(client))
+    return false
+
+  // 兼容早于 Drizzle 迁移接入的本地库：表结构一致时只补迁移记录，避免重复建表失败。
+  return Object.entries(managedTableColumns).every(([tableName, expectedColumns]) =>
+    tableHasColumns(client, tableName, expectedColumns),
+  )
+}
+
 function initializeDatabase(db: NodeSQLiteDatabase<typeof databaseSchema>, client: DatabaseSync) {
   client.exec('PRAGMA foreign_keys = ON;')
-  migrate(db, { migrationsFolder: getMigrationsFolderPath() })
+  const migrationsFolder = getMigrationsFolderPath()
+
+  if (shouldAdoptExistingSchema(client)) {
+    logger.warn({ filePath: getDatabaseFilePath() }, 'Detected legacy SQLite schema without Drizzle migration history, adopting existing tables')
+    migrate(db, { init: true, migrationsFolder } as Parameters<typeof migrate>[1])
+    return
+  }
+
+  migrate(db, { migrationsFolder })
 }
 
 function createDatabaseContext() {
@@ -111,6 +158,10 @@ export function startDatabaseBootstrap() {
   })
 
   return bootstrapPromise
+}
+
+export function startDatabaseBootstrapInBackground() {
+  void startDatabaseBootstrap().catch(() => {})
 }
 
 export function closeDatabase() {

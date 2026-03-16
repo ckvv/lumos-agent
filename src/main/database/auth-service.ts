@@ -2,7 +2,7 @@ import type { AuthBootstrapState, AuthCredentialsInput } from '#shared/auth/type
 import { Buffer } from 'node:buffer'
 import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from 'node:crypto'
 import { promisify } from 'node:util'
-import { getDatabaseBootstrapSnapshot, getDatabaseContext, startDatabaseBootstrap } from '#main/database/bootstrap'
+import { getDatabaseBootstrapSnapshot, getDatabaseContext, startDatabaseBootstrapInBackground } from '#main/database/bootstrap'
 import { sessions, users } from '#main/database/schema'
 import { ORPCError } from '@orpc/server'
 import { and, eq, isNull } from 'drizzle-orm'
@@ -86,7 +86,7 @@ export function getAuthBootstrapState() {
   let snapshot = getDatabaseBootstrapSnapshot()
 
   if (snapshot.status === 'idle' || snapshot.status === 'failed') {
-    void startDatabaseBootstrap()
+    startDatabaseBootstrapInBackground()
     snapshot = getDatabaseBootstrapSnapshot()
   }
 

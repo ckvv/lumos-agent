@@ -18,7 +18,7 @@ Bootstrap flow:
 
 - Database file path: `app.getPath('userData')/lumos.sqlite`
 - Init status contract: `idle | initializing | ready | failed`
-- Schema creation is idempotent and runs in the main process before auth queries are allowed.
+- Schema creation and legacy-schema adoption are idempotent and run in the main process before auth queries are allowed.
 - Renderer never opens SQLite directly.
 
 If bootstrap fails, the renderer shows the failure state and offers a retry action that restarts the app bootstrap flow.

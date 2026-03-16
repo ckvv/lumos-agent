@@ -1,5 +1,5 @@
 import process from 'node:process'
-import { closeDatabase, startDatabaseBootstrap } from '#main/database/bootstrap'
+import { closeDatabase, startDatabaseBootstrapInBackground } from '#main/database/bootstrap'
 import { flushLogs, logger } from '#main/logger'
 import { createMainWindow } from '#main/windows/main-window'
 import { app, BrowserWindow } from 'electron'
@@ -17,7 +17,7 @@ export function registerAppLifecycle() {
   app.on('ready', () => {
     logger.info('Electron app ready')
     createMainWindow()
-    void startDatabaseBootstrap()
+    startDatabaseBootstrapInBackground()
   })
 
   app.on('window-all-closed', () => {
