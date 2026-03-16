@@ -31,6 +31,8 @@ Run `pnpm lint` and `pnpm typecheck` before opening a pull request.
 
 Use TypeScript across the app. For Vue files, follow Composition API with `<script setup lang="ts">`.
 
+- Default collaboration language is Simplified Chinese unless the user, existing file conventions, or external interface requirements call for another language.
+- Add necessary Chinese comments for non-obvious logic, edge cases, or important constraints; avoid comments that only restate the code literally.
 - Indentation: 2 spaces.
 - Vue components: PascalCase, e.g. `LocaleSwitcher.vue`.
 - Composables: `useX.ts`, e.g. `useLocale.ts`.
