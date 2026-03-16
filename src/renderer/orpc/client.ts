@@ -6,6 +6,7 @@ import { RPCLink } from '@orpc/client/message-port'
 
 export type Client = RouterClient<typeof router>
 export type AppInfo = Awaited<ReturnType<Client['app']['getInfo']>>
+export type AuthBootstrapSnapshot = Awaited<ReturnType<Client['auth']['getBootstrapState']>>
 
 let clientPromise: Promise<Client> | undefined
 

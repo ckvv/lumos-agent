@@ -19,6 +19,11 @@ The transport follows the official Electron adapter shape:
 4. main upgrades the received port with `RPCHandler`
 5. renderer uses `port1` as the typed `oRPC` client transport
 
+Current modules:
+
+- `app`: desktop/runtime metadata exposed to the renderer
+- `auth`: bootstrap state, local account registration, login, and logout
+
 ## Why this shape
 
 - One typed contract is shared across main, preload, and renderer-facing types.
@@ -31,6 +36,15 @@ The transport follows the official Electron adapter shape:
 1. Implement the procedure inside the matching module under `src/main/orpc/modules/`.
 2. Re-export or compose that module from `src/main/orpc/router.ts` when a new domain is introduced.
 3. Consume it from renderer composables or components through `src/renderer/orpc/client.ts`.
+
+## Auth Bootstrap Notes
+
+The auth module is also the renderer-facing bootstrap contract for local database readiness.
+
+- `auth.getBootstrapState()` is a snapshot call, not a blocking bootstrap call.
+- The main process starts SQLite bootstrap during `app.ready`.
+- The renderer polls `getBootstrapState()` while the database reports `idle` or `initializing`.
+- Once the database is `ready`, auth procedures operate against the main-process SQLite connection.
 
 ## Router Organization
 
