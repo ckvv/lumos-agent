@@ -6,7 +6,6 @@
       "DOM",
       "DOM.Iterable"
     ],
-    "baseUrl": ".",
     "module": "esnext",
     "moduleResolution": "bundler",
     "paths": {
@@ -15,6 +14,7 @@
     "resolveJsonModule": true,
     "types": ["vite/client"],
     "allowJs": false,
+    "strict": true,
     "noImplicitAny": true,
     "outDir": "dist",
     "sourceMap": true,

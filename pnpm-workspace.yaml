@@ -16,3 +16,6 @@ onlyBuiltDependencies:
   - electron-winstaller
   - esbuild
   - simple-git-hooks
+peerDependencyRules:
+  - vite
+  - typescript

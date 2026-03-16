@@ -13,9 +13,9 @@ const { t } = useI18n()
 const navRoutes = computed<NavRoute[]>(() =>
   router
     .getRoutes()
-    .filter(route => !route.redirect)
+    .filter(route => !route.redirect && route.name)
     .map(route => ({
-      name: route.name,
+      name: route.name!,
       path: route.path,
     })),
 )

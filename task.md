@@ -5,7 +5,7 @@
 - 代码风格: eslint + @antfu/eslint-config
 - 语言: TypeScript
 - 前端: Vite + Vue 3 + @vueuse/core + vue-router + Nuxt UI 3 + markstream-vue + tailwindcss
-- AI SDK: ai + @ai-sdk/mcp 当前可以只支持 open ai, 
+- AI SDK: ai + @ai-sdk/mcp 当前可以只支持 open ai,
 - 前与 electron 通信: [orpc](https://orpc.dev/) 框架
 - 参数校验: [zod](https://zod.dev/) 框架
 - 日志: [pino](https://github.com/pinojs/pino) 框架
