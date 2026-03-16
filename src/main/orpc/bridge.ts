@@ -1,6 +1,7 @@
 import { RPCHandler } from '@orpc/server/message-port'
 import { ipcMain } from 'electron'
 import { ORPC_CONNECT_CHANNEL } from '../../shared/orpc/constants'
+import { logger } from '../logger'
 import { lumosRouter } from './router'
 
 const rpcHandler = new RPCHandler(lumosRouter)
@@ -10,6 +11,7 @@ export function registerORPCBridge() {
     const [port] = event.ports
 
     if (!port) {
+      logger.warn('Received oRPC connection request without a MessagePort')
       return
     }
 
