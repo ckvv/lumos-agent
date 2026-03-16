@@ -4,8 +4,8 @@ This project uses `oRPC` as the typed communication layer between the Electron m
 
 ## Architecture
 
-- `src/shared/orpc/contract.ts`: shared contract definitions and schemas.
 - `src/main/orpc/modules/*.ts`: domain-level main-process router modules.
+- `src/main/orpc/middlewares/*.ts`: cross-cutting oRPC middlewares such as logging.
 - `src/main/orpc/router.ts`: root router that composes domain modules.
 - `src/main/orpc/bridge.ts`: upgrades the transferred Electron `MessagePortMain` into an `oRPC` server handler.
 - `src/preload/orpc/bridge.ts`: forwards the renderer-created message port to Electron IPC.
@@ -28,13 +28,12 @@ The transport follows the official Electron adapter shape:
 
 ## Adding a new procedure
 
-1. Add the schema and procedure to `src/shared/orpc/contract.ts`.
-2. Implement the procedure inside the matching module under `src/main/orpc/modules/`.
-3. Re-export or compose that module from `src/main/orpc/router.ts` when a new domain is introduced.
-4. Consume it from renderer composables or components through `src/renderer/orpc/client.ts`.
+1. Implement the procedure inside the matching module under `src/main/orpc/modules/`.
+2. Re-export or compose that module from `src/main/orpc/router.ts` when a new domain is introduced.
+3. Consume it from renderer composables or components through `src/renderer/orpc/client.ts`.
 
 ## Router Organization
 
 - Keep each domain in its own module, such as `app`, `settings`, or `window`.
-- Use `os.<domain>.router({ ... })` inside the module so the implementation is constrained by the matching contract branch.
-- Keep `src/main/orpc/router.ts` as a thin composition layer that only assembles module routers into the root router.
+- Keep `src/main/orpc/router.ts` as the single composition layer for both domain modules and shared middlewares.
+- Register cross-cutting middleware in `src/main/orpc/middlewares/index.ts` so future concerns like auth, metrics, or auditing can be added without touching every procedure.

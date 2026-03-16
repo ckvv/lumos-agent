@@ -1,17 +1,17 @@
 import type { RouterClient } from '@orpc/server'
-import type { lumosRouter } from '../../main/orpc/router'
+import type { router } from '../../main/orpc/router'
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/message-port'
 import { ORPC_CONNECT_MESSAGE_TYPE } from '../../shared/orpc/constants'
 
-export type LumosClient = RouterClient<typeof lumosRouter>
-export type AppInfo = Awaited<ReturnType<LumosClient['app']['getInfo']>>
+export type Client = RouterClient<typeof router>
+export type AppInfo = Awaited<ReturnType<Client['app']['getInfo']>>
 
-let clientPromise: Promise<LumosClient> | undefined
+let clientPromise: Promise<Client> | undefined
 
 export function getORPCClient() {
   if (!clientPromise) {
-    clientPromise = new Promise<LumosClient>((resolve) => {
+    clientPromise = new Promise<Client>((resolve) => {
       const channel = new MessageChannel()
 
       channel.port1.start()
@@ -22,7 +22,7 @@ export function getORPCClient() {
         [channel.port2],
       )
 
-      const client: LumosClient = createORPCClient(new RPCLink({ port: channel.port1 }))
+      const client: Client = createORPCClient(new RPCLink({ port: channel.port1 }))
       resolve(client)
     })
   }

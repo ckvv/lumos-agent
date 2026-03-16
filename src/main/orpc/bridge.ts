@@ -2,9 +2,9 @@ import { RPCHandler } from '@orpc/server/message-port'
 import { ipcMain } from 'electron'
 import { ORPC_CONNECT_CHANNEL } from '../../shared/orpc/constants'
 import { logger } from '../logger'
-import { lumosRouter } from './router'
+import { router } from './router'
 
-const rpcHandler = new RPCHandler(lumosRouter)
+const rpcHandler = new RPCHandler(router)
 
 export function registerORPCBridge() {
   ipcMain.on(ORPC_CONNECT_CHANNEL, (event) => {

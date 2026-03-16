@@ -3,22 +3,14 @@ import { app, BrowserWindow } from 'electron'
 import { flushLogs, logger } from '../logger'
 import { createMainWindow } from '../windows/main-window'
 
-function normalizeRejectionReason(reason: unknown) {
-  if (reason instanceof Error) {
-    return { err: reason }
-  }
-
-  return { reason }
-}
-
 export function registerAppLifecycle() {
   process.on('uncaughtException', (error) => {
-    logger.fatal({ err: error }, 'Uncaught exception in main process')
+    logger.fatal({ error }, 'Uncaught exception in main process')
     flushLogs()
   })
 
   process.on('unhandledRejection', (reason) => {
-    logger.error(normalizeRejectionReason(reason), 'Unhandled promise rejection in main process')
+    logger.error({ reason }, 'Unhandled promise rejection in main process')
   })
 
   app.on('ready', () => {
