@@ -11,7 +11,6 @@ export const router = createRouter({
   routes,
 })
 
-// 当前文件确实打包为了 esm 但是 ts config 设置的是
 if (import.meta.hot) {
   handleHotUpdate(router)
 }

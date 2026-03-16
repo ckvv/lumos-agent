@@ -18,6 +18,7 @@ declare module 'vue' {
     LocaleSwitcher: typeof import('./src/renderer/components/LocaleSwitcher.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    RuntimeBridgeCard: typeof import('./src/renderer/components/RuntimeBridgeCard.vue')['default']
     UApp: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/App.vue')['default']
     USelect: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Select.vue')['default']
   }

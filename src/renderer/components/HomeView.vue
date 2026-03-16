@@ -87,5 +87,7 @@ const quickStartSteps = [
         </p>
       </article>
     </div>
+
+    <RuntimeBridgeCard />
   </section>
 </template>

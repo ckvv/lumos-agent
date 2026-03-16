@@ -23,6 +23,7 @@ export const en = {
     sections: {
       highlights: 'What is included',
       quickStart: 'Quick start',
+      runtimeBridge: 'Main-process RPC',
     },
     highlights: {
       stack: {
@@ -44,6 +45,18 @@ export const en = {
       dev: 'pnpm start',
       package: 'pnpm package',
       note: 'Validate the startup and packaging flow first so the main process, preload script, and renderer work together before layering in business features.',
+    },
+    runtimeBridge: {
+      title: 'Renderer data now comes through a typed oRPC bridge',
+      body: 'The preload script establishes a MessagePort-backed oRPC client, so renderer features call main-process procedures through one contract-driven transport that can grow cleanly.',
+      loading: 'Loading runtime information from the main process...',
+      error: 'Main-process call failed: {message}',
+      labels: {
+        version: 'App {value}',
+        electron: 'Electron {value}',
+        platform: 'Platform {value}',
+        locale: 'Locale {value}',
+      },
     },
   },
   about: {

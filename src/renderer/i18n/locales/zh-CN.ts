@@ -21,6 +21,7 @@ export const zhCN = {
     sections: {
       highlights: '模板能力',
       quickStart: '快速开始',
+      runtimeBridge: '主进程 RPC',
     },
     highlights: {
       stack: {
@@ -42,6 +43,18 @@ export const zhCN = {
       dev: 'pnpm start',
       package: 'pnpm package',
       note: '开发阶段先用启动与打包流程验证主进程、预加载脚本和渲染层是否协同正常，再逐步加入业务模块。',
+    },
+    runtimeBridge: {
+      title: '渲染层数据现在通过类型安全的 oRPC bridge 获取',
+      body: 'preload 会先建立一条基于 MessagePort 的 oRPC 客户端，renderer 后续调用主进程能力都走同一份 contract 和传输层，后面继续扩展不会把 channel 越堆越散。',
+      loading: '正在从主进程读取运行时信息...',
+      error: '主进程调用失败：{message}',
+      labels: {
+        version: '应用 {value}',
+        electron: 'Electron {value}',
+        platform: '平台 {value}',
+        locale: '语言环境 {value}',
+      },
     },
   },
   about: {
