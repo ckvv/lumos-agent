@@ -1,10 +1,12 @@
 import type { DatabaseInitStatus } from '#shared/auth/types'
 import type { NodeSQLiteDatabase } from 'drizzle-orm/node-sqlite'
-import { mkdirSync } from 'node:fs'
+import { existsSync, mkdirSync } from 'node:fs'
 import path from 'node:path'
+import process from 'node:process'
 import { DatabaseSync } from 'node:sqlite'
 import { logger } from '#main/logger'
 import { drizzle } from 'drizzle-orm/node-sqlite'
+import { migrate } from 'drizzle-orm/node-sqlite/migrator'
 import { app } from 'electron'
 import { databaseSchema } from './schema'
 
@@ -31,28 +33,22 @@ function getDatabaseFilePath() {
   return path.join(app.getPath('userData'), DATABASE_FILENAME)
 }
 
-function initializeSchema(client: DatabaseSync) {
-  client.exec('PRAGMA foreign_keys = ON;')
-  client.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT NOT NULL UNIQUE,
-      password_hash TEXT NOT NULL,
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL,
-      deleted_at TEXT
-    );
+function getMigrationsFolderPath() {
+  const candidates = app.isPackaged
+    ? [path.join(process.resourcesPath, 'drizzle')]
+    : [path.join(app.getAppPath(), 'drizzle'), path.join(process.cwd(), 'drizzle')]
 
-    CREATE TABLE IF NOT EXISTS sessions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL UNIQUE,
-      is_authenticated INTEGER NOT NULL,
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL,
-      deleted_at TEXT,
-      FOREIGN KEY(user_id) REFERENCES users(id)
-    );
-  `)
+  const folderPath = candidates.find(candidate => existsSync(candidate))
+
+  if (folderPath)
+    return folderPath
+
+  throw new Error(`Drizzle migrations folder not found. Looked in: ${candidates.join(', ')}`)
+}
+
+function initializeDatabase(db: NodeSQLiteDatabase<typeof databaseSchema>, client: DatabaseSync) {
+  client.exec('PRAGMA foreign_keys = ON;')
+  migrate(db, { migrationsFolder: getMigrationsFolderPath() })
 }
 
 function createDatabaseContext() {
@@ -60,13 +56,14 @@ function createDatabaseContext() {
   mkdirSync(path.dirname(filePath), { recursive: true })
 
   const client = new DatabaseSync(filePath)
+  const db = drizzle({ client, schema: databaseSchema })
 
   try {
-    initializeSchema(client)
+    initializeDatabase(db, client)
 
     return {
       client,
-      db: drizzle({ client, schema: databaseSchema }),
+      db,
       filePath,
     } satisfies DatabaseContext
   }

@@ -7,8 +7,9 @@ This repository is an Electron Forge desktop app with a Vite + Vue 3 renderer.
 - `src/main/`: Electron main-process startup, lifecycle, constants, and window creation.
 - `src/preload/`: secure bridge APIs exposed to the renderer through preload scripts.
 - `src/renderer/`: Vue application code, including `pages/`, `components/`, `layouts/`, `router/`, `composables/`, `i18n/`, and shared styles.
+- `drizzle/`: generated SQLite migration files that ship with packaged builds.
 - `docs/`: contributor-facing documentation such as [`docs/i18n.md`](./docs/i18n.md).
-- Root config: `vite.*`, `forge.config.ts`, `tsconfig.json`, `eslint.config.mjs`.
+- Root config: `vite.*`, `forge.config.ts`, `drizzle.config.ts`, `tsconfig.json`, `eslint.config.mjs`.
 
 Keep desktop integrations in `src/main/` or `src/preload/`; keep UI logic in `src/renderer/`.
 
@@ -19,6 +20,7 @@ If a change affects project structure, core development commands, validation wor
 Prefer `pnpm`.
 
 - `pnpm install`: install dependencies.
+- `pnpm db:generate`: generate SQLite migrations from `src/main/database/schema.ts`.
 - `pnpm start`: run the Electron Forge development app.
 - `pnpm lint`: run ESLint with autofix (`eslint --fix`).
 - `pnpm typecheck`: run Vue + TypeScript type checking with `vue-tsc --noEmit`.
@@ -26,6 +28,7 @@ Prefer `pnpm`.
 - `pnpm make`: generate platform distribution artifacts.
 
 Run `pnpm lint` and `pnpm typecheck` before opening a pull request.
+When changing the database schema, also run `pnpm db:generate` and commit the updated `drizzle/` migration files.
 
 ## Coding Style & Naming Conventions
 

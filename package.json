@@ -18,6 +18,7 @@
   },
   "main": ".vite/build/main.js",
   "scripts": {
+    "db:generate": "drizzle-kit generate",
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
@@ -56,6 +57,7 @@
     "@types/electron-squirrel-startup": "^1.0.2",
     "@vitejs/plugin-vue": "^6.0.5",
     "changelogen": "0.6.2",
+    "drizzle-kit": "1.0.0-beta.18-5cac498",
     "electron": "41.0.2",
     "eslint": "^10.0.3",
     "nano-staged": "^0.9.0",
