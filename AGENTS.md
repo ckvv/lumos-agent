@@ -21,6 +21,7 @@ Prefer `pnpm`.
 
 - `pnpm install`: install dependencies.
 - `pnpm db:generate`: generate SQLite migrations from `src/main/database/schema.ts`.
+- `pnpm db:studio`: launch Drizzle Studio for the Electron app's local SQLite database.
 - `pnpm start`: run the Electron Forge development app.
 - `pnpm lint`: run ESLint with autofix (`eslint --fix`).
 - `pnpm typecheck`: run Vue + TypeScript type checking with `vue-tsc --noEmit`.

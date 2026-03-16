@@ -5,12 +5,11 @@ import path from 'node:path'
 import process from 'node:process'
 import { DatabaseSync } from 'node:sqlite'
 import { logger } from '#main/logger'
+import { DATABASE_FILENAME } from '#shared/app/constants'
 import { drizzle } from 'drizzle-orm/node-sqlite'
 import { migrate } from 'drizzle-orm/node-sqlite/migrator'
 import { app } from 'electron'
 import { databaseSchema } from './schema'
-
-const DATABASE_FILENAME = 'lumos.sqlite'
 
 export interface DatabaseBootstrapSnapshot {
   errorMessage: string | null

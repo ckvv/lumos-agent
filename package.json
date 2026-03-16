@@ -19,6 +19,7 @@
   "main": ".vite/build/main.js",
   "scripts": {
     "db:generate": "drizzle-kit generate",
+    "db:studio": "drizzle-kit studio",
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
