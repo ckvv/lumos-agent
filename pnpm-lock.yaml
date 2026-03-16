@@ -29,9 +29,6 @@ importers:
       markstream-vue:
         specifier: 0.0.9-beta.1
         version: 0.0.9-beta.1(vue-i18n@11.3.0(vue@3.5.30(typescript@6.0.1-rc)))(vue@3.5.30(typescript@6.0.1-rc))
-      nano-staged:
-        specifier: ^0.9.0
-        version: 0.9.0
       orpc:
         specifier: ^0.1.1
         version: 0.1.1(socket.io-client@2.5.0)(socket.io@2.5.1)
@@ -96,6 +93,9 @@ importers:
       eslint:
         specifier: ^10.0.3
         version: 10.0.3(jiti@2.6.1)
+      nano-staged:
+        specifier: ^0.9.0
+        version: 0.9.0
       simple-git-hooks:
         specifier: ^2.13.1
         version: 2.13.1
