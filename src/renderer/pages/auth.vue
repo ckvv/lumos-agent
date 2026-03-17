@@ -89,7 +89,7 @@ async function handleAuthSubmit(payload: { password: string, username: string })
               class="w-fit rounded-full"
               color="neutral"
               :label="t('auth.shell.viewAbout')"
-              to="/"
+              to="/about"
               variant="outline"
             />
           </div>

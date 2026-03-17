@@ -15,6 +15,15 @@ export const router = createRouter({
 router.beforeEach(async (to) => {
   const bootstrap = useAppBootstrap()
 
+  if (to.path === '/') {
+    await bootstrap.ensureBootstrapped()
+
+    if (bootstrap.viewState.value !== 'ready')
+      return '/auth'
+
+    return bootstrap.recommendedRoute.value
+  }
+
   if (to.path === '/auth') {
     await bootstrap.ensureBootstrapped()
 

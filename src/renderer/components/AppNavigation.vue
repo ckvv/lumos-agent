@@ -16,7 +16,7 @@ const navRoutes = [
   },
   {
     key: 'about',
-    path: '/',
+    path: '/about',
   },
 ]
 </script>

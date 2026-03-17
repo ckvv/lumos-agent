@@ -3,7 +3,7 @@ import type { CompatibleProviderCompat, ProviderConfigDetail } from '#shared/cha
 import { useAppBootstrap } from '#renderer/composables/useAppBootstrap'
 import { useProviderSettings } from '#renderer/composables/useProviderSettings'
 import { confirmAction } from '#renderer/utils/confirm'
-import { computed, onMounted, reactive, shallowRef } from 'vue'
+import { computed, onMounted, reactive, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -98,9 +98,17 @@ function resetCompatibleForm() {
 }
 
 async function refreshBootstrapAndMaybeRedirect() {
+  const previouslyHadUsableProvider = bootstrap.hasUsableProvider.value
+  await refreshBootstrapAfterProviderMutation(previouslyHadUsableProvider)
+}
+
+async function refreshBootstrapAfterProviderMutation(previouslyHadUsableProvider: boolean, allowRedirect = true) {
   await bootstrap.refreshBootstrap()
 
-  if (bootstrap.hasUsableProvider.value)
+  if (!allowRedirect)
+    return
+
+  if (!previouslyHadUsableProvider && bootstrap.hasUsableProvider.value)
     await router.replace('/chat')
 }
 
@@ -128,20 +136,23 @@ async function handleDeleteConfig(id: number) {
     return
 
   await providerSettings.deleteConfig(id)
-  await bootstrap.refreshBootstrap()
+  await refreshBootstrapAfterProviderMutation(bootstrap.hasUsableProvider.value, false)
 }
 
 async function handleToggleConfig(config: Readonly<ProviderConfigDetail>) {
+  const previouslyHadUsableProvider = bootstrap.hasUsableProvider.value
   await providerSettings.setEnabled(config.id, !config.isEnabled)
-  await bootstrap.refreshBootstrap()
+  await refreshBootstrapAfterProviderMutation(previouslyHadUsableProvider)
 }
 
 async function handleSyncCompatibleModels(id: number) {
+  const previouslyHadUsableProvider = bootstrap.hasUsableProvider.value
   await providerSettings.syncCompatibleModels(id)
-  await bootstrap.refreshBootstrap()
+  await refreshBootstrapAfterProviderMutation(previouslyHadUsableProvider)
 }
 
 async function handleSaveManualModel(providerConfigId: number) {
+  const previouslyHadUsableProvider = bootstrap.hasUsableProvider.value
   const form = getManualModelForm(providerConfigId)
 
   await providerSettings.saveCompatibleModel({
@@ -162,7 +173,7 @@ async function handleSaveManualModel(providerConfigId: number) {
     reasoning: false,
     supportsImageInput: false,
   }
-  await bootstrap.refreshBootstrap()
+  await refreshBootstrapAfterProviderMutation(previouslyHadUsableProvider)
 }
 
 async function handleDeleteManualModel(providerConfigId: number, modelId: string) {
@@ -170,7 +181,7 @@ async function handleDeleteManualModel(providerConfigId: number, modelId: string
     return
 
   await providerSettings.deleteCompatibleModel(providerConfigId, modelId)
-  await bootstrap.refreshBootstrap()
+  await refreshBootstrapAfterProviderMutation(bootstrap.hasUsableProvider.value, false)
 }
 
 async function handleStartOAuth(providerId: string) {
@@ -199,6 +210,16 @@ function handleEditCompatibleConfig(config: Readonly<ProviderConfigDetail>) {
 onMounted(async () => {
   await providerSettings.load()
 })
+
+watch(
+  () => providerSettings.oauthState.value.event?.type,
+  async (eventType) => {
+    if (eventType !== 'success')
+      return
+
+    await refreshBootstrapAndMaybeRedirect()
+  },
+)
 </script>
 
 <template>
