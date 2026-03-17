@@ -17,12 +17,6 @@ const { locale, localeOptions } = useLocale()
 
 const username = computed(() => props.currentUsername ?? '-')
 
-const currentLocaleLabel = computed(() => {
-  const matchedLocale = localeOptions.find(option => option.value === locale.value)
-
-  return matchedLocale ? t(matchedLocale.labelKey) : locale.value
-})
-
 function handleLocaleChange(nextLocale: AppLocale) {
   locale.value = nextLocale
 }
@@ -38,7 +32,6 @@ const localeMenuItems = computed(() =>
 const menuItems = computed(() => [
   [
     {
-      description: t('shell.currentUser', { username: username.value }),
       icon: 'i-lucide-circle-user-round',
       label: username.value,
       type: 'label' as const,
@@ -59,7 +52,6 @@ const menuItems = computed(() => [
   [
     {
       children: localeMenuItems.value,
-      description: currentLocaleLabel.value,
       icon: 'i-lucide-languages',
       label: t('shell.languageSwitch'),
     },

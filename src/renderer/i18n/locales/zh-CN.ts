@@ -1,6 +1,5 @@
 export const zhCN = {
   shell: {
-    currentUser: '当前账号：{username}',
     description: '欢迎回来，{username}。继续当前工作，服务配置和对话内容都会自动保留。',
     eyebrow: 'Lumos Workspace',
     languageLabel: '语言',

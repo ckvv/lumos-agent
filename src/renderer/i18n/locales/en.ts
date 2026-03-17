@@ -2,7 +2,6 @@ import type { MessageSchema } from '#renderer/i18n/locales/zh-CN'
 
 export const en = {
   shell: {
-    currentUser: 'Signed in as {username}',
     description: 'Welcome back, {username}. Keep working from where you left off and your service setup plus conversations stay in place.',
     eyebrow: 'Lumos Workspace',
     languageLabel: 'Language',
