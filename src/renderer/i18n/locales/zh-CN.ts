@@ -44,6 +44,10 @@ export const zhCN = {
   },
   navigation: {
     ariaLabel: '应用导航',
+    routes: {
+      about: '关于',
+      home: '首页',
+    },
   },
   home: {
     eyebrow: '首页',

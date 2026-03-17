@@ -26,66 +26,120 @@ const quickStartSteps = [
 </script>
 
 <template>
-  <section class="grid gap-5">
-    <article class="relative grid gap-3 overflow-hidden rounded-3xl border border-slate-300/40 bg-white/88 p-7 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
-      <div class="pointer-events-none absolute -right-10 -top-[5.625rem] h-[13.75rem] w-[13.75rem] rounded-full bg-[radial-gradient(circle,rgba(20,184,166,0.18)_0%,rgba(20,184,166,0)_68%)]" />
-      <p class="m-0 text-xs font-bold uppercase tracking-[0.16em] text-teal-700">
-        {{ t('home.eyebrow') }}
-      </p>
-      <h2 class="m-0 text-[clamp(1.5rem,3vw,2.2rem)] font-bold leading-[1.1] text-slate-900">
-        {{ t('home.title') }}
-      </h2>
-      <p class="m-0 max-w-[60ch] text-base leading-[1.7] text-slate-600">
-        {{ t('home.body') }}
-      </p>
+  <section class="grid gap-6">
+    <UCard
+      class="overflow-hidden border-accented bg-default/90 shadow-xl"
+      variant="subtle"
+    >
+      <template #header>
+        <div class="grid gap-5">
+          <div class="flex flex-wrap gap-2">
+            <UBadge
+              color="primary"
+              :label="t('home.eyebrow')"
+              variant="soft"
+            />
+            <UBadge
+              color="neutral"
+              :label="t('home.meta.runtime')"
+              variant="subtle"
+            />
+            <UBadge
+              color="neutral"
+              :label="t('home.meta.router')"
+              variant="subtle"
+            />
+            <UBadge
+              color="neutral"
+              :label="t('home.meta.i18n')"
+              variant="subtle"
+            />
+          </div>
 
-      <div class="relative z-10 flex flex-wrap gap-2.5">
-        <span class="rounded-full border border-teal-700/12 bg-teal-700/8 px-3 py-2 text-[0.85rem] font-bold text-teal-800">{{ t('home.meta.runtime') }}</span>
-        <span class="rounded-full border border-teal-700/12 bg-teal-700/8 px-3 py-2 text-[0.85rem] font-bold text-teal-800">{{ t('home.meta.router') }}</span>
-        <span class="rounded-full border border-teal-700/12 bg-teal-700/8 px-3 py-2 text-[0.85rem] font-bold text-teal-800">{{ t('home.meta.i18n') }}</span>
-      </div>
-    </article>
+          <div class="grid gap-3">
+            <h2 class="m-0 max-w-4xl text-[clamp(1.8rem,4vw,3rem)] font-semibold tracking-tight text-highlighted">
+              {{ t('home.title') }}
+            </h2>
+            <p class="m-0 max-w-[64ch] text-base leading-8 text-toned">
+              {{ t('home.body') }}
+            </p>
+          </div>
+        </div>
+      </template>
+    </UCard>
 
-    <div class="grid gap-5 md:grid-cols-2">
-      <article class="grid gap-3 rounded-3xl border border-slate-300/40 bg-white/88 p-7 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
-        <p class="m-0 text-xs font-bold uppercase tracking-[0.16em] text-teal-700">
-          {{ t('home.sections.highlights') }}
-        </p>
-        <div class="grid gap-6">
+    <div class="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(22rem,0.8fr)]">
+      <UCard
+        class="border-accented bg-default/90 shadow-lg"
+        variant="subtle"
+      >
+        <template #header>
+          <div class="grid gap-2">
+            <UBadge
+              class="w-fit"
+              color="primary"
+              :label="t('home.sections.highlights')"
+              variant="soft"
+            />
+            <h3 class="m-0 text-xl font-semibold text-highlighted">
+              {{ t('home.sections.highlights') }}
+            </h3>
+          </div>
+        </template>
+
+        <div class="grid gap-5">
           <section
             v-for="item in highlights"
             :key="item.titleKey"
-            class="grid gap-1.5"
+            class="grid gap-2 border-default/60 pt-5 first:border-t-0 first:pt-0"
           >
-            <h3 class="m-0 text-base font-bold text-slate-900">
+            <h4 class="m-0 text-base font-semibold text-highlighted">
               {{ t(item.titleKey) }}
-            </h3>
-            <p class="m-0 leading-[1.7] text-slate-600">
+            </h4>
+            <p class="m-0 leading-7 text-toned">
               {{ t(item.bodyKey) }}
             </p>
           </section>
         </div>
-      </article>
+      </UCard>
 
-      <article class="grid gap-3 rounded-3xl border border-slate-300/40 bg-white/88 p-7 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
-        <p class="m-0 text-xs font-bold uppercase tracking-[0.16em] text-teal-700">
-          {{ t('home.sections.quickStart') }}
-        </p>
-        <h3 class="m-0 text-[1.15rem] font-bold text-slate-900">
-          {{ t('home.quickStart.title') }}
-        </h3>
-        <ol class="m-0 grid gap-2.5 pl-5">
-          <li
-            v-for="step in quickStartSteps"
+      <UCard
+        class="border-accented bg-default/90 shadow-lg"
+        variant="subtle"
+      >
+        <template #header>
+          <div class="grid gap-2">
+            <UBadge
+              class="w-fit"
+              color="secondary"
+              :label="t('home.sections.quickStart')"
+              variant="soft"
+            />
+            <h3 class="m-0 text-xl font-semibold text-highlighted">
+              {{ t('home.quickStart.title') }}
+            </h3>
+          </div>
+        </template>
+
+        <div class="grid gap-4">
+          <div
+            v-for="(step, index) in quickStartSteps"
             :key="step"
+            class="flex items-center gap-3 rounded-2xl bg-elevated/80 p-3 ring ring-default"
           >
-            <code class="inline-block rounded-xl bg-slate-900 px-3 py-2.5 font-mono text-[0.95rem] text-slate-50">{{ t(step) }}</code>
-          </li>
-        </ol>
-        <p class="m-0 max-w-[60ch] text-base leading-[1.7] text-slate-600">
-          {{ t('home.quickStart.note') }}
-        </p>
-      </article>
+            <UBadge
+              color="secondary"
+              :label="String(index + 1)"
+              variant="solid"
+            />
+            <code class="font-mono text-sm text-highlighted">{{ t(step) }}</code>
+          </div>
+
+          <p class="m-0 text-sm leading-7 text-toned">
+            {{ t('home.quickStart.note') }}
+          </p>
+        </div>
+      </UCard>
     </div>
 
     <RuntimeBridgeCard />

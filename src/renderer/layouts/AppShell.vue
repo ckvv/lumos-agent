@@ -27,14 +27,14 @@ async function handleLogout() {
 </script>
 
 <template>
-  <main class="min-h-screen bg-[linear-gradient(180deg,#f6fffb_0%,#f5f7fb_38%,#eef2ff_100%)] px-4 py-8 sm:px-6 sm:py-12">
-    <div class="mx-auto flex max-w-5xl justify-end">
+  <main class="min-h-screen px-4 py-8 sm:px-6 sm:py-12">
+    <div class="mx-auto flex max-w-6xl justify-end">
       <LocaleSwitcher />
     </div>
 
     <section
       v-if="auth.viewState.value === 'initializing' || auth.viewState.value === 'failed'"
-      class="mx-auto mt-8 flex max-w-5xl justify-center"
+      class="mx-auto mt-8 flex max-w-6xl justify-center"
     >
       <AuthInitState
         :error-message="auth.initializationErrorMessage.value"
@@ -46,16 +46,19 @@ async function handleLogout() {
 
     <section
       v-else-if="auth.viewState.value !== 'authenticated'"
-      class="mx-auto mt-8 grid max-w-5xl gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(22rem,28rem)] lg:items-center"
+      class="mx-auto mt-8 grid max-w-6xl gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(24rem,30rem)] lg:items-center"
     >
       <div class="grid gap-4">
-        <p class="m-0 text-xs font-bold uppercase tracking-[0.18em] text-teal-700">
-          {{ t('auth.shell.eyebrow') }}
-        </p>
-        <h1 class="m-0 text-[clamp(2.2rem,6vw,4.4rem)] font-bold leading-[0.95] text-slate-900">
+        <UBadge
+          class="w-fit"
+          color="primary"
+          :label="t('auth.shell.eyebrow')"
+          variant="soft"
+        />
+        <h1 class="m-0 max-w-4xl text-[clamp(2.6rem,7vw,5rem)] font-semibold leading-none tracking-tight text-highlighted">
           {{ t('auth.shell.title') }}
         </h1>
-        <p class="m-0 max-w-[54ch] text-base leading-[1.8] text-slate-600">
+        <p class="m-0 max-w-[58ch] text-base leading-8 text-toned">
           {{ t('auth.shell.description') }}
         </p>
       </div>
@@ -69,40 +72,48 @@ async function handleLogout() {
     </section>
 
     <template v-else>
-      <header class="mx-auto mb-6 mt-6 grid max-w-5xl gap-5">
-        <div class="flex flex-col gap-4 rounded-[2rem] border border-slate-300/40 bg-white/86 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:flex-row sm:items-center sm:justify-between">
-          <div class="grid gap-1">
-            <span class="text-xs font-bold uppercase tracking-[0.16em] text-teal-700">
-              {{ t('shell.eyebrow') }}
-            </span>
-            <p class="m-0 text-sm text-slate-600">
-              {{ t('shell.currentUser', { username: auth.currentUsername.value ?? '-' }) }}
-            </p>
-          </div>
+      <header class="mx-auto mb-6 mt-6 grid max-w-6xl gap-5">
+        <UCard
+          class="border-accented bg-default/90 shadow-lg"
+          variant="subtle"
+        >
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="grid gap-2">
+              <UBadge
+                class="w-fit"
+                color="primary"
+                :label="t('shell.eyebrow')"
+                variant="soft"
+              />
+              <p class="m-0 text-sm text-toned">
+                {{ t('shell.currentUser', { username: auth.currentUsername.value ?? '-' }) }}
+              </p>
+            </div>
 
-          <div class="flex items-center gap-3">
-            <button
-              class="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
+            <UButton
+              class="rounded-full"
+              color="neutral"
+              :label="t('shell.logout')"
+              size="lg"
               type="button"
+              variant="outline"
               @click="handleLogout"
-            >
-              {{ t('shell.logout') }}
-            </button>
+            />
           </div>
-        </div>
+        </UCard>
 
         <div class="grid gap-2">
-          <h1 class="m-0 text-[clamp(2rem,4vw,3rem)] font-bold leading-[1.05] text-slate-900">
+          <h1 class="m-0 text-[clamp(2rem,4vw,3.2rem)] font-semibold leading-tight tracking-tight text-highlighted">
             {{ t('shell.title') }}
           </h1>
-          <p class="m-0 max-w-[56ch] text-base text-slate-600">
+          <p class="m-0 max-w-[58ch] text-base leading-8 text-toned">
             {{ t('shell.description') }}
           </p>
         </div>
         <AppNavigation />
       </header>
 
-      <section class="mx-auto max-w-5xl">
+      <section class="mx-auto max-w-6xl">
         <RouterView />
       </section>
     </template>

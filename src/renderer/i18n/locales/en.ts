@@ -46,6 +46,10 @@ export const en = {
   },
   navigation: {
     ariaLabel: 'Application navigation',
+    routes: {
+      about: 'About',
+      home: 'Home',
+    },
   },
   home: {
     eyebrow: 'Home',

@@ -26,48 +26,83 @@ const scenarios = [
 </script>
 
 <template>
-  <section class="grid gap-5">
-    <article class="grid gap-3 rounded-3xl border border-slate-300/40 bg-white/88 p-7 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
-      <p class="m-0 text-xs font-bold uppercase tracking-[0.16em] text-teal-700">
-        {{ t('about.eyebrow') }}
-      </p>
-      <h2 class="m-0 text-[clamp(1.5rem,3vw,2.2rem)] font-bold leading-[1.1] text-slate-900">
-        {{ t('about.title') }}
-      </h2>
-      <p class="m-0 max-w-[60ch] text-base leading-[1.7] text-slate-600">
-        {{ t('about.body') }}
-      </p>
-    </article>
+  <section class="grid gap-6">
+    <UCard
+      class="border-accented bg-default/90 shadow-xl"
+      variant="subtle"
+    >
+      <template #header>
+        <div class="grid gap-3">
+          <UBadge
+            class="w-fit"
+            color="primary"
+            :label="t('about.eyebrow')"
+            variant="soft"
+          />
+          <h2 class="m-0 max-w-4xl text-[clamp(1.8rem,4vw,3rem)] font-semibold tracking-tight text-highlighted">
+            {{ t('about.title') }}
+          </h2>
+          <p class="m-0 max-w-[64ch] text-base leading-8 text-toned">
+            {{ t('about.body') }}
+          </p>
+        </div>
+      </template>
+    </UCard>
 
-    <div class="grid gap-5 md:grid-cols-2">
-      <article class="grid gap-3 rounded-3xl border border-slate-300/40 bg-white/88 p-7 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
-        <p class="m-0 text-xs font-bold uppercase tracking-[0.16em] text-teal-700">
-          {{ t('about.sections.boundaries') }}
-        </p>
-        <div class="grid gap-6">
+    <div class="grid gap-6 lg:grid-cols-2">
+      <UCard
+        class="border-accented bg-default/90 shadow-lg"
+        variant="subtle"
+      >
+        <template #header>
+          <div class="grid gap-2">
+            <UBadge
+              class="w-fit"
+              color="primary"
+              :label="t('about.sections.boundaries')"
+              variant="soft"
+            />
+            <h3 class="m-0 text-xl font-semibold text-highlighted">
+              {{ t('about.sections.boundaries') }}
+            </h3>
+          </div>
+        </template>
+
+        <div class="grid gap-5">
           <section
             v-for="item in boundaries"
             :key="item.titleKey"
-            class="grid gap-1.5 border-t border-slate-300/30 pt-6 first:border-t-0 first:pt-0"
+            class="grid gap-2 border-default/60 pt-5 first:border-t-0 first:pt-0"
           >
-            <h3 class="m-0 text-base font-bold text-slate-900">
+            <h4 class="m-0 text-base font-semibold text-highlighted">
               {{ t(item.titleKey) }}
-            </h3>
-            <p class="m-0 leading-[1.7] text-slate-600">
+            </h4>
+            <p class="m-0 leading-7 text-toned">
               {{ t(item.bodyKey) }}
             </p>
           </section>
         </div>
-      </article>
+      </UCard>
 
-      <article class="grid gap-3 rounded-3xl border border-slate-300/40 bg-white/88 p-7 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
-        <p class="m-0 text-xs font-bold uppercase tracking-[0.16em] text-teal-700">
-          {{ t('about.sections.scenarios') }}
-        </p>
-        <h3 class="m-0 text-[1.15rem] font-bold text-slate-900">
-          {{ t('about.scenariosTitle') }}
-        </h3>
-        <ul class="m-0 grid list-disc gap-3 pl-5 leading-[1.7] text-slate-700 marker:text-teal-700">
+      <UCard
+        class="border-accented bg-default/90 shadow-lg"
+        variant="subtle"
+      >
+        <template #header>
+          <div class="grid gap-2">
+            <UBadge
+              class="w-fit"
+              color="secondary"
+              :label="t('about.sections.scenarios')"
+              variant="soft"
+            />
+            <h3 class="m-0 text-xl font-semibold text-highlighted">
+              {{ t('about.scenariosTitle') }}
+            </h3>
+          </div>
+        </template>
+
+        <ul class="m-0 grid gap-3 pl-5 text-base leading-7 text-toned marker:text-secondary">
           <li
             v-for="scenario in scenarios"
             :key="scenario"
@@ -75,7 +110,7 @@ const scenarios = [
             {{ t(scenario) }}
           </li>
         </ul>
-      </article>
+      </UCard>
     </div>
   </section>
 </template>

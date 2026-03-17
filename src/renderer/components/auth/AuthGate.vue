@@ -29,18 +29,28 @@ const description = computed(() =>
 </script>
 
 <template>
-  <section class="mx-auto grid w-full max-w-md gap-5 rounded-[2rem] border border-slate-300/60 bg-white/92 p-7 shadow-[0_24px_70px_rgba(15,23,42,0.1)]">
-    <div class="grid gap-2">
-      <p class="m-0 text-xs font-bold uppercase tracking-[0.18em] text-teal-700">
-        {{ eyebrow }}
-      </p>
-      <h2 class="m-0 text-[clamp(1.6rem,4vw,2.2rem)] font-bold leading-[1.05] text-slate-900">
-        {{ title }}
-      </h2>
-      <p class="m-0 text-sm leading-[1.7] text-slate-600">
-        {{ description }}
-      </p>
-    </div>
+  <UCard
+    class="mx-auto w-full max-w-md border-accented bg-default/85 shadow-2xl backdrop-blur"
+    variant="subtle"
+  >
+    <template #header>
+      <div class="grid gap-3">
+        <UBadge
+          class="w-fit"
+          color="primary"
+          :label="eyebrow"
+          variant="soft"
+        />
+        <div class="grid gap-2">
+          <h2 class="m-0 text-[clamp(1.6rem,4vw,2.4rem)] font-semibold tracking-tight text-highlighted">
+            {{ title }}
+          </h2>
+          <p class="m-0 text-sm leading-7 text-toned">
+            {{ description }}
+          </p>
+        </div>
+      </div>
+    </template>
 
     <AuthForm
       :error-message="errorMessage"
@@ -48,5 +58,5 @@ const description = computed(() =>
       :mode="mode"
       @submit="emit('submit', $event)"
     />
-  </section>
+  </UCard>
 </template>

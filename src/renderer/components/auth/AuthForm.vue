@@ -41,59 +41,62 @@ watch(() => props.mode, () => {
 </script>
 
 <template>
-  <form
-    class="grid gap-4"
+  <UForm
+    class="grid gap-5"
+    :state="formState"
     @submit.prevent="handleSubmit"
   >
-    <div class="grid gap-1.5">
-      <label
-        class="text-sm font-semibold text-slate-800"
-        for="auth-username"
-      >
-        {{ t('auth.form.usernameLabel') }}
-      </label>
-      <input
+    <UFormField
+      :label="t('auth.form.usernameLabel')"
+      name="username"
+      size="lg"
+    >
+      <UInput
         id="auth-username"
         v-model="formState.username"
         autocomplete="username"
-        class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 outline-none transition focus:border-teal-600 focus:ring-4 focus:ring-teal-600/10"
+        class="w-full"
         :disabled="loading"
+        icon="i-lucide-user-round"
         :placeholder="t('auth.form.usernamePlaceholder')"
+        size="xl"
         type="text"
-      >
-    </div>
+      />
+    </UFormField>
 
-    <div class="grid gap-1.5">
-      <label
-        class="text-sm font-semibold text-slate-800"
-        for="auth-password"
-      >
-        {{ t('auth.form.passwordLabel') }}
-      </label>
-      <input
+    <UFormField
+      :label="t('auth.form.passwordLabel')"
+      name="password"
+      size="lg"
+    >
+      <UInput
         id="auth-password"
         v-model="formState.password"
         :autocomplete="mode === 'needsRegistration' ? 'new-password' : 'current-password'"
-        class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 outline-none transition focus:border-teal-600 focus:ring-4 focus:ring-teal-600/10"
+        class="w-full"
         :disabled="loading"
+        icon="i-lucide-key-round"
         :placeholder="t('auth.form.passwordPlaceholder')"
+        size="xl"
         type="password"
-      >
-    </div>
+      />
+    </UFormField>
 
-    <p
+    <UAlert
       v-if="errorMessage"
-      class="m-0 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
-    >
-      {{ errorMessage }}
-    </p>
+      color="error"
+      :description="errorMessage"
+      icon="i-lucide-circle-alert"
+      variant="soft"
+    />
 
-    <button
-      class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-      :disabled="loading"
+    <UButton
+      block
+      color="neutral"
+      :label="loading ? t('auth.form.submitting') : submitLabel"
+      :loading="loading"
+      size="xl"
       type="submit"
-    >
-      {{ loading ? t('auth.form.submitting') : submitLabel }}
-    </button>
-  </form>
+    />
+  </UForm>
 </template>

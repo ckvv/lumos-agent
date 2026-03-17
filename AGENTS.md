@@ -46,6 +46,7 @@ Use TypeScript across the app. For Vue files, follow Composition API with `<scri
 - Vue components: PascalCase, e.g. `LocaleSwitcher.vue`.
 - Composables: `useX.ts`, e.g. `useLocale.ts`.
 - Route pages: place file-based pages under `src/renderer/pages/`.
+- For renderer UI, prefer `@nuxt/ui` components and composables over hand-rolled base controls or repeated Tailwind-only patterns. Only build custom UI primitives when Nuxt UI cannot reasonably cover the requirement.
 
 Linting is handled by ESLint with `@antfu/eslint-config`. Keep code simple, typed, and consistent with existing module boundaries.
 

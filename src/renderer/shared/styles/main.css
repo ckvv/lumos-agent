@@ -1,2 +1,20 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: "Avenir Next", "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background:
+    radial-gradient(circle at top, rgb(45 212 191 / 0.18), transparent 30%),
+    linear-gradient(180deg, rgb(248 250 252) 0%, rgb(239 246 255) 50%, rgb(236 253 245) 100%);
+}
