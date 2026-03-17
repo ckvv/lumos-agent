@@ -5,8 +5,8 @@ import path from 'node:path'
 import process from 'node:process'
 import { DatabaseSync } from 'node:sqlite'
 import { closeDatabase, getDatabaseContext, setDatabaseContext } from '#main/database/database'
+import { resolveDatabaseFilePath } from '#main/database/database-paths'
 import { logger } from '#main/logger'
-import { DATABASE_FILENAME } from '#shared/app/constants'
 import { drizzle } from 'drizzle-orm/node-sqlite'
 import { migrate } from 'drizzle-orm/node-sqlite/migrator'
 import { app } from 'electron'
@@ -29,7 +29,10 @@ const managedTableColumns = {
 } as const
 
 function getDatabaseFilePath() {
-  return path.join(app.getPath('userData'), DATABASE_FILENAME)
+  return resolveDatabaseFilePath({
+    allowEnvOverride: false,
+    userDataPath: app.getPath('userData'),
+  })
 }
 
 function getMigrationsFolderPath() {

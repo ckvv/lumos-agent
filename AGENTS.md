@@ -7,11 +7,13 @@ This repository is an Electron Forge desktop app with a Vite + Vue 3 renderer.
 - `src/main/`: Electron main-process startup, lifecycle, constants, and window creation.
 - `src/preload/`: secure bridge APIs exposed to the renderer through preload scripts.
 - `src/renderer/`: Vue application code, including `pages/`, `components/`, `layouts/`, `router/`, `composables/`, `i18n/`, and shared styles.
+- `src/shared/`: cross-layer shared types, constants, and protocol definitions that are safe to import from multiple runtimes.
 - `drizzle/`: generated SQLite migration files that ship with packaged builds.
 - `docs/`: contributor-facing documentation such as [`docs/i18n.md`](./docs/i18n.md).
 - Root config: `vite.*`, `forge.config.ts`, `drizzle.config.ts`, `tsconfig.json`, `eslint.config.mjs`.
 
 Keep desktop integrations in `src/main/` or `src/preload/`; keep UI logic in `src/renderer/`.
+Keep Node/Electron-only implementation details such as filesystem paths, database bootstrap, and OS integration out of `src/shared/`; place them under `src/main/` unless they are true cross-runtime contracts.
 
 If a change affects project structure, core development commands, validation workflow, or dependency policy, update `AGENTS.md` in the same change. If the change also affects shared behavior or needs contributor-facing explanation, add or update the relevant documentation under `docs/`.
 
@@ -21,6 +23,7 @@ Prefer `pnpm`.
 
 - `pnpm install`: install dependencies.
 - `pnpm db:generate`: generate SQLite migrations from `src/main/database/schema.ts`.
+- `pnpm db:delete`: delete the local SQLite database file and SQLite sidecar files from the app's default `userData` directory.
 - `pnpm db:studio`: launch Drizzle Studio for the Electron app's local SQLite database.
 - `pnpm start`: run the Electron Forge development app.
 - `pnpm lint`: run ESLint with autofix (`eslint --fix`).
