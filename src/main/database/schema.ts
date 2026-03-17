@@ -8,7 +8,6 @@ const auditColumns = {
   createdAt: text('created_at').notNull().$defaultFn(createIsoTimestamp),
   // `updatedAt` 依赖 Drizzle 运行时自动补值，insert / update 都不需要 service 显式维护。
   updatedAt: text('updated_at').notNull().$onUpdateFn(createIsoTimestamp),
-  deletedAt: text('deleted_at'),
 }
 
 export const users = sqliteTable('users', {

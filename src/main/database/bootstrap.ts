@@ -24,8 +24,8 @@ let bootstrapPromise: Promise<DatabaseContext> | null = null
 const drizzleMigrationsTableName = '__drizzle_migrations'
 
 const managedTableColumns = {
-  sessions: ['id', 'user_id', 'is_authenticated', 'created_at', 'updated_at', 'deleted_at'],
-  users: ['id', 'username', 'password_hash', 'created_at', 'updated_at', 'deleted_at'],
+  sessions: ['id', 'user_id', 'is_authenticated', 'created_at', 'updated_at'],
+  users: ['id', 'username', 'password_hash', 'created_at', 'updated_at'],
 } as const
 
 function getDatabaseFilePath() {
@@ -58,7 +58,9 @@ function tableHasColumns(client: DatabaseSync, tableName: string, expectedColumn
   const rows = client.prepare(`SELECT name FROM pragma_table_info('${tableName}')`).all() as Array<{ name: string }>
   const currentColumns = new Set(rows.map(row => row.name))
 
-  return expectedColumns.every(column => currentColumns.has(column))
+  // 只在列集合完全一致时才接管旧库，避免跳过需要执行的结构迁移。
+  return currentColumns.size === expectedColumns.length
+    && expectedColumns.every(column => currentColumns.has(column))
 }
 
 function hasRecordedMigrations(client: DatabaseSync) {

@@ -7,7 +7,7 @@ import { getDatabaseBootstrapSnapshot, startDatabaseBootstrapInBackground } from
 import { db } from '#main/database/database'
 import { sessions, users } from '#main/database/schema'
 import { ORPCError } from '@orpc/server'
-import { and, eq, isNull } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 
 const SCRYPT_KEY_LENGTH = 64
 const SCRYPT_PREFIX = 'scrypt'
@@ -24,20 +24,15 @@ function buildAuthState(hasUser: boolean, isAuthenticated: boolean): AuthBootstr
 }
 
 function getSingleUserRecord(db: DatabaseExecutor) {
-  return db.select().from(users).where(isNull(users.deletedAt)).limit(1).get() ?? null
+  return db.select().from(users).limit(1).get() ?? null
 }
 
 function getUserByUsername(db: DatabaseExecutor, username: string) {
-  return db.select().from(users).where(
-    and(
-      eq(users.username, username),
-      isNull(users.deletedAt),
-    ),
-  ).limit(1).get() ?? null
+  return db.select().from(users).where(eq(users.username, username)).limit(1).get() ?? null
 }
 
 function getCurrentSessionRecord(db: DatabaseExecutor) {
-  return db.select().from(sessions).where(isNull(sessions.deletedAt)).limit(1).get() ?? null
+  return db.select().from(sessions).limit(1).get() ?? null
 }
 
 async function hashPassword(password: string) {
@@ -102,7 +97,6 @@ function upsertSession(db: DatabaseExecutor, userId: number, isAuthenticated: bo
   if (existingSession) {
     db.update(sessions)
       .set({
-        deletedAt: null,
         isAuthenticated,
         userId,
       })

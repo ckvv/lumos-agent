@@ -29,7 +29,6 @@ All business tables include the same audit columns:
 
 - `createdAt`: UTC ISO timestamp written on insert
 - `updatedAt`: UTC ISO timestamp refreshed on update
-- `deletedAt`: soft-delete timestamp, `null` by default
 
 Current auth tables:
 
@@ -38,8 +37,8 @@ Current auth tables:
 
 Query rules:
 
-- reads ignore rows where `deletedAt` is not `null`
-- this version does not expose delete flows, but soft-delete compatibility is enforced in table design and queries
+- reads target the real table rows directly; there is no soft-delete layer
+- this version does not expose delete flows yet, and future deletes should remove the row directly unless a new retention requirement is introduced
 
 ## Auth State Flow
 
