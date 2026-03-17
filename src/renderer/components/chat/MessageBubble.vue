@@ -60,10 +60,10 @@ const assistantErrorMessage = computed(() => {
 
 <template>
   <article
-    class="grid gap-3 rounded-[1.6rem] border p-4 shadow-lg shadow-slate-200/45"
+    class="grid gap-3 rounded-[1.35rem] border p-4"
     :class="isUser
-      ? 'ml-auto max-w-3xl border-primary/20 bg-primary/8'
-      : 'max-w-4xl border-default/70 bg-default/92'"
+      ? 'ml-auto max-w-3xl border-primary/20 bg-primary/7'
+      : 'max-w-4xl border-default/0 bg-transparent'"
   >
     <div class="flex items-center gap-2">
       <UBadge
@@ -102,7 +102,7 @@ const assistantErrorMessage = computed(() => {
       <details
         v-for="(block, index) in assistantThinkingBlocks"
         :key="`${index}-${block.type}`"
-        class="rounded-2xl border border-default/70 bg-elevated/80 p-3"
+        class="rounded-[1.15rem] border border-default/70 bg-elevated/70 p-3"
       >
         <summary class="cursor-pointer text-sm font-medium text-toned">
           Thinking

@@ -62,10 +62,10 @@ function formatConversationTime(value: string | null) {
 </script>
 
 <template>
-  <section class="grid gap-4">
+  <section class="grid h-full min-h-0 gap-4 rounded-[1.7rem] border border-default/70 bg-default/92 p-4 shadow-sm">
     <div class="flex items-center justify-between gap-3">
       <div class="grid gap-1">
-        <h2 class="m-0 text-lg font-semibold text-highlighted">
+        <h2 class="m-0 text-base font-semibold text-highlighted">
           {{ t('chat.sidebar.title') }}
         </h2>
         <p class="m-0 text-xs text-toned">
@@ -90,28 +90,28 @@ function formatConversationTime(value: string | null) {
       <USkeleton
         v-for="index in 4"
         :key="index"
-        class="h-24 rounded-[1.4rem]"
+        class="h-20 rounded-[1.2rem]"
       />
     </div>
 
     <div
       v-else-if="!hasConversations"
-      class="rounded-[1.4rem] border border-dashed border-default/70 bg-elevated/70 p-4 text-sm leading-7 text-toned"
+      class="rounded-[1.3rem] border border-dashed border-default/70 bg-elevated/60 p-4 text-sm leading-7 text-toned"
     >
       {{ t('chat.sidebar.empty') }}
     </div>
 
     <div
       v-else
-      class="grid gap-3 overflow-y-auto pr-1"
+      class="grid min-h-0 gap-2 overflow-y-auto pr-1"
     >
       <article
         v-for="conversation in conversations"
         :key="conversation.id"
-        class="grid gap-3 rounded-[1.4rem] border p-3 transition hover:border-primary/20 hover:bg-white/90"
+        class="grid gap-3 rounded-[1.25rem] border p-3 transition-colors hover:border-default hover:bg-elevated/90"
         :class="conversation.id === selectedConversationId
-          ? 'border-primary/30 bg-primary/8 shadow-lg shadow-primary/10'
-          : 'border-default/70 bg-elevated/60'"
+          ? 'border-primary/25 bg-primary/6'
+          : 'border-default/70 bg-elevated/45'"
       >
         <template v-if="editingConversationId === conversation.id">
           <UInput
@@ -159,7 +159,7 @@ function formatConversationTime(value: string | null) {
               <UButton
                 color="neutral"
                 :disabled="isBusy"
-                :label="t('chat.sidebar.rename')"
+                icon="i-lucide-pencil-line"
                 size="xs"
                 variant="ghost"
                 @click="startRenaming(conversation)"
@@ -167,7 +167,7 @@ function formatConversationTime(value: string | null) {
               <UButton
                 color="error"
                 :disabled="isBusy"
-                :label="t('chat.sidebar.delete')"
+                icon="i-lucide-trash-2"
                 size="xs"
                 variant="ghost"
                 @click="emit('delete', conversation.id)"

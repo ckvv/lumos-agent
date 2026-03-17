@@ -33,73 +33,55 @@ const resolvedConversationTitle = computed(() =>
 </script>
 
 <template>
-  <section class="overflow-hidden rounded-[2.4rem] border border-white/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.9),rgba(248,250,252,0.82)_46%,rgba(236,253,245,0.86))] p-5 shadow-[0_20px_70px_-36px_rgba(15,23,42,0.35)] sm:p-6">
-    <div class="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(21rem,0.8fr)]">
-      <div class="grid gap-5">
-        <div class="flex flex-wrap items-center gap-2">
-          <UBadge
-            color="primary"
-            :label="t('chat.workspace.focusLabel')"
-            variant="soft"
-          />
-          <UBadge
-            color="neutral"
-            :label="t('chat.workspace.historyCount', { count: conversationCount })"
-            variant="subtle"
-          />
-        </div>
+  <section class="grid gap-3">
+    <div class="flex flex-col gap-4 rounded-[1.6rem] border border-default/70 bg-default/92 p-4 shadow-sm sm:p-5 xl:flex-row xl:items-center xl:justify-between">
+      <div class="flex items-start gap-3">
+        <UButton
+          class="lg:hidden"
+          color="neutral"
+          icon="i-lucide-panel-left-open"
+          :label="t('chat.workspace.history')"
+          size="sm"
+          variant="ghost"
+          @click="emit('openHistory')"
+        />
 
-        <div class="grid gap-3">
-          <div class="grid gap-1">
-            <p class="m-0 text-[11px] font-medium uppercase tracking-[0.24em] text-toned">
-              {{ t('chat.workspace.activeConversation') }}
-            </p>
-            <h1 class="m-0 text-[clamp(2rem,5vw,3.4rem)] font-semibold tracking-tight text-highlighted">
-              {{ resolvedConversationTitle }}
-            </h1>
+        <div class="grid gap-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <UBadge
+              color="primary"
+              :label="t('chat.workspace.focusLabel')"
+              variant="soft"
+            />
+            <UBadge
+              color="neutral"
+              :label="t('chat.workspace.historyCount', { count: conversationCount })"
+              variant="subtle"
+            />
           </div>
 
-          <p class="m-0 max-w-[60ch] text-sm leading-7 text-toned sm:text-base">
-            {{ conversationTitle ? t('chat.workspace.resumeHint') : t('chat.workspace.startHint') }}
-          </p>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-3">
-          <UButton
-            class="rounded-full"
-            color="primary"
-            icon="i-lucide-pen-square"
-            :disabled="isBusy"
-            :label="t('chat.workspace.newConversation')"
-            @click="emit('createConversation')"
-          />
-          <UButton
-            class="rounded-full"
-            color="neutral"
-            icon="i-lucide-panel-right-open"
-            :label="t('chat.workspace.history')"
-            variant="outline"
-            @click="emit('openHistory')"
-          />
+          <div class="grid gap-1">
+            <p class="m-0 text-[11px] font-medium uppercase tracking-[0.22em] text-toned">
+              {{ t('chat.workspace.activeConversation') }}
+            </p>
+            <h1 class="m-0 text-xl font-semibold tracking-tight text-highlighted sm:text-2xl">
+              {{ resolvedConversationTitle }}
+            </h1>
+            <p class="m-0 text-sm leading-6 text-toned">
+              {{ conversationTitle ? t('chat.workspace.resumeHint') : t('chat.workspace.startHint') }}
+            </p>
+          </div>
         </div>
       </div>
 
-      <div class="grid gap-4 rounded-[2rem] border border-white/70 bg-white/70 p-4 shadow-sm backdrop-blur sm:p-5">
-        <div class="grid gap-1">
-          <p class="m-0 text-[11px] font-medium uppercase tracking-[0.24em] text-toned">
-            {{ t('chat.workspace.providerSection') }}
-          </p>
-          <p class="m-0 text-sm leading-7 text-toned">
-            {{ t('chat.workspace.providerDescription') }}
-          </p>
-        </div>
-
-        <div class="grid gap-4 sm:grid-cols-2">
-          <div class="grid gap-2">
-            <label class="text-xs font-medium uppercase tracking-[0.18em] text-toned">
+      <div class="grid gap-3 xl:min-w-[29rem]">
+        <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end xl:justify-end">
+          <div class="grid gap-2 sm:min-w-40 sm:flex-1">
+            <label class="text-[11px] font-medium uppercase tracking-[0.18em] text-toned">
               {{ t('chat.board.provider') }}
             </label>
             <USelect
+              :disabled="isBusy"
               :model-value="selectedProviderId ? String(selectedProviderId) : undefined"
               :items="providerItems"
               :placeholder="t('chat.board.noProvider')"
@@ -107,27 +89,37 @@ const resolvedConversationTitle = computed(() =>
             />
           </div>
 
-          <div class="grid gap-2">
-            <label class="text-xs font-medium uppercase tracking-[0.18em] text-toned">
+          <div class="grid gap-2 sm:min-w-40 sm:flex-1">
+            <label class="text-[11px] font-medium uppercase tracking-[0.18em] text-toned">
               {{ t('chat.board.model') }}
             </label>
             <USelect
+              :disabled="isBusy"
               :model-value="selectedModelId ?? undefined"
               :items="modelItems"
               :placeholder="t('chat.empty.noModel')"
               @update:model-value="emit('modelChange', $event)"
             />
           </div>
-        </div>
 
-        <UAlert
-          v-if="providerLoadError"
-          color="warning"
-          :description="providerLoadError"
-          :title="t('chat.board.providerLoadError')"
-          variant="soft"
-        />
+          <UButton
+            class="rounded-full sm:self-end"
+            color="primary"
+            icon="i-lucide-square-pen"
+            :disabled="isBusy"
+            :label="t('chat.workspace.newConversation')"
+            @click="emit('createConversation')"
+          />
+        </div>
       </div>
     </div>
+
+    <UAlert
+      v-if="providerLoadError"
+      color="warning"
+      :description="providerLoadError"
+      :title="t('chat.board.providerLoadError')"
+      variant="soft"
+    />
   </section>
 </template>

@@ -224,7 +224,7 @@ watch(
 
 <template>
   <section class="grid gap-5">
-    <header class="grid gap-3 rounded-[2rem] border border-default/70 bg-default/92 p-5 shadow-xl shadow-slate-200/60">
+    <header class="grid gap-3 rounded-[1.6rem] border border-default/70 bg-default/92 p-5 shadow-sm">
       <div class="flex flex-wrap items-center gap-3">
         <UBadge
           color="primary"
@@ -244,7 +244,7 @@ watch(
         />
       </div>
       <div class="grid gap-2">
-        <h2 class="m-0 text-2xl font-semibold text-highlighted">
+        <h2 class="m-0 text-xl font-semibold text-highlighted sm:text-2xl">
           {{ t('providers.title') }}
         </h2>
         <p class="m-0 max-w-3xl text-sm leading-7 text-toned">
@@ -263,7 +263,7 @@ watch(
 
     <div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <UCard
-        class="border-default/70 bg-default/92 shadow-lg shadow-slate-200/60"
+        class="border-default/70 bg-default/92 shadow-sm"
         variant="subtle"
       >
         <template #header>
@@ -284,7 +284,7 @@ watch(
           <article
             v-for="provider in builtinApiKeyProviders"
             :key="provider.id"
-            class="grid gap-3 rounded-[1.4rem] border border-default/70 bg-elevated/70 p-4"
+            class="grid gap-3 rounded-[1.25rem] border border-default/70 bg-elevated/55 p-4"
           >
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div class="grid gap-1">
@@ -335,7 +335,7 @@ watch(
       </UCard>
 
       <UCard
-        class="border-default/70 bg-default/92 shadow-lg shadow-slate-200/60"
+        class="border-default/70 bg-default/92 shadow-sm"
         variant="subtle"
       >
         <template #header>
@@ -356,7 +356,7 @@ watch(
           <article
             v-for="provider in providerSettings.oauthProviders.value"
             :key="provider.id"
-            class="grid gap-3 rounded-[1.4rem] border border-default/70 bg-elevated/70 p-4"
+            class="grid gap-3 rounded-[1.25rem] border border-default/70 bg-elevated/55 p-4"
           >
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div class="grid gap-1">
@@ -408,7 +408,7 @@ watch(
 
           <div
             v-if="providerSettings.oauthState.value.url"
-            class="rounded-[1.4rem] border border-default/70 bg-elevated/60 p-4 text-sm leading-7 text-toned"
+            class="rounded-[1.25rem] border border-default/70 bg-elevated/50 p-4 text-sm leading-7 text-toned"
           >
             <div class="grid gap-2">
               <span class="font-medium text-highlighted">
@@ -427,7 +427,7 @@ watch(
 
           <div
             v-if="providerSettings.oauthState.value.waitingManualCode"
-            class="grid gap-3 rounded-[1.4rem] border border-default/70 bg-elevated/60 p-4"
+            class="grid gap-3 rounded-[1.25rem] border border-default/70 bg-elevated/50 p-4"
           >
             <UInput
               v-model="manualCode"
@@ -446,7 +446,7 @@ watch(
     </div>
 
     <UCard
-      class="border-default/70 bg-default/92 shadow-lg shadow-slate-200/60"
+      class="border-default/70 bg-default/92 shadow-sm"
       variant="subtle"
     >
       <template #header>
@@ -464,7 +464,7 @@ watch(
       </template>
 
       <div class="grid gap-5">
-        <div class="grid gap-3 rounded-[1.4rem] border border-default/70 bg-elevated/70 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-end">
+        <div class="grid gap-3 rounded-[1.25rem] border border-default/70 bg-elevated/55 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-end">
           <div class="grid gap-2">
             <span class="text-xs font-medium uppercase tracking-[0.18em] text-toned">
               {{ t('providers.compatible.displayName') }}
@@ -509,7 +509,7 @@ watch(
           <article
             v-for="config in compatibleConfigs"
             :key="config.id"
-            class="grid gap-4 rounded-[1.5rem] border border-default/70 bg-elevated/70 p-4"
+            class="grid gap-4 rounded-[1.35rem] border border-default/70 bg-elevated/55 p-4"
           >
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div class="grid gap-1">
@@ -578,7 +578,7 @@ watch(
 
               <div
                 v-if="config.models.length === 0"
-                class="rounded-[1.2rem] border border-dashed border-default/70 bg-white/60 p-4 text-sm leading-7 text-toned"
+                class="rounded-[1.15rem] border border-dashed border-default/70 bg-default/70 p-4 text-sm leading-7 text-toned"
               >
                 {{ t('providers.compatible.emptyModels') }}
               </div>
@@ -590,7 +590,7 @@ watch(
                 <div
                   v-for="model in config.models"
                   :key="model.id"
-                  class="flex flex-wrap items-center justify-between gap-3 rounded-[1.1rem] border border-default/70 bg-white/60 px-3 py-2"
+                  class="flex flex-wrap items-center justify-between gap-3 rounded-[1.1rem] border border-default/70 bg-default/78 px-3 py-2"
                 >
                   <div class="grid gap-1">
                     <span class="text-sm font-medium text-highlighted">
@@ -618,7 +618,7 @@ watch(
               </div>
             </div>
 
-            <div class="grid gap-3 rounded-[1.3rem] border border-default/70 bg-white/60 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_8rem_8rem_auto] lg:items-end">
+            <div class="grid gap-3 rounded-[1.2rem] border border-default/70 bg-default/78 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_8rem_8rem_auto] lg:items-end">
               <div class="grid gap-2">
                 <span class="text-xs font-medium uppercase tracking-[0.18em] text-toned">
                   {{ t('providers.compatible.manualModelId') }}

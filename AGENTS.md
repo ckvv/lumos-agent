@@ -50,6 +50,11 @@ Use TypeScript across the app. For Vue files, follow Composition API with `<scri
 
 Linting is handled by ESLint with `@antfu/eslint-config`. Keep code simple, typed, and consistent with existing module boundaries.
 
+## Collaboration Expectations
+
+- Do not optimize for agreement with the user. If a request, assumption, or proposed solution is technically weak or unreasonable, state that clearly and propose a better alternative.
+- When refactoring, prioritize long-term extensibility and maintainability over preserving the previous architecture. Do not stay constrained by legacy structure when a cleaner design materially improves future work.
+
 ## Testing Guidelines
 
 There is no dedicated automated test framework configured yet. Until one is added, validate changes manually:

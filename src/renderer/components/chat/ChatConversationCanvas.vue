@@ -44,15 +44,15 @@ function handleComposerKeydown(event: KeyboardEvent) {
 </script>
 
 <template>
-  <section class="grid min-h-[72vh] gap-4 rounded-[2.4rem] border border-white/60 bg-[linear-gradient(180deg,rgba(255,255,255,0.78),rgba(239,246,255,0.52)_42%,rgba(255,251,235,0.55))] p-4 shadow-[0_20px_70px_-36px_rgba(15,23,42,0.3)] sm:p-5">
-    <div class="grid min-h-0 flex-1 gap-4 rounded-[2rem] border border-white/80 bg-white/78 p-4 shadow-sm backdrop-blur sm:p-5">
+  <section class="flex min-h-[70vh] flex-1 flex-col rounded-[1.8rem] border border-default/70 bg-default/95 shadow-sm">
+    <div class="flex min-h-0 flex-1 flex-col px-4 pt-4 sm:px-6 sm:pt-6">
       <div
         v-if="isLoading && !hasMessages"
         class="grid gap-3"
       >
-        <USkeleton class="h-28 rounded-[1.6rem]" />
-        <USkeleton class="ml-auto h-32 max-w-[70%] rounded-[1.6rem]" />
-        <USkeleton class="h-44 rounded-[1.6rem]" />
+        <USkeleton class="h-24 rounded-[1.3rem]" />
+        <USkeleton class="ml-auto h-28 max-w-[70%] rounded-[1.3rem]" />
+        <USkeleton class="h-40 rounded-[1.3rem]" />
       </div>
 
       <ChatConversationEmptyState
@@ -63,7 +63,7 @@ function handleComposerKeydown(event: KeyboardEvent) {
 
       <div
         v-else
-        class="grid min-h-0 flex-1 content-start gap-4 overflow-y-auto pr-2"
+        class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1 sm:pr-2"
       >
         <MessageBubble
           v-for="message in messages"
@@ -77,50 +77,51 @@ function handleComposerKeydown(event: KeyboardEvent) {
           :message="partialAssistantMessage"
         />
       </div>
+    </div>
 
-      <UAlert
-        v-if="errorMessage"
-        color="error"
-        :description="errorMessage"
-        :title="t('chat.board.streamError')"
-        variant="soft"
+    <UAlert
+      v-if="errorMessage"
+      class="mx-4 mt-4 sm:mx-6"
+      color="error"
+      :description="errorMessage"
+      :title="t('chat.board.streamError')"
+      variant="soft"
+    />
+
+    <footer class="mt-4 grid gap-4 border-t border-default/70 bg-elevated/60 p-4 sm:p-5">
+      <UTextarea
+        v-model="composerValue"
+        autoresize
+        class="w-full"
+        :disabled="isSending"
+        :maxrows="12"
+        :placeholder="t('chat.composer.placeholder')"
+        :rows="3"
+        @keydown="handleComposerKeydown"
       />
 
-      <footer class="grid gap-4 rounded-[1.8rem] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] p-4 shadow-sm">
-        <UTextarea
-          v-model="composerValue"
-          autoresize
-          class="w-full"
-          :disabled="isSending"
-          :maxrows="12"
-          :placeholder="t('chat.composer.placeholder')"
-          :rows="4"
-          @keydown="handleComposerKeydown"
-        />
-
-        <div class="flex flex-wrap items-end justify-between gap-3">
-          <div class="grid gap-2">
-            <p class="m-0 text-xs leading-6 text-toned">
-              {{ t('chat.composer.helper') }}
-            </p>
-            <UBadge
-              v-if="runtimeSummary"
-              color="neutral"
-              :label="runtimeSummary"
-              variant="subtle"
-            />
-          </div>
-
-          <UButton
-            class="rounded-full"
-            color="primary"
-            icon="i-lucide-send-horizontal"
-            :disabled="!canSend"
-            :label="isSending ? t('chat.composer.sending') : t('chat.composer.send')"
-            @click="emit('send')"
+      <div class="flex flex-wrap items-end justify-between gap-3">
+        <div class="grid gap-2">
+          <p class="m-0 text-xs leading-6 text-toned">
+            {{ t('chat.composer.helper') }}
+          </p>
+          <UBadge
+            v-if="runtimeSummary"
+            color="neutral"
+            :label="runtimeSummary"
+            variant="subtle"
           />
         </div>
-      </footer>
-    </div>
+
+        <UButton
+          class="rounded-full"
+          color="primary"
+          icon="i-lucide-send-horizontal"
+          :disabled="!canSend"
+          :label="isSending ? t('chat.composer.sending') : t('chat.composer.send')"
+          @click="emit('send')"
+        />
+      </div>
+    </footer>
   </section>
 </template>

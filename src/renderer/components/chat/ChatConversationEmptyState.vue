@@ -26,8 +26,8 @@ const summaryItems = computed(() => [
 </script>
 
 <template>
-  <section class="grid flex-1 place-items-center rounded-[2rem] border border-dashed border-default/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(248,250,252,0.82))] p-6 text-left">
-    <div class="grid w-full max-w-5xl gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)]">
+  <section class="grid flex-1 place-items-center rounded-[1.5rem] border border-dashed border-default/70 bg-elevated/35 p-6 text-left">
+    <div class="grid w-full max-w-4xl gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(16rem,0.8fr)]">
       <div class="grid content-center gap-4">
         <UBadge
           class="w-fit"
@@ -49,7 +49,7 @@ const summaryItems = computed(() => [
         <article
           v-for="item in summaryItems"
           :key="item.label"
-          class="grid gap-2 rounded-[1.5rem] border border-white/70 bg-white/80 p-4 shadow-sm"
+          class="grid gap-2 rounded-[1.25rem] border border-default/70 bg-default/80 p-4"
         >
           <p class="m-0 text-[11px] font-medium uppercase tracking-[0.2em] text-toned">
             {{ item.label }}

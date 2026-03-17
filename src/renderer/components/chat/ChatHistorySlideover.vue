@@ -38,7 +38,7 @@ function handleSelect(conversationId: number) {
 <template>
   <USlideover
     v-model:open="open"
-    class="sm:max-w-xl"
+    class="sm:max-w-lg"
     :description="t('chat.workspace.historyDrawerDescription')"
     :title="t('chat.workspace.historyDrawerTitle')"
   >

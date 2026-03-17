@@ -2,6 +2,12 @@
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
+const props = withDefaults(defineProps<{
+  orientation?: 'horizontal' | 'vertical'
+}>(), {
+  orientation: 'vertical',
+})
+
 const { t } = useI18n()
 const currentRoute = useRoute()
 
@@ -26,13 +32,15 @@ const navRoutes = [
 
 <template>
   <nav
-    class="flex flex-wrap gap-3 rounded-[1.5rem] border border-white/70 bg-white/60 p-2 shadow-sm"
+    class="rounded-[1.35rem] border border-default/70 bg-default/90 p-2"
+    :class="props.orientation === 'vertical' ? 'grid gap-2' : 'flex flex-wrap gap-3'"
     :aria-label="t('navigation.ariaLabel')"
   >
     <UButton
       v-for="route in navRoutes"
       :key="route.key"
-      class="rounded-full"
+      class="rounded-[1rem]"
+      :class="props.orientation === 'vertical' ? 'w-full justify-start px-3 py-2.5' : 'rounded-full'"
       :color="currentRoute.path === route.path ? 'primary' : 'neutral'"
       :icon="route.icon"
       :label="t(`navigation.routes.${route.key}`)"
