@@ -23,7 +23,8 @@ function handleLocaleChange(nextLocale: AppLocale) {
 
 const localeMenuItems = computed(() =>
   localeOptions.map(option => ({
-    icon: locale.value === option.value ? 'i-lucide-check' : undefined,
+    checked: locale.value === option.value,
+    type: 'checkbox',
     label: t(option.labelKey),
     onSelect: () => handleLocaleChange(option.value),
   })),
@@ -78,31 +79,17 @@ const menuItems = computed(() => [
     :items="menuItems"
     :ui="{ content: 'w-72' }"
   >
-    <template #default="{ open }">
-      <button
-        class="flex w-full items-center gap-3 rounded-[1.2rem] border border-default/70 bg-elevated/70 px-3 py-3 text-left transition-colors hover:bg-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
-        :aria-label="t('shell.currentUser', { username })"
-        type="button"
-      >
-        <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <UIcon
-            class="size-5"
-            name="i-lucide-circle-user-round"
-          />
-        </span>
-
-        <span class="min-w-0 flex-1">
-          <span class="block truncate text-sm font-semibold text-highlighted">
-            {{ username }}
-          </span>
-        </span>
-
-        <UIcon
-          class="size-4 shrink-0 text-toned transition-transform"
-          :class="open ? 'rotate-180' : ''"
-          name="i-lucide-chevron-up"
-        />
-      </button>
-    </template>
+    <UButton
+      :aria-label="t('shell.currentUser', { username })"
+      square
+      color="neutral"
+      class="w-full data-[state=open]:bg-elevated overflow-hidden"
+      variant="ghost"
+      trailing-icon="i-lucide-chevrons-up-down"
+      :ui="{
+        trailingIcon: 'ms-auto',
+      }"
+      :label="username"
+    />
   </UDropdownMenu>
 </template>
