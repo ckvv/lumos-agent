@@ -8,9 +8,10 @@ export default defineConfig({
       output: {
         assetFileNames: '[name].[ext]',
         chunkFileNames: '[name].js',
+        // Vite 8 uses codeSplitting instead of Rollup's deprecated inlineDynamicImports.
+        codeSplitting: false,
         entryFileNames: 'preload.js',
         format: 'cjs',
-        inlineDynamicImports: true,
       },
     },
   },
