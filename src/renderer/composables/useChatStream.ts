@@ -39,11 +39,17 @@ export function useChatStream() {
           errorMessage.value = getORPCErrorMessage(error)
         },
         onEvent: (event) => {
-          if (event.type === 'assistant_patch')
+          if (event.type === 'assistant_patch') {
             partialAssistantMessage.value = event.partialMessage
+          }
 
-          if (event.type === 'completed' || event.type === 'failed')
+          if (event.type === 'completed')
             partialAssistantMessage.value = null
+
+          if (event.type === 'failed') {
+            errorMessage.value = event.errorMessage
+            partialAssistantMessage.value = event.assistantMessage ? null : event.partialMessage
+          }
 
           handlers?.onEvent?.(event)
         },

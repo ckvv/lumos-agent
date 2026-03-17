@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 const props = defineProps<{
   conversations: readonly ConversationSummary[]
   isBusy?: boolean
+  isLoading?: boolean
   selectedConversationId: number | null
 }>()
 
@@ -20,6 +21,12 @@ const { t } = useI18n()
 
 const editingConversationId = shallowRef<number | null>(null)
 const editingTitle = shallowRef('')
+const timeFormatter = new Intl.DateTimeFormat(undefined, {
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  month: 'short',
+})
 
 const hasConversations = computed(() => props.conversations.length > 0)
 
@@ -34,16 +41,28 @@ function stopRenaming() {
 }
 
 function submitRename(id: number) {
+  const title = editingTitle.value.trim()
+
+  if (!title)
+    return
+
   emit('rename', {
     id,
-    title: editingTitle.value,
+    title,
   })
   stopRenaming()
+}
+
+function formatConversationTime(value: string | null) {
+  if (!value)
+    return t('chat.sidebar.noMessages')
+
+  return timeFormatter.format(new Date(value))
 }
 </script>
 
 <template>
-  <aside class="grid h-full gap-4 rounded-[2rem] border border-default/70 bg-default/90 p-4 shadow-xl shadow-slate-200/60">
+  <section class="grid gap-4">
     <div class="flex items-center justify-between gap-3">
       <div class="grid gap-1">
         <h2 class="m-0 text-lg font-semibold text-highlighted">
@@ -65,7 +84,18 @@ function submitRename(id: number) {
     </div>
 
     <div
-      v-if="!hasConversations"
+      v-if="isLoading && !hasConversations"
+      class="grid gap-3"
+    >
+      <USkeleton
+        v-for="index in 4"
+        :key="index"
+        class="h-24 rounded-[1.4rem]"
+      />
+    </div>
+
+    <div
+      v-else-if="!hasConversations"
       class="rounded-[1.4rem] border border-dashed border-default/70 bg-elevated/70 p-4 text-sm leading-7 text-toned"
     >
       {{ t('chat.sidebar.empty') }}
@@ -78,7 +108,7 @@ function submitRename(id: number) {
       <article
         v-for="conversation in conversations"
         :key="conversation.id"
-        class="grid gap-3 rounded-[1.4rem] border p-3 transition"
+        class="grid gap-3 rounded-[1.4rem] border p-3 transition hover:border-primary/20 hover:bg-white/90"
         :class="conversation.id === selectedConversationId
           ? 'border-primary/30 bg-primary/8 shadow-lg shadow-primary/10'
           : 'border-default/70 bg-elevated/60'"
@@ -99,6 +129,7 @@ function submitRename(id: number) {
             />
             <UButton
               color="primary"
+              :disabled="!editingTitle.trim()"
               :label="t('chat.sidebar.saveRename')"
               size="xs"
               @click="submitRename(conversation.id)"
@@ -122,7 +153,7 @@ function submitRename(id: number) {
 
           <div class="flex items-center justify-between gap-3">
             <span class="text-[11px] uppercase tracking-[0.18em] text-toned">
-              {{ conversation.lastMessageAt ? new Date(conversation.lastMessageAt).toLocaleString() : t('chat.sidebar.noMessages') }}
+              {{ formatConversationTime(conversation.lastMessageAt) }}
             </span>
             <div class="flex items-center gap-2">
               <UButton
@@ -146,5 +177,5 @@ function submitRename(id: number) {
         </template>
       </article>
     </div>
-  </aside>
+  </section>
 </template>

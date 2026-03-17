@@ -12,11 +12,42 @@ export interface SendConversationMessageInput {
   text: string
 }
 
+const DEFAULT_CODEX_SYSTEM_PROMPT = 'You are a helpful assistant.'
+
 function cloneAssistantMessage(message: AssistantMessage | null) {
   if (!message)
     return null
 
   return structuredClone(message)
+}
+
+function resolveRequestSystemPrompt(runtimeConfig: ChatRuntimeConfig, api: string) {
+  const normalizedPrompt = runtimeConfig.systemPrompt.trim()
+
+  if (normalizedPrompt)
+    return normalizedPrompt
+
+  // Codex Responses rejects empty instructions, so blank runtime prompts need a fallback.
+  if (api === 'openai-codex-responses')
+    return DEFAULT_CODEX_SYSTEM_PROMPT
+
+  return undefined
+}
+
+function mergeFailedAssistantMessage(
+  failedMessage: AssistantMessage | null,
+  partialMessage: AssistantMessage | null,
+) {
+  if (!failedMessage)
+    return partialMessage
+
+  if (failedMessage.content.length > 0 || !partialMessage?.content.length)
+    return failedMessage
+
+  return {
+    ...failedMessage,
+    content: structuredClone(partialMessage.content),
+  }
 }
 
 function ensureUsableRuntimeConfig(runtimeConfig: ChatRuntimeConfig) {
@@ -35,6 +66,7 @@ export async function* sendConversationMessage(
 ): AsyncGenerator<ChatStreamEvent> {
   const normalizedRuntimeConfig = ensureUsableRuntimeConfig(buildDefaultRuntimeConfig(input.runtimeConfig))
   const resolvedRuntime = await resolveProviderRuntime(normalizedRuntimeConfig.providerConfigId!, normalizedRuntimeConfig.modelId!)
+  const requestSystemPrompt = resolveRequestSystemPrompt(normalizedRuntimeConfig, resolvedRuntime.model.api)
 
   updateConversationRuntimeConfig(input.conversationId, normalizedRuntimeConfig)
 
@@ -57,7 +89,7 @@ export async function* sendConversationMessage(
   const conversationMessages = getConversationMessages(input.conversationId).map(message => message.message)
   const assistantStream = stream(resolvedRuntime.model, {
     messages: conversationMessages,
-    systemPrompt: normalizedRuntimeConfig.systemPrompt || undefined,
+    systemPrompt: requestSystemPrompt,
   }, {
     apiKey: resolvedRuntime.apiKey,
     signal,
@@ -77,7 +109,10 @@ export async function* sendConversationMessage(
       }
 
       if (event.type === 'error') {
-        failedMessage = cloneAssistantMessage(event.error)
+        failedMessage = mergeFailedAssistantMessage(
+          cloneAssistantMessage(event.error),
+          partialMessage,
+        )
         partialMessage = failedMessage
         failureReason = event.error.errorMessage ?? 'The provider returned an error'
         continue

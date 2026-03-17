@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { ChatRuntimeConfig } from '#shared/chat/types'
-import ConversationSidebar from '#renderer/components/chat/ConversationSidebar.vue'
-import MessageBubble from '#renderer/components/chat/MessageBubble.vue'
+import ChatConversationCanvas from '#renderer/components/chat/ChatConversationCanvas.vue'
+import ChatHistorySlideover from '#renderer/components/chat/ChatHistorySlideover.vue'
+import ChatWorkspaceHeader from '#renderer/components/chat/ChatWorkspaceHeader.vue'
 import { useChatStream } from '#renderer/composables/useChatStream'
 import { useConversationDetail } from '#renderer/composables/useConversationDetail'
 import { useConversationList } from '#renderer/composables/useConversationList'
@@ -21,6 +22,7 @@ const conversationDetail = useConversationDetail()
 const chatStream = useChatStream()
 
 const composerValue = shallowRef('')
+const isHistoryOpen = shallowRef(false)
 const draftRuntimeConfig = shallowRef<ChatRuntimeConfig>({
   enabledCapabilities: [],
   modelId: null,
@@ -86,14 +88,16 @@ const modelItems = computed(() =>
   })) ?? [],
 )
 
+const selectedModelName = computed(() =>
+  modelItems.value.find(model => model.value === effectiveRuntimeConfig.value.modelId)?.label ?? null,
+)
+
 const canSend = computed(() =>
   Boolean(composerValue.value.trim())
   && !chatStream.isSending.value
   && Boolean(effectiveRuntimeConfig.value.providerConfigId)
   && Boolean(effectiveRuntimeConfig.value.modelId),
 )
-
-const hasMessages = computed(() => conversationDetail.messages.value.length > 0)
 
 function buildUpdatedRuntimeConfig(partial: Partial<ChatRuntimeConfig>) {
   return {
@@ -118,12 +122,18 @@ async function setSelectedConversation(id: number | null) {
 async function handleConversationSelection(id: number) {
   await chatStream.stopCurrentStream()
   await setSelectedConversation(id)
+  isHistoryOpen.value = false
 }
 
 async function handleCreateConversation() {
   const conversation = await conversationList.createConversation(effectiveRuntimeConfig.value)
   conversationList.upsertConversation(conversation)
   await setSelectedConversation(conversation.id)
+  isHistoryOpen.value = false
+}
+
+function openConversationHistory() {
+  isHistoryOpen.value = true
 }
 
 async function handleRenameConversation(payload: { id: number, title: string }) {
@@ -267,126 +277,46 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section class="grid h-full gap-5 lg:grid-cols-[18rem_minmax(0,1fr)]">
-    <ConversationSidebar
-      :conversations="conversationList.conversations.value"
+  <section class="grid h-full gap-5">
+    <ChatWorkspaceHeader
+      :conversation-count="conversationList.conversationCount.value"
+      :conversation-title="conversationDetail.conversation.value?.title ?? null"
       :is-busy="chatStream.isSending.value || conversationList.isMutating.value"
+      :model-items="modelItems"
+      :provider-items="providerItems"
+      :provider-load-error="providerSettings.errorMessage.value"
+      :selected-model-id="effectiveRuntimeConfig.modelId"
+      :selected-provider-id="effectiveRuntimeConfig.providerConfigId"
+      @create-conversation="handleCreateConversation"
+      @model-change="handleModelChange"
+      @open-history="openConversationHistory"
+      @provider-change="handleProviderChange"
+    />
+
+    <ChatConversationCanvas
+      v-model="composerValue"
+      :can-send="canSend"
+      :error-message="chatStream.errorMessage.value"
+      :is-loading="conversationDetail.isLoading.value"
+      :is-sending="chatStream.isSending.value"
+      :messages="conversationDetail.messages.value"
+      :model-name="selectedModelName"
+      :partial-assistant-message="chatStream.partialAssistantMessage.value"
+      :provider-name="selectedProviderConfig?.displayName ?? null"
+      @send="handleSendMessage"
+    />
+
+    <ChatHistorySlideover
+      v-model:open="isHistoryOpen"
+      :conversations="conversationList.conversations.value"
+      :error-message="conversationList.errorMessage.value"
+      :is-busy="chatStream.isSending.value || conversationList.isMutating.value"
+      :is-loading="conversationList.isLoading.value"
       :selected-conversation-id="selectedConversationId"
       @create="handleCreateConversation"
       @delete="handleDeleteConversation"
       @rename="handleRenameConversation"
       @select="handleConversationSelection"
     />
-
-    <div class="grid h-full min-h-[70vh] gap-4 rounded-[2rem] border border-default/70 bg-default/92 p-4 shadow-xl shadow-slate-200/60">
-      <header class="grid gap-4 rounded-[1.5rem] border border-default/70 bg-elevated/70 p-4">
-        <div class="flex flex-wrap items-center gap-3">
-          <UBadge
-            color="primary"
-            :label="t('chat.board.eyebrow')"
-            variant="soft"
-          />
-          <UBadge
-            color="neutral"
-            :label="selectedProviderConfig?.displayName || t('chat.board.noProvider')"
-            variant="soft"
-          />
-        </div>
-
-        <div class="grid gap-3 lg:grid-cols-2">
-          <div class="grid gap-2">
-            <span class="text-xs font-medium uppercase tracking-[0.18em] text-toned">
-              {{ t('chat.board.provider') }}
-            </span>
-            <USelect
-              :model-value="effectiveRuntimeConfig.providerConfigId ? String(effectiveRuntimeConfig.providerConfigId) : undefined"
-              :items="providerItems"
-              @update:model-value="handleProviderChange"
-            />
-          </div>
-
-          <div class="grid gap-2">
-            <span class="text-xs font-medium uppercase tracking-[0.18em] text-toned">
-              {{ t('chat.board.model') }}
-            </span>
-            <USelect
-              :model-value="effectiveRuntimeConfig.modelId ?? undefined"
-              :items="modelItems"
-              @update:model-value="handleModelChange"
-            />
-          </div>
-        </div>
-
-        <UAlert
-          v-if="providerSettings.errorMessage.value"
-          color="warning"
-          :description="providerSettings.errorMessage.value"
-          :title="t('chat.board.providerLoadError')"
-          variant="soft"
-        />
-      </header>
-
-      <div class="grid min-h-0 flex-1 gap-4 rounded-[1.5rem] border border-default/70 bg-white/70 p-4">
-        <div
-          v-if="!hasMessages && !chatStream.partialAssistantMessage.value"
-          class="grid flex-1 place-items-center rounded-[1.3rem] border border-dashed border-default/70 bg-elevated/60 p-6 text-center"
-        >
-          <div class="grid max-w-xl gap-3">
-            <h2 class="m-0 text-2xl font-semibold text-highlighted">
-              {{ t('chat.empty.title') }}
-            </h2>
-            <p class="m-0 text-sm leading-7 text-toned">
-              {{ t('chat.empty.body') }}
-            </p>
-          </div>
-        </div>
-
-        <div
-          v-else
-          class="grid min-h-0 flex-1 content-start gap-4 overflow-y-auto pr-2"
-        >
-          <MessageBubble
-            v-for="message in conversationDetail.messages.value"
-            :key="message.id"
-            :message="message.message"
-          />
-
-          <MessageBubble
-            v-if="chatStream.partialAssistantMessage.value"
-            :is-partial="true"
-            :message="chatStream.partialAssistantMessage.value"
-          />
-        </div>
-
-        <UAlert
-          v-if="chatStream.errorMessage.value"
-          color="error"
-          :description="chatStream.errorMessage.value"
-          :title="t('chat.board.streamError')"
-          variant="soft"
-        />
-
-        <div class="grid gap-3 rounded-[1.5rem] border border-default/70 bg-elevated/70 p-4">
-          <textarea
-            v-model="composerValue"
-            class="min-h-28 w-full resize-y rounded-[1.2rem] border border-default/70 bg-default px-4 py-3 text-sm leading-7 text-highlighted outline-none ring-0"
-            :placeholder="t('chat.composer.placeholder')"
-          />
-
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <p class="m-0 text-xs text-toned">
-              {{ t('chat.composer.helper') }}
-            </p>
-            <UButton
-              class="rounded-full"
-              color="primary"
-              :disabled="!canSend"
-              :label="chatStream.isSending.value ? t('chat.composer.sending') : t('chat.composer.send')"
-              @click="handleSendMessage"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
   </section>
 </template>

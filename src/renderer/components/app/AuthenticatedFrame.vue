@@ -17,7 +17,7 @@ async function handleLogout() {
 <template>
   <main class="min-h-screen px-4 py-6 sm:px-6">
     <div class="mx-auto grid max-w-7xl gap-6">
-      <header class="grid gap-4 rounded-[2rem] border border-default/70 bg-default/85 p-5 shadow-xl shadow-slate-200/60 backdrop-blur">
+      <header class="overflow-hidden rounded-[2.2rem] border border-white/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.92),rgba(248,250,252,0.86)_42%,rgba(239,246,255,0.8))] p-5 shadow-[0_22px_80px_-38px_rgba(15,23,42,0.34)] backdrop-blur sm:p-6">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div class="grid gap-2">
             <div class="flex flex-wrap items-center gap-3">
@@ -37,13 +37,13 @@ async function handleLogout() {
               <h1 class="m-0 text-2xl font-semibold tracking-tight text-highlighted sm:text-3xl">
                 {{ t('shell.title') }}
               </h1>
-              <p class="m-0 text-sm text-toned sm:text-base">
+              <p class="m-0 max-w-[62ch] text-sm leading-7 text-toned sm:text-base">
                 {{ t('shell.description', { username: bootstrap.currentUsername.value ?? '-' }) }}
               </p>
             </div>
           </div>
 
-          <div class="flex flex-wrap items-center gap-3">
+          <div class="flex flex-wrap items-center gap-3 rounded-full border border-white/70 bg-white/70 px-3 py-2 shadow-sm">
             <LocaleSwitcher />
             <UButton
               class="rounded-full"

@@ -12,6 +12,7 @@ Route layout:
 - `/settings/providers`: protected provider configuration
 
 The protected shell is intentionally thin: top navigation, locale switcher, provider settings entry, and logout. The actual chat experience lives on `/chat`.
+Conversation history is still available, but no longer stays pinned on the main canvas by default.
 
 ## Startup and Routing
 
@@ -37,6 +38,10 @@ OpenAI-compatible behavior:
 - stores `displayName`, `baseUrl`, credentials, and compat overrides
 - tries `${baseUrl}/models` discovery
 - keeps working when discovery fails by allowing manual model management
+
+Builtin Codex behavior:
+
+- `openai-codex-responses` requests inject a fallback non-empty system prompt when the saved `systemPrompt` is blank, because the Codex backend rejects empty `instructions`
 
 ## Conversation Model
 
@@ -73,7 +78,10 @@ Main UI surfaces:
 
 - `AuthenticatedFrame`: protected application shell
 - `ChatWorkspaceView`: chat page orchestration
-- `ConversationSidebar`: conversation CRUD and selection
+- `ChatWorkspaceHeader`: focused workspace header and runtime controls
+- `ChatConversationCanvas`: active conversation canvas and composer
+- `ChatHistorySlideover`: on-demand conversation history panel
+- `ConversationSidebar`: conversation CRUD and selection inside the history panel
 - `MessageBubble`: Markdown/thinking rendering through `markstream-vue`
 - `ProviderSettingsView`: provider configuration UI
 
@@ -92,5 +100,6 @@ Failure handling expectations:
 
 - keep partial assistant output visible when possible
 - persist failure state into history instead of silently dropping it
+- render persisted assistant error messages inside the message bubble, not only as transient page alerts
 - recover from deleted conversations or missing selections by falling back to the next valid conversation
 - surface oRPC and provider failures as visible UI messages

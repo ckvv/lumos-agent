@@ -19,6 +19,10 @@ declare module 'vue' {
     AuthForm: typeof import('./src/renderer/components/auth/AuthForm.vue')['default']
     AuthGate: typeof import('./src/renderer/components/auth/AuthGate.vue')['default']
     AuthInitState: typeof import('./src/renderer/components/auth/AuthInitState.vue')['default']
+    ChatConversationCanvas: typeof import('./src/renderer/components/chat/ChatConversationCanvas.vue')['default']
+    ChatConversationEmptyState: typeof import('./src/renderer/components/chat/ChatConversationEmptyState.vue')['default']
+    ChatHistorySlideover: typeof import('./src/renderer/components/chat/ChatHistorySlideover.vue')['default']
+    ChatWorkspaceHeader: typeof import('./src/renderer/components/chat/ChatWorkspaceHeader.vue')['default']
     ChatWorkspaceView: typeof import('./src/renderer/components/chat/ChatWorkspaceView.vue')['default']
     ConversationSidebar: typeof import('./src/renderer/components/chat/ConversationSidebar.vue')['default']
     HomeView: typeof import('./src/renderer/components/HomeView.vue')['default']
@@ -41,5 +45,7 @@ declare module 'vue' {
     UPopover: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Popover.vue')['default']
     USelect: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Select.vue')['default']
     USkeleton: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Skeleton.vue')['default']
+    USlideover: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Slideover.vue')['default']
+    UTextarea: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Textarea.vue')['default']
   }
 }

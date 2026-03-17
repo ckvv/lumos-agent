@@ -46,6 +46,16 @@ const assistantToolCallBlocks = computed(() => {
 
   return props.message.content.filter(block => block.type === 'toolCall')
 })
+
+const assistantErrorMessage = computed(() => {
+  if (props.message.role !== 'assistant')
+    return null
+
+  if (props.message.stopReason !== 'error' && props.message.stopReason !== 'aborted')
+    return null
+
+  return props.message.errorMessage ?? null
+})
 </script>
 
 <template>
@@ -81,6 +91,14 @@ const assistantToolCallBlocks = computed(() => {
     </div>
 
     <template v-else>
+      <UAlert
+        v-if="assistantErrorMessage"
+        color="error"
+        :description="assistantErrorMessage"
+        title="Request failed"
+        variant="soft"
+      />
+
       <details
         v-for="(block, index) in assistantThinkingBlocks"
         :key="`${index}-${block.type}`"
