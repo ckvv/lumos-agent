@@ -1,4 +1,4 @@
-import { useAuth } from '#renderer/composables/useAuth'
+import { useAppBootstrap } from '#renderer/composables/useAppBootstrap'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { handleHotUpdate, routes } from 'vue-router/auto-routes'
 
@@ -13,11 +13,27 @@ export const router = createRouter({
 })
 
 router.beforeEach(async (to) => {
+  const bootstrap = useAppBootstrap()
+
+  if (to.path === '/auth') {
+    await bootstrap.ensureBootstrapped()
+
+    if (bootstrap.viewState.value === 'ready' && bootstrap.isAuthenticated.value)
+      return bootstrap.recommendedRoute.value
+
+    return true
+  }
+
   if (!to.matched.some(record => record.meta.requiresAuth))
     return true
 
-  const auth = useAuth()
-  await auth.ensureBootstrapped()
+  await bootstrap.ensureBootstrapped()
+
+  if (bootstrap.viewState.value !== 'ready' || !bootstrap.isAuthenticated.value)
+    return '/auth'
+
+  if (to.matched.some(record => record.meta.requiresProvider) && !bootstrap.hasUsableProvider.value)
+    return '/settings/providers'
 
   return true
 })

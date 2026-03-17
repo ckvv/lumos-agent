@@ -1,9 +1,8 @@
 import type { DatabaseExecutor } from '#main/database/database'
-import type { AuthBootstrapState, AuthCredentialsInput } from '#shared/auth/types'
+import type { AuthBootstrapState, AuthCredentialsInput, AuthSessionSnapshot } from '#shared/auth/types'
 import { Buffer } from 'node:buffer'
 import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from 'node:crypto'
 import { promisify } from 'node:util'
-import { getDatabaseBootstrapSnapshot, startDatabaseBootstrapInBackground } from '#main/database/bootstrap'
 import { db } from '#main/database/database'
 import { sessions, users } from '#main/database/schema'
 import { ORPCError } from '@orpc/server'
@@ -57,35 +56,15 @@ async function verifyPassword(password: string, storedPasswordHash: string) {
   return timingSafeEqual(expectedBuffer, actualBuffer)
 }
 
-export function getAuthBootstrapState() {
-  let snapshot = getDatabaseBootstrapSnapshot()
-
-  if (snapshot.status === 'idle' || snapshot.status === 'failed') {
-    startDatabaseBootstrapInBackground()
-    snapshot = getDatabaseBootstrapSnapshot()
-  }
-
-  if (snapshot.status !== 'ready') {
-    return {
-      authState: 'requiresLogin' as const,
-      currentUsername: null,
-      databaseInitError: snapshot.errorMessage,
-      databaseInitStatus: snapshot.status,
-      hasUser: false,
-      isAuthenticated: false,
-    }
-  }
-
+export function getAuthSessionSnapshot(): AuthSessionSnapshot {
   const user = getSingleUserRecord(db)
   const session = getCurrentSessionRecord(db)
   const hasUser = Boolean(user)
   const isAuthenticated = Boolean(user && session?.isAuthenticated)
 
   return {
-    authState: buildAuthState(hasUser, isAuthenticated),
+    state: buildAuthState(hasUser, isAuthenticated),
     currentUsername: isAuthenticated ? user?.username ?? null : null,
-    databaseInitError: snapshot.errorMessage,
-    databaseInitStatus: snapshot.status,
     hasUser,
     isAuthenticated,
   }
@@ -110,6 +89,28 @@ function upsertSession(db: DatabaseExecutor, userId: number, isAuthenticated: bo
     isAuthenticated,
     userId,
   }).run()
+}
+
+export function getAuthenticatedUser() {
+  const user = getSingleUserRecord(db)
+  const session = getCurrentSessionRecord(db)
+
+  if (!user || !session?.isAuthenticated)
+    return null
+
+  return user
+}
+
+export function requireAuthenticatedUser() {
+  const user = getAuthenticatedUser()
+
+  if (!user) {
+    throw new ORPCError('UNAUTHORIZED', {
+      message: 'You must be signed in to access chat features',
+    })
+  }
+
+  return user
 }
 
 export async function registerLocalUser(credentials: AuthCredentialsInput) {
@@ -140,7 +141,7 @@ export async function registerLocalUser(credentials: AuthCredentialsInput) {
     upsertSession(tx, createdUser.id, true)
   })
 
-  return getAuthBootstrapState()
+  return getAuthSessionSnapshot()
 }
 
 export async function loginLocalUser(credentials: AuthCredentialsInput) {
@@ -163,7 +164,7 @@ export async function loginLocalUser(credentials: AuthCredentialsInput) {
 
   upsertSession(db, user.id, true)
 
-  return getAuthBootstrapState()
+  return getAuthSessionSnapshot()
 }
 
 export function logoutLocalUser() {
@@ -178,5 +179,5 @@ export function logoutLocalUser() {
       .run()
   }
 
-  return getAuthBootstrapState()
+  return getAuthSessionSnapshot()
 }

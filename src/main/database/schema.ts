@@ -24,10 +24,69 @@ export const sessions = sqliteTable('sessions', {
   ...auditColumns,
 })
 
+export const providerConfigs = sqliteTable('provider_configs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  providerId: text('provider_id').notNull(),
+  displayName: text('display_name').notNull(),
+  kind: text('kind').notNull(),
+  authMode: text('auth_mode').notNull(),
+  isEnabled: integer('is_enabled', { mode: 'boolean' }).notNull().default(true),
+  baseUrl: text('base_url'),
+  encryptedSecret: text('encrypted_secret'),
+  compatJson: text('compat_json'),
+  secretStorageMode: text('secret_storage_mode').notNull(),
+  lastSyncError: text('last_sync_error'),
+  ...auditColumns,
+})
+
+export const providerModels = sqliteTable('provider_models', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  providerConfigId: integer('provider_config_id').notNull().references(() => providerConfigs.id, { onDelete: 'cascade' }),
+  modelId: text('model_id').notNull(),
+  name: text('name').notNull(),
+  api: text('api').notNull(),
+  reasoning: integer('reasoning', { mode: 'boolean' }).notNull().default(false),
+  inputJson: text('input_json').notNull(),
+  contextWindow: integer('context_window').notNull(),
+  maxTokens: integer('max_tokens').notNull(),
+  costJson: text('cost_json').notNull(),
+  origin: text('origin').notNull(),
+  isEnabled: integer('is_enabled', { mode: 'boolean' }).notNull().default(true),
+  ...auditColumns,
+})
+
+export const conversations = sqliteTable('conversations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  runtimeConfigJson: text('runtime_config_json').notNull(),
+  lastMessagePreview: text('last_message_preview'),
+  lastMessageAt: text('last_message_at'),
+  ...auditColumns,
+})
+
+export const conversationMessages = sqliteTable('conversation_messages', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  conversationId: integer('conversation_id').notNull().references(() => conversations.id, { onDelete: 'cascade' }),
+  sequence: integer('sequence').notNull(),
+  role: text('role').notNull(),
+  messageJson: text('message_json').notNull(),
+  runtimeSnapshotJson: text('runtime_snapshot_json'),
+  ...auditColumns,
+})
+
 export const databaseSchema = {
+  conversationMessages,
+  conversations,
+  providerConfigs,
+  providerModels,
   sessions,
   users,
 }
 
+export type ProviderConfigRecord = typeof providerConfigs.$inferSelect
+export type ProviderModelRecord = typeof providerModels.$inferSelect
+export type ConversationRecord = typeof conversations.$inferSelect
+export type ConversationMessageRecord = typeof conversationMessages.$inferSelect
 export type UserRecord = typeof users.$inferSelect
 export type SessionRecord = typeof sessions.$inferSelect

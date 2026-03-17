@@ -1,53 +1,75 @@
 # oRPC Communication
 
-This project uses `oRPC` as the typed communication layer between the Electron main process and the Vue renderer.
+This project uses `oRPC` as the typed bridge between the Electron main process and the Vue renderer. The renderer only talks to main-process services through the shared contract.
 
 ## Architecture
 
-- `src/main/orpc/modules/*.ts`: domain-level main-process router modules.
-- `src/main/orpc/middlewares/*.ts`: cross-cutting oRPC middlewares such as logging.
-- `src/main/orpc/router.ts`: root router that composes domain modules.
-- `src/main/orpc/bridge.ts`: upgrades the transferred Electron `MessagePortMain` into an `oRPC` server handler.
-- `src/preload/orpc/bridge.ts`: forwards the renderer-created message port to Electron IPC.
-- `src/renderer/orpc/client.ts`: creates the renderer-side `oRPC` client from `MessageChannel.port1`.
+- `src/main/orpc/modules/*.ts`: domain-level router modules
+- `src/main/orpc/middlewares/*.ts`: cross-cutting middleware such as logging and redaction
+- `src/main/orpc/router.ts`: root router composition
+- `src/main/orpc/bridge.ts`: upgrades Electron `MessagePortMain` into the oRPC server transport
+- `src/preload/orpc/bridge.ts`: forwards the renderer-created `MessagePort`
+- `src/renderer/orpc/client.ts`: creates the renderer oRPC client and reconnects when the message port is dropped
 
-The transport follows the official Electron adapter shape:
+Transport flow:
 
 1. renderer creates a `MessageChannel`
-2. renderer transfers `port2` to preload via `window.postMessage`
-3. preload forwards that port to main via `ipcRenderer.postMessage`
-4. main upgrades the received port with `RPCHandler`
-5. renderer uses `port1` as the typed `oRPC` client transport
+2. renderer transfers `port2` through preload
+3. preload forwards the port to Electron main
+4. main binds the oRPC handler to that port
+5. renderer uses `port1` as the typed transport
 
-Current modules:
+## Current Modules
 
-- `app`: desktop/runtime metadata exposed to the renderer
-- `auth`: bootstrap state, local account registration, login, and logout
+- `app`
+  - `getBootstrap()`: unified startup snapshot for database, auth, routing, provider readiness, chat summary, and capability flags
+  - `getInfo()`: desktop/runtime metadata
+- `auth`
+  - `register()`
+  - `login()`
+  - `logout()`
+  - all auth mutations return the latest `AppBootstrap`
+- `chat`
+  - `providers.*`: provider configs, OAuth providers, compatible model sync/manual maintenance
+  - `conversations.*`: create, list, detail, rename, delete, runtime config updates
+  - `messages.send()`: streaming chat events
 
-## Why this shape
+## Bootstrap Contract
 
-- One typed contract is shared across main, preload, and renderer-facing types.
-- The preload layer stays a thin bridge instead of becoming a second RPC client layer.
-- `MessagePort` keeps the transport generic and avoids creating one IPC channel per capability.
-- New desktop capabilities can be added by extending the contract and implementing the matching router procedure.
+Startup uses a single snapshot: `app.getBootstrap()`.
 
-## Adding a new procedure
+The renderer should not stitch together multiple bootstrap endpoints anymore. After the first snapshot is loaded:
 
-1. Implement the procedure inside the matching module under `src/main/orpc/modules/`.
-2. Re-export or compose that module from `src/main/orpc/router.ts` when a new domain is introduced.
-3. Consume it from renderer composables or components through `src/renderer/orpc/client.ts`.
+- route guards use `bootstrap.routing`
+- auth pages use `bootstrap.auth`
+- provider settings use `chat.providers.*`
+- chat workspace uses `chat.conversations.*` and `chat.messages.send()`
 
-## Auth Bootstrap Notes
+## Streaming Procedures
 
-The auth module is also the renderer-facing bootstrap contract for local database readiness.
+Two procedures currently use `eventIterator(...)`:
 
-- `auth.getBootstrapState()` is a snapshot call, not a blocking bootstrap call.
-- The main process starts SQLite bootstrap during `app.ready`.
-- The renderer polls `getBootstrapState()` while the database reports `idle` or `initializing`.
-- Once the database is `ready`, auth procedures operate against the main-process SQLite connection.
+- `chat.providers.startOAuthLogin()`
+- `chat.messages.send()`
 
-## Router Organization
+Event shapes:
 
-- Keep each domain in its own module, such as `app`, `settings`, or `window`.
-- Keep `src/main/orpc/router.ts` as the single composition layer for both domain modules and shared middlewares.
-- Register cross-cutting middleware in `src/main/orpc/middlewares/index.ts` so future concerns like auth, metrics, or auditing can be added without touching every procedure.
+- OAuth login: `auth_url | progress | waiting_manual_code | success | failed | canceled`
+- Chat streaming: `started | assistant_patch | completed | failed`
+
+`assistant_patch` carries the full partial assistant snapshot so the renderer never has to merge provider deltas itself.
+
+## Error Handling
+
+- Renderer composables retry once when the underlying message port was closed or disconnected.
+- Transport failures are mapped to visible UI messages.
+- Main-process validation uses Zod at every public oRPC boundary.
+- Logging middleware redacts secrets such as API keys, OAuth credentials, custom headers, and runtime snapshots.
+
+## Adding a New Procedure
+
+1. Implement the procedure in the correct domain module under `src/main/orpc/modules/`.
+2. Compose the module in `src/main/orpc/router.ts` if needed.
+3. Consume it through a renderer composable instead of calling the client directly from a Vue component.
+
+Keep main-process only behavior in services under `src/main/services/`; keep shared contracts in `src/shared/`.

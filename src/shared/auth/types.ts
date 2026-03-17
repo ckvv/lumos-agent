@@ -19,3 +19,10 @@ export interface AuthCredentialsInput {
   username: string
   password: string
 }
+
+export interface AuthSessionSnapshot {
+  currentUsername: string | null
+  hasUser: boolean
+  isAuthenticated: boolean
+  state: AuthBootstrapState
+}

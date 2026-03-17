@@ -1,28 +1,24 @@
 <script setup lang="ts">
-import { router } from '#renderer/router'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-
-interface NavRoute {
-  label: string
-  name: string | symbol
-  path: string
-}
 
 const { t } = useI18n()
 const currentRoute = useRoute()
 
-const navRoutes = computed<NavRoute[]>(() =>
-  router
-    .getRoutes()
-    .filter(route => !route.redirect && route.name)
-    .map(route => ({
-      label: t(`navigation.routes.${String(route.name)}`),
-      name: route.name!,
-      path: route.path,
-    })),
-)
+const navRoutes = [
+  {
+    key: 'chat',
+    path: '/chat',
+  },
+  {
+    key: 'providers',
+    path: '/settings/providers',
+  },
+  {
+    key: 'about',
+    path: '/',
+  },
+]
 </script>
 
 <template>
@@ -32,10 +28,10 @@ const navRoutes = computed<NavRoute[]>(() =>
   >
     <UButton
       v-for="route in navRoutes"
-      :key="route.name"
+      :key="route.key"
       class="rounded-full"
       color="neutral"
-      :label="route.label"
+      :label="t(`navigation.routes.${route.key}`)"
       :to="route.path"
       :variant="currentRoute.path === route.path ? 'solid' : 'outline'"
     />

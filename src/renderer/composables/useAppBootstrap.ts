@@ -1,21 +1,34 @@
-import type { AuthBootstrapSnapshot, Client } from '#renderer/orpc/client'
+import type { AppBootstrapSnapshot, Client } from '#renderer/orpc/client'
 import type { AuthBootstrapState, AuthCredentialsInput } from '#shared/auth/types'
-import { getORPCClient } from '#renderer/orpc/client'
-import { computed, readonly, shallowRef } from 'vue'
+import { getORPCClient, resetORPCClient, shouldRetryORPCTransport } from '#renderer/orpc/client'
+import { computed, shallowReadonly, shallowRef } from 'vue'
 
-type AuthViewState = 'failed' | 'initializing' | AuthBootstrapState
+type BootstrapViewState = 'failed' | 'initializing' | 'ready'
 
-const bootstrapState = shallowRef<AuthBootstrapSnapshot | null>(null)
+const bootstrapState = shallowRef<AppBootstrapSnapshot | null>(null)
 const bootstrapTransportError = shallowRef<string | null>(null)
 const actionErrorMessage = shallowRef<string | null>(null)
 const isBootstrapping = shallowRef(false)
 const isSubmitting = shallowRef(false)
 
-let bootstrapPromise: Promise<AuthBootstrapSnapshot> | null = null
+let bootstrapPromise: Promise<AppBootstrapSnapshot> | null = null
 let bootstrapPollTimer: number | null = null
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : 'Unknown error'
+}
+
+async function runWithClient<T>(handler: (client: Client) => Promise<T>) {
+  try {
+    return await handler(await getORPCClient())
+  }
+  catch (error) {
+    if (!shouldRetryORPCTransport(error))
+      throw error
+
+    resetORPCClient()
+    return handler(await getORPCClient())
+  }
 }
 
 function stopBootstrapPolling() {
@@ -27,11 +40,10 @@ function stopBootstrapPolling() {
 }
 
 async function requestBootstrapState() {
-  const client = await getORPCClient()
-  return client.auth.getBootstrapState()
+  return runWithClient(client => client.app.getBootstrap())
 }
 
-export function useAuth() {
+export function useAppBootstrap() {
   function scheduleBootstrapPolling() {
     if (bootstrapPollTimer !== null || typeof window === 'undefined')
       return
@@ -42,7 +54,7 @@ export function useAuth() {
       try {
         const snapshot = await refreshBootstrap()
 
-        if (snapshot.databaseInitStatus === 'idle' || snapshot.databaseInitStatus === 'initializing')
+        if (snapshot.database.status === 'idle' || snapshot.database.status === 'initializing')
           scheduleBootstrapPolling()
       }
       catch {
@@ -50,11 +62,11 @@ export function useAuth() {
     }, 600)
   }
 
-  function applyBootstrapSnapshot(snapshot: AuthBootstrapSnapshot) {
+  function applyBootstrapSnapshot(snapshot: AppBootstrapSnapshot) {
     bootstrapState.value = snapshot
     bootstrapTransportError.value = null
 
-    if (snapshot.databaseInitStatus === 'idle' || snapshot.databaseInitStatus === 'initializing') {
+    if (snapshot.database.status === 'idle' || snapshot.database.status === 'initializing') {
       scheduleBootstrapPolling()
       return
     }
@@ -62,15 +74,12 @@ export function useAuth() {
     stopBootstrapPolling()
   }
 
-  async function runAuthMutation(
-    handler: (client: Client) => Promise<AuthBootstrapSnapshot>,
-  ) {
+  async function runAuthMutation(handler: (client: Client) => Promise<AppBootstrapSnapshot>) {
     isSubmitting.value = true
     actionErrorMessage.value = null
 
     try {
-      const client = await getORPCClient()
-      const snapshot = await handler(client)
+      const snapshot = await runWithClient(handler)
       applyBootstrapSnapshot(snapshot)
       return snapshot
     }
@@ -83,27 +92,29 @@ export function useAuth() {
     }
   }
 
-  const viewState = computed<AuthViewState>(() => {
+  const viewState = computed<BootstrapViewState>(() => {
     if (!bootstrapState.value)
       return bootstrapTransportError.value ? 'failed' : 'initializing'
 
-    if (bootstrapState.value.databaseInitStatus === 'idle' || bootstrapState.value.databaseInitStatus === 'initializing')
+    if (bootstrapState.value.database.status === 'idle' || bootstrapState.value.database.status === 'initializing')
       return 'initializing'
 
-    if (bootstrapState.value.databaseInitStatus === 'failed')
+    if (bootstrapState.value.database.status === 'failed')
       return 'failed'
 
-    return bootstrapState.value.authState
+    return 'ready'
   })
 
-  const currentUsername = computed(() => bootstrapState.value?.currentUsername ?? null)
-  const initializationErrorMessage = computed(() =>
-    bootstrapState.value?.databaseInitError ?? bootstrapTransportError.value,
-  )
   const authState = computed<AuthBootstrapState | null>(() =>
-    viewState.value === 'authenticated' || viewState.value === 'needsRegistration' || viewState.value === 'requiresLogin'
-      ? viewState.value
-      : null,
+    viewState.value === 'ready' ? bootstrapState.value?.auth.state ?? null : null,
+  )
+
+  const isAuthenticated = computed(() => bootstrapState.value?.auth.isAuthenticated ?? false)
+  const hasUsableProvider = computed(() => bootstrapState.value?.providerSummary.hasUsableProvider ?? false)
+  const currentUsername = computed(() => bootstrapState.value?.auth.currentUsername ?? null)
+  const recommendedRoute = computed(() => bootstrapState.value?.routing.recommendedRoute ?? '/auth')
+  const initializationErrorMessage = computed(() =>
+    bootstrapState.value?.database.errorMessage ?? bootstrapTransportError.value,
   )
 
   async function refreshBootstrap() {
@@ -137,12 +148,12 @@ export function useAuth() {
     return refreshBootstrap()
   }
 
-  async function register(credentials: AuthCredentialsInput) {
-    return runAuthMutation(client => client.auth.register(credentials))
-  }
-
   async function login(credentials: AuthCredentialsInput) {
     return runAuthMutation(client => client.auth.login(credentials))
+  }
+
+  async function register(credentials: AuthCredentialsInput) {
+    return runAuthMutation(client => client.auth.register(credentials))
   }
 
   async function logout() {
@@ -156,19 +167,22 @@ export function useAuth() {
   }
 
   return {
-    actionErrorMessage: readonly(actionErrorMessage),
-    authState: readonly(authState),
-    bootstrapState: readonly(bootstrapState),
-    currentUsername: readonly(currentUsername),
+    actionErrorMessage: shallowReadonly(actionErrorMessage),
+    authState: shallowReadonly(authState),
+    bootstrapState: shallowReadonly(bootstrapState),
+    currentUsername: shallowReadonly(currentUsername),
     ensureBootstrapped,
-    initializationErrorMessage: readonly(initializationErrorMessage),
-    isBootstrapping: readonly(isBootstrapping),
-    isSubmitting: readonly(isSubmitting),
+    hasUsableProvider: shallowReadonly(hasUsableProvider),
+    initializationErrorMessage: shallowReadonly(initializationErrorMessage),
+    isAuthenticated: shallowReadonly(isAuthenticated),
+    isBootstrapping: shallowReadonly(isBootstrapping),
+    isSubmitting: shallowReadonly(isSubmitting),
     login,
     logout,
+    recommendedRoute: shallowReadonly(recommendedRoute),
     refreshBootstrap,
     register,
     retryBootstrap,
-    viewState: readonly(viewState),
+    viewState: shallowReadonly(viewState),
   }
 }

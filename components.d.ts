@@ -12,13 +12,19 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AboutView: typeof import('./src/renderer/components/AboutView.vue')['default']
+    AppearanceSettings: typeof import('./src/renderer/components/AppearanceSettings.vue')['default']
     AppNavigation: typeof import('./src/renderer/components/AppNavigation.vue')['default']
     AppShell: typeof import('./src/renderer/layouts/AppShell.vue')['default']
+    AuthenticatedFrame: typeof import('./src/renderer/components/app/AuthenticatedFrame.vue')['default']
     AuthForm: typeof import('./src/renderer/components/auth/AuthForm.vue')['default']
     AuthGate: typeof import('./src/renderer/components/auth/AuthGate.vue')['default']
     AuthInitState: typeof import('./src/renderer/components/auth/AuthInitState.vue')['default']
+    ChatWorkspaceView: typeof import('./src/renderer/components/chat/ChatWorkspaceView.vue')['default']
+    ConversationSidebar: typeof import('./src/renderer/components/chat/ConversationSidebar.vue')['default']
     HomeView: typeof import('./src/renderer/components/HomeView.vue')['default']
     LocaleSwitcher: typeof import('./src/renderer/components/LocaleSwitcher.vue')['default']
+    MessageBubble: typeof import('./src/renderer/components/chat/MessageBubble.vue')['default']
+    ProviderSettingsView: typeof import('./src/renderer/components/providers/ProviderSettingsView.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     RuntimeBridgeCard: typeof import('./src/renderer/components/RuntimeBridgeCard.vue')['default']
@@ -31,6 +37,7 @@ declare module 'vue' {
     UFormField: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/FormField.vue')['default']
     UIcon: typeof import('./node_modules/@nuxt/ui/dist/runtime/vue/components/Icon.vue')['default']
     UInput: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Input.vue')['default']
+    UPopover: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Popover.vue')['default']
     USelect: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Select.vue')['default']
     USkeleton: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Skeleton.vue')['default']
   }

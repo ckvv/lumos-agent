@@ -31,6 +31,7 @@
     "release": "npx changelogen --patch --release --push"
   },
   "dependencies": {
+    "@mariozechner/pi-ai": "0.58.4",
     "@nuxt/ui": "^4.5.1",
     "@orpc/client": "^1.13.7",
     "@orpc/server": "^1.13.7",

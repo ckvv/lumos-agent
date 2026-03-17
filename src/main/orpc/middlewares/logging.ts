@@ -2,8 +2,15 @@ import { logger } from '#main/logger'
 import { os } from '@orpc/server'
 
 const SENSITIVE_KEYS = new Set([
+  'access',
+  'apiKey',
+  'customHeaders',
+  'encryptedSecret',
+  'headers',
   'password',
   'passwordHash',
+  'refresh',
+  'runtimeSnapshotJson',
 ])
 
 function sanitizeLogInput(value: unknown, depth = 0): unknown {
