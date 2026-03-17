@@ -21,12 +21,6 @@ const { t } = useI18n()
 
 const editingConversationId = shallowRef<number | null>(null)
 const editingTitle = shallowRef('')
-const timeFormatter = new Intl.DateTimeFormat(undefined, {
-  day: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-  month: 'short',
-})
 
 const hasConversations = computed(() => props.conversations.length > 0)
 
@@ -52,17 +46,10 @@ function submitRename(id: number) {
   })
   stopRenaming()
 }
-
-function formatConversationTime(value: string | null) {
-  if (!value)
-    return t('chat.sidebar.noMessages')
-
-  return timeFormatter.format(new Date(value))
-}
 </script>
 
 <template>
-  <section class="grid h-full min-h-0 gap-4 rounded-[1.7rem] border border-default/70 bg-default/92 p-4 shadow-sm">
+  <section class="flex h-full min-h-0 flex-col gap-4 rounded-[1.7rem] border border-default/70 bg-default/92 p-4 shadow-sm">
     <div class="flex items-center justify-between gap-3">
       <div class="grid gap-1">
         <h2 class="m-0 text-base font-semibold text-highlighted">
@@ -103,12 +90,12 @@ function formatConversationTime(value: string | null) {
 
     <div
       v-else
-      class="grid min-h-0 gap-2 overflow-y-auto pr-1"
+      class="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-1"
     >
       <article
         v-for="conversation in conversations"
         :key="conversation.id"
-        class="grid gap-3 rounded-[1.25rem] border p-3 transition-colors hover:border-default hover:bg-elevated/90"
+        class="group flex shrink-0 items-center gap-2 rounded-[1rem] border px-3 py-2 transition-colors hover:border-default hover:bg-elevated/90"
         :class="conversation.id === selectedConversationId
           ? 'border-primary/25 bg-primary/6'
           : 'border-default/70 bg-elevated/45'"
@@ -116,63 +103,59 @@ function formatConversationTime(value: string | null) {
         <template v-if="editingConversationId === conversation.id">
           <UInput
             v-model="editingTitle"
+            class="min-w-0 flex-1"
             autofocus
             @keyup.enter="submitRename(conversation.id)"
           />
-          <div class="flex items-center justify-end gap-2">
-            <UButton
-              color="neutral"
-              :label="t('chat.sidebar.cancelRename')"
-              size="xs"
-              variant="outline"
-              @click="stopRenaming"
-            />
-            <UButton
-              color="primary"
-              :disabled="!editingTitle.trim()"
-              :label="t('chat.sidebar.saveRename')"
-              size="xs"
-              @click="submitRename(conversation.id)"
-            />
-          </div>
+          <UButton
+            color="neutral"
+            :label="t('chat.sidebar.cancelRename')"
+            size="xs"
+            variant="outline"
+            @click="stopRenaming"
+          />
+          <UButton
+            color="primary"
+            :disabled="!editingTitle.trim()"
+            :label="t('chat.sidebar.saveRename')"
+            size="xs"
+            @click="submitRename(conversation.id)"
+          />
         </template>
 
         <template v-else>
           <button
-            class="grid gap-1 text-left"
+            class="min-w-0 flex-1 text-left"
             type="button"
             @click="emit('select', conversation.id)"
           >
-            <span class="truncate text-sm font-medium text-highlighted">
+            <span class="block truncate text-sm font-medium text-highlighted">
               {{ conversation.title }}
-            </span>
-            <span class="line-clamp-2 text-xs leading-6 text-toned">
-              {{ conversation.lastMessagePreview || t('chat.sidebar.noPreview') }}
             </span>
           </button>
 
-          <div class="flex items-center justify-between gap-3">
-            <span class="text-[11px] uppercase tracking-[0.18em] text-toned">
-              {{ formatConversationTime(conversation.lastMessageAt) }}
-            </span>
-            <div class="flex items-center gap-2">
-              <UButton
-                color="neutral"
-                :disabled="isBusy"
-                icon="i-lucide-pencil-line"
-                size="xs"
-                variant="ghost"
-                @click="startRenaming(conversation)"
-              />
-              <UButton
-                color="error"
-                :disabled="isBusy"
-                icon="i-lucide-trash-2"
-                size="xs"
-                variant="ghost"
-                @click="emit('delete', conversation.id)"
-              />
-            </div>
+          <div
+            class="flex shrink-0 items-center gap-1 transition-opacity"
+            :class="conversation.id === selectedConversationId
+              ? 'opacity-100'
+              : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'"
+          >
+            <UButton
+              color="neutral"
+              :disabled="isBusy"
+              icon="i-lucide-pencil-line"
+              size="xs"
+              variant="ghost"
+              @click="startRenaming(conversation)"
+            />
+            <UButton
+              color="error"
+              :disabled="isBusy"
+              icon="i-lucide-trash-2"
+              size="xs"
+              variant="ghost"
+              @click="emit('delete', conversation.id)"
+            />
           </div>
         </template>
       </article>

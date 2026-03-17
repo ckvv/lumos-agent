@@ -43,7 +43,7 @@ function handleSelect(conversationId: number) {
     :title="t('chat.workspace.historyDrawerTitle')"
   >
     <template #body>
-      <div class="grid gap-4">
+      <div class="flex h-full min-h-0 flex-col gap-4">
         <UAlert
           v-if="errorMessage"
           color="warning"
@@ -52,16 +52,18 @@ function handleSelect(conversationId: number) {
           variant="soft"
         />
 
-        <ConversationSidebar
-          :conversations="conversations"
-          :is-busy="isBusy"
-          :is-loading="isLoading"
-          :selected-conversation-id="selectedConversationId"
-          @create="handleCreate"
-          @delete="emit('delete', $event)"
-          @rename="emit('rename', $event)"
-          @select="handleSelect"
-        />
+        <div class="min-h-0 flex-1">
+          <ConversationSidebar
+            :conversations="conversations"
+            :is-busy="isBusy"
+            :is-loading="isLoading"
+            :selected-conversation-id="selectedConversationId"
+            @create="handleCreate"
+            @delete="emit('delete', $event)"
+            @rename="emit('rename', $event)"
+            @select="handleSelect"
+          />
+        </div>
       </div>
     </template>
   </USlideover>
