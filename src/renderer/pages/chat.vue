@@ -54,6 +54,7 @@ const workspace = useChatWorkspace()
       @open-history="workspace.openConversationHistory"
       @provider-change="workspace.handleProviderChange"
       @send="workspace.handleSendMessage"
+      @stop="workspace.handleStopMessage"
     />
 
     <ChatHistorySlideover

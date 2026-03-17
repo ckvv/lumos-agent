@@ -7,6 +7,7 @@ import { onBeforeUnmount, shallowReadonly, shallowRef } from 'vue'
 const errorMessage = shallowRef<string | null>(null)
 const isSending = shallowRef(false)
 const partialAssistantMessage = shallowRef<AssistantMessage | null>(null)
+const isStoppingStream = shallowRef(false)
 
 let stopStream: (() => Promise<void>) | null = null
 
@@ -22,21 +23,21 @@ export function useChatStream() {
       onFinish?: () => void
     },
   ) {
+    if (stopStream)
+      await stopCurrentStream()
+
     errorMessage.value = null
     partialAssistantMessage.value = null
     isSending.value = true
-
-    if (stopStream) {
-      await stopStream()
-      stopStream = null
-    }
+    isStoppingStream.value = false
 
     try {
       const iterator = await runWithORPCClient(client => client.chat.messages.send(payload))
 
       stopStream = consumeEventIterator(iterator, {
         onError: (error) => {
-          errorMessage.value = getORPCErrorMessage(error)
+          if (!isStoppingStream.value)
+            errorMessage.value = getORPCErrorMessage(error)
         },
         onEvent: (event) => {
           if (event.type === 'assistant_patch') {
@@ -47,7 +48,8 @@ export function useChatStream() {
             partialAssistantMessage.value = null
 
           if (event.type === 'failed') {
-            errorMessage.value = event.errorMessage
+            if (!isStoppingStream.value)
+              errorMessage.value = event.errorMessage
             partialAssistantMessage.value = event.assistantMessage ? null : event.partialMessage
           }
 
@@ -63,23 +65,41 @@ export function useChatStream() {
     catch (error) {
       errorMessage.value = getORPCErrorMessage(error)
       isSending.value = false
+      isStoppingStream.value = false
       throw error
     }
   }
 
-  async function stopCurrentStream() {
-    if (!stopStream)
-      return
+  async function stopCurrentStream(options?: { preservePartial?: boolean }) {
+    const preservePartial = options?.preservePartial ?? false
 
-    await stopStream()
-    stopStream = null
-    isSending.value = false
-    partialAssistantMessage.value = null
+    if (!stopStream) {
+      errorMessage.value = null
+
+      if (!preservePartial)
+        partialAssistantMessage.value = null
+
+      return
+    }
+
+    isStoppingStream.value = true
+
+    try {
+      await stopStream()
+    }
+    finally {
+      stopStream = null
+      isSending.value = false
+      errorMessage.value = null
+      isStoppingStream.value = false
+
+      if (!preservePartial)
+        partialAssistantMessage.value = null
+    }
   }
 
   onBeforeUnmount(() => {
-    if (stopStream)
-      void stopStream()
+    void stopCurrentStream()
   })
 
   return {

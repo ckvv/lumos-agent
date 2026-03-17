@@ -51,7 +51,7 @@ const assistantErrorMessage = computed(() => {
   if (props.message.role !== 'assistant')
     return null
 
-  if (props.message.stopReason !== 'error' && props.message.stopReason !== 'aborted')
+  if (props.message.stopReason !== 'error')
     return null
 
   return props.message.errorMessage ?? null

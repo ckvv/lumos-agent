@@ -235,6 +235,12 @@ export function useChatWorkspace() {
     })
   }
 
+  async function handleStopMessage() {
+    await chatStream.stopCurrentStream({
+      preservePartial: true,
+    })
+  }
+
   watch(usableConfigs, async (configs) => {
     if (configs.length === 0)
       return
@@ -290,6 +296,7 @@ export function useChatWorkspace() {
     handleProviderChange,
     handleRenameConversation,
     handleSendMessage,
+    handleStopMessage,
     isConversationListBusy,
     isConversationListLoading: conversationList.isLoading,
     isConversationLoading: conversationDetail.isLoading,

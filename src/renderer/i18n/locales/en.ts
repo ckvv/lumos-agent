@@ -111,6 +111,7 @@ export const en = {
     },
     composer: {
       helper: 'This conversation keeps using the provider and model selected above.',
+      pause: 'Pause',
       placeholder: 'Type what you want to work on...',
       send: 'Send',
       sending: 'Sending...',

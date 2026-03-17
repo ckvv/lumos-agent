@@ -26,9 +26,9 @@ async function handleLogout() {
 </script>
 
 <template>
-  <main class="min-h-screen bg-transparent">
-    <div class="grid min-h-screen lg:grid-cols-[17.5rem_minmax(0,1fr)]">
-      <aside class="hidden border-r border-default/70 bg-default/55 p-4 lg:block">
+  <main class="h-screen overflow-hidden bg-transparent">
+    <div class="grid h-full lg:grid-cols-[17.5rem_minmax(0,1fr)]">
+      <aside class="hidden overflow-hidden border-r border-default/70 bg-default/55 p-4 lg:block">
         <AuthenticatedFrameSidebar
           :current-username="bootstrap.currentUsername.value"
           :show-security-warning="Boolean(bootstrap.bootstrapState.value?.providerSummary.usesPlaintextFallback)"
@@ -36,7 +36,7 @@ async function handleLogout() {
         />
       </aside>
 
-      <section class="grid min-h-screen min-w-0 grid-rows-[auto_minmax(0,1fr)]">
+      <section class="grid h-full min-w-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden">
         <header class="flex items-center justify-between gap-3 border-b border-default/70 bg-default/70 px-4 py-3 backdrop-blur lg:hidden">
           <UButton
             color="neutral"
@@ -56,7 +56,7 @@ async function handleLogout() {
           </div>
         </header>
 
-        <div class="grid min-h-0 p-3 sm:p-4 lg:p-6">
+        <div class="grid min-h-0 overflow-hidden p-3 sm:p-4 lg:p-6">
           <AuthInitState
             v-if="bootstrap.viewState.value === 'initializing' || bootstrap.viewState.value === 'failed'"
             :error-message="bootstrap.initializationErrorMessage.value"
@@ -67,19 +67,19 @@ async function handleLogout() {
 
           <div
             v-else
-            class="grid min-h-0 gap-4"
+            class="grid min-h-0 gap-4 overflow-hidden"
             :class="hasSidebar ? 'lg:grid-cols-[18.5rem_minmax(0,1fr)]' : ''"
           >
             <aside
               v-if="hasSidebar"
-              class="hidden min-h-0 lg:block"
+              class="hidden min-h-0 overflow-hidden lg:block"
             >
-              <div class="h-full min-h-0">
+              <div class="h-full min-h-0 overflow-hidden">
                 <slot name="sidebar" />
               </div>
             </aside>
 
-            <section class="grid min-h-0">
+            <section class="grid min-h-0 overflow-hidden">
               <slot />
             </section>
           </div>

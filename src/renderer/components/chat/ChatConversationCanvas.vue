@@ -19,6 +19,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   send: []
+  stop: []
 }>()
 
 const composerValue = defineModel<string>({
@@ -31,10 +32,6 @@ const hasMessages = computed(() =>
   props.messages.length > 0 || Boolean(props.partialAssistantMessage),
 )
 
-const runtimeSummary = computed(() =>
-  [props.providerName, props.modelName].filter(Boolean).join(' · '),
-)
-
 function handleComposerKeydown(event: KeyboardEvent) {
   if ((event.metaKey || event.ctrlKey) && event.key === 'Enter' && props.canSend) {
     event.preventDefault()
@@ -44,8 +41,8 @@ function handleComposerKeydown(event: KeyboardEvent) {
 </script>
 
 <template>
-  <section class="flex min-h-[70vh] flex-1 flex-col rounded-[1.8rem] border border-default/70 bg-default/95 shadow-sm">
-    <div class="flex min-h-0 flex-1 flex-col px-4 pt-4 sm:px-6 sm:pt-6">
+  <section class="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-[1.8rem] border border-default/70 bg-default/95 shadow-sm">
+    <div class="flex min-h-0 flex-1 flex-col overflow-hidden px-4 pt-4 sm:px-6 sm:pt-6">
       <div
         v-if="isLoading && !hasMessages"
         class="grid gap-3"
@@ -63,7 +60,7 @@ function handleComposerKeydown(event: KeyboardEvent) {
 
       <div
         v-else
-        class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1 sm:pr-2"
+        class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1 pb-4 sm:pr-2"
       >
         <MessageBubble
           v-for="message in messages"
@@ -88,7 +85,7 @@ function handleComposerKeydown(event: KeyboardEvent) {
       variant="soft"
     />
 
-    <footer class="mt-4 grid gap-4 border-t border-default/70 bg-elevated/60 p-4 sm:p-5">
+    <footer class="shrink-0 border-t border-default/70 bg-elevated/60 p-4 sm:p-5">
       <UTextarea
         v-model="composerValue"
         autoresize
@@ -97,31 +94,27 @@ function handleComposerKeydown(event: KeyboardEvent) {
         :maxrows="12"
         :placeholder="t('chat.composer.placeholder')"
         :rows="3"
+        trailing
+        :ui="{
+          base: 'min-h-28 pb-12 pe-14',
+          trailing: 'absolute end-3 bottom-3 inset-y-auto flex items-end',
+        }"
         @keydown="handleComposerKeydown"
-      />
-
-      <div class="flex flex-wrap items-end justify-between gap-3">
-        <div class="grid gap-2">
-          <p class="m-0 text-xs leading-6 text-toned">
-            {{ t('chat.composer.helper') }}
-          </p>
-          <UBadge
-            v-if="runtimeSummary"
-            color="neutral"
-            :label="runtimeSummary"
-            variant="subtle"
+      >
+        <template #trailing>
+          <UButton
+            class="rounded-full shadow-sm"
+            :aria-label="isSending ? t('chat.composer.pause') : t('chat.composer.send')"
+            :color="isSending ? 'warning' : 'primary'"
+            :disabled="isSending ? false : !canSend"
+            :icon="isSending ? 'i-lucide-square' : 'i-lucide-send-horizontal'"
+            size="lg"
+            square
+            :title="isSending ? t('chat.composer.pause') : t('chat.composer.send')"
+            @click="isSending ? emit('stop') : emit('send')"
           />
-        </div>
-
-        <UButton
-          class="rounded-full"
-          color="primary"
-          icon="i-lucide-send-horizontal"
-          :disabled="!canSend"
-          :label="isSending ? t('chat.composer.sending') : t('chat.composer.send')"
-          @click="emit('send')"
-        />
-      </div>
+        </template>
+      </UTextarea>
     </footer>
   </section>
 </template>

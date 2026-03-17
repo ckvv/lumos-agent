@@ -34,6 +34,7 @@ const emit = defineEmits<{
   openHistory: []
   providerChange: [value: string | number]
   send: []
+  stop: []
 }>()
 
 const composerValue = defineModel<string>({
@@ -42,7 +43,7 @@ const composerValue = defineModel<string>({
 </script>
 
 <template>
-  <section class="grid min-h-0 gap-4">
+  <section class="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-4 overflow-hidden">
     <ChatWorkspaceHeader
       :conversation-count="conversationCount"
       :conversation-title="conversationTitle"
@@ -69,6 +70,7 @@ const composerValue = defineModel<string>({
       :partial-assistant-message="partialAssistantMessage"
       :provider-name="providerName"
       @send="emit('send')"
+      @stop="emit('stop')"
     />
   </section>
 </template>

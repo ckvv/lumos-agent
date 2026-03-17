@@ -109,6 +109,7 @@ export const zhCN = {
     },
     composer: {
       helper: '当前对话会沿用上方选择的 provider 与模型设置。',
+      pause: '暂停',
       placeholder: '输入你的需求，开始当前对话...',
       send: '发送',
       sending: '发送中...',
