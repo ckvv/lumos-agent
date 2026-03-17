@@ -60,6 +60,7 @@ export const zhCN = {
     },
   },
   about: {
+    backToAuth: '返回登录',
     body: 'Lumos 现在围绕本地 provider 配置、聊天工作台、SQLite 历史持久化和基于 oRPC 的主进程桥接展开。它不是模板首页，而是对当前产品边界的直接说明。',
     eyebrow: 'About',
     future: {

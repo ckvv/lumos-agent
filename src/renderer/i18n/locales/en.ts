@@ -62,6 +62,7 @@ export const en = {
     },
   },
   about: {
+    backToAuth: 'Back to sign in',
     body: 'Lumos now centers on local provider setup, a chat workspace, SQLite-backed history, and a main-process bridge over oRPC. It is no longer a marketing homepage; it is the product boundary in plain terms.',
     eyebrow: 'About',
     future: {
