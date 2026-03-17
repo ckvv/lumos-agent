@@ -5,6 +5,7 @@
 This repository is an Electron Forge desktop app with a Vite + Vue 3 renderer.
 
 - `src/main/`: Electron main-process startup, lifecycle, constants, and window creation.
+- `src/main/services/`: main-process business services that orchestrate app use cases and may coordinate database access.
 - `src/preload/`: secure bridge APIs exposed to the renderer through preload scripts.
 - `src/renderer/`: Vue application code, including `pages/`, `components/`, `layouts/`, `router/`, `composables/`, `i18n/`, and shared styles.
 - `src/shared/`: cross-layer shared types, constants, and protocol definitions that are safe to import from multiple runtimes.
@@ -14,6 +15,7 @@ This repository is an Electron Forge desktop app with a Vite + Vue 3 renderer.
 
 Keep desktop integrations in `src/main/` or `src/preload/`; keep UI logic in `src/renderer/`.
 Keep Node/Electron-only implementation details such as filesystem paths, database bootstrap, and OS integration out of `src/shared/`; place them under `src/main/` unless they are true cross-runtime contracts.
+Keep database bootstrap, schema, and low-level connection utilities in `src/main/database/`; place business-oriented orchestration such as auth flows in `src/main/services/`.
 
 If a change affects project structure, core development commands, validation workflow, or dependency policy, update `AGENTS.md` in the same change. If the change also affects shared behavior or needs contributor-facing explanation, add or update the relevant documentation under `docs/`.
 

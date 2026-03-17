@@ -3,7 +3,7 @@ import {
   loginLocalUser,
   logoutLocalUser,
   registerLocalUser,
-} from '#main/database/auth-service'
+} from '#main/services/auth'
 import { authBootstrapStates, databaseInitStatuses } from '#shared/auth/types'
 import { os } from '@orpc/server'
 import { z } from 'zod'
