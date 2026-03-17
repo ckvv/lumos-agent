@@ -11,6 +11,9 @@ const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
     extraResource: ['drizzle'],
+    icon: [
+      '/icons/icon.icns',
+    ],
   },
   rebuildConfig: {},
   makers: [

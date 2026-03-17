@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import AuthenticatedUserMenu from '#renderer/components/app/AuthenticatedUserMenu.vue'
 import AppNavigation from '#renderer/components/AppNavigation.vue'
-import LocaleSwitcher from '#renderer/components/LocaleSwitcher.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
@@ -41,29 +41,15 @@ const { t } = useI18n()
             {{ t('shell.description', { username: currentUsername ?? '-' }) }}
           </p>
         </div>
-        <p class="m-0 text-xs text-toned">
-          {{ t('shell.currentUser', { username: currentUsername ?? '-' }) }}
-        </p>
       </div>
     </header>
 
     <AppNavigation orientation="vertical" />
 
-    <div class="mt-auto grid gap-3 rounded-[1.3rem] border border-default/70 bg-elevated/60 p-3">
-      <div class="grid gap-1">
-        <label class="text-xs font-medium uppercase tracking-[0.18em] text-toned">
-          {{ t('shell.languageLabel') }}
-        </label>
-        <LocaleSwitcher />
-      </div>
-
-      <UButton
-        class="w-full justify-center rounded-[1rem]"
-        color="neutral"
-        :label="t('shell.logout')"
-        type="button"
-        variant="outline"
-        @click="emit('logout')"
+    <div class="mt-auto">
+      <AuthenticatedUserMenu
+        :current-username="currentUsername"
+        @logout="emit('logout')"
       />
     </div>
   </div>

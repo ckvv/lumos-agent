@@ -17,16 +17,6 @@ const navRoutes = [
     key: 'chat',
     path: '/chat',
   },
-  {
-    icon: 'i-lucide-sliders-horizontal',
-    key: 'providers',
-    path: '/settings/providers',
-  },
-  {
-    icon: 'i-lucide-info',
-    key: 'about',
-    path: '/about',
-  },
 ]
 </script>
 
