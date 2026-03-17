@@ -1,8 +1,10 @@
+import type { DatabaseExecutor } from '#main/database/database'
 import type { AuthBootstrapState, AuthCredentialsInput } from '#shared/auth/types'
 import { Buffer } from 'node:buffer'
 import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from 'node:crypto'
 import { promisify } from 'node:util'
-import { getDatabaseBootstrapSnapshot, getDatabaseContext, startDatabaseBootstrapInBackground } from '#main/database/bootstrap'
+import { getDatabaseBootstrapSnapshot, startDatabaseBootstrapInBackground } from '#main/database/bootstrap'
+import { db } from '#main/database/database'
 import { sessions, users } from '#main/database/schema'
 import { ORPCError } from '@orpc/server'
 import { and, eq, isNull } from 'drizzle-orm'
@@ -10,16 +12,6 @@ import { and, eq, isNull } from 'drizzle-orm'
 const SCRYPT_KEY_LENGTH = 64
 const SCRYPT_PREFIX = 'scrypt'
 const scrypt = promisify(scryptCallback)
-
-type DatabaseExecutor = NonNullable<ReturnType<typeof getDatabaseContext>>['db']
-
-function nowAsIsoString() {
-  return new Date().toISOString()
-}
-
-function normalizeUsername(username: string) {
-  return username.trim()
-}
 
 function buildAuthState(hasUser: boolean, isAuthenticated: boolean): AuthBootstrapState {
   if (!hasUser)
@@ -70,18 +62,6 @@ async function verifyPassword(password: string, storedPasswordHash: string) {
   return timingSafeEqual(expectedBuffer, actualBuffer)
 }
 
-function requireDatabase() {
-  const context = getDatabaseContext()
-
-  if (!context) {
-    throw new ORPCError('SERVICE_UNAVAILABLE', {
-      message: 'Database is not ready yet',
-    })
-  }
-
-  return context
-}
-
 export function getAuthBootstrapState() {
   let snapshot = getDatabaseBootstrapSnapshot()
 
@@ -101,7 +81,6 @@ export function getAuthBootstrapState() {
     }
   }
 
-  const { db } = requireDatabase()
   const user = getSingleUserRecord(db)
   const session = getCurrentSessionRecord(db)
   const hasUser = Boolean(user)
@@ -117,7 +96,7 @@ export function getAuthBootstrapState() {
   }
 }
 
-function upsertSession(db: DatabaseExecutor, userId: number, isAuthenticated: boolean, now: string) {
+function upsertSession(db: DatabaseExecutor, userId: number, isAuthenticated: boolean) {
   const existingSession = getCurrentSessionRecord(db)
 
   if (existingSession) {
@@ -125,7 +104,6 @@ function upsertSession(db: DatabaseExecutor, userId: number, isAuthenticated: bo
       .set({
         deletedAt: null,
         isAuthenticated,
-        updatedAt: now,
         userId,
       })
       .where(eq(sessions.id, existingSession.id))
@@ -135,17 +113,13 @@ function upsertSession(db: DatabaseExecutor, userId: number, isAuthenticated: bo
   }
 
   db.insert(sessions).values({
-    createdAt: now,
-    deletedAt: null,
     isAuthenticated,
-    updatedAt: now,
     userId,
   }).run()
 }
 
 export async function registerLocalUser(credentials: AuthCredentialsInput) {
-  const username = normalizeUsername(credentials.username)
-  const { db } = requireDatabase()
+  const { username } = credentials
 
   if (getSingleUserRecord(db)) {
     throw new ORPCError('CONFLICT', {
@@ -153,15 +127,11 @@ export async function registerLocalUser(credentials: AuthCredentialsInput) {
     })
   }
 
-  const now = nowAsIsoString()
   const passwordHash = await hashPassword(credentials.password)
 
   db.transaction((tx) => {
     tx.insert(users).values({
-      createdAt: now,
-      deletedAt: null,
       passwordHash,
-      updatedAt: now,
       username,
     }).run()
 
@@ -173,15 +143,14 @@ export async function registerLocalUser(credentials: AuthCredentialsInput) {
       })
     }
 
-    upsertSession(tx, createdUser.id, true, now)
+    upsertSession(tx, createdUser.id, true)
   })
 
   return getAuthBootstrapState()
 }
 
 export async function loginLocalUser(credentials: AuthCredentialsInput) {
-  const username = normalizeUsername(credentials.username)
-  const { db } = requireDatabase()
+  const { username } = credentials
   const user = getUserByUsername(db, username)
 
   if (!user) {
@@ -198,20 +167,18 @@ export async function loginLocalUser(credentials: AuthCredentialsInput) {
     })
   }
 
-  upsertSession(db, user.id, true, nowAsIsoString())
+  upsertSession(db, user.id, true)
 
   return getAuthBootstrapState()
 }
 
 export function logoutLocalUser() {
-  const { db } = requireDatabase()
   const session = getCurrentSessionRecord(db)
 
   if (session) {
     db.update(sessions)
       .set({
         isAuthenticated: false,
-        updatedAt: nowAsIsoString(),
       })
       .where(eq(sessions.id, session.id))
       .run()

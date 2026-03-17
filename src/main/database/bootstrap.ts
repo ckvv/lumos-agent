@@ -1,9 +1,10 @@
+import type { DatabaseContext } from '#main/database/database'
 import type { DatabaseInitStatus } from '#shared/auth/types'
-import type { NodeSQLiteDatabase } from 'drizzle-orm/node-sqlite'
 import { existsSync, mkdirSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { DatabaseSync } from 'node:sqlite'
+import { closeDatabase, getDatabaseContext, setDatabaseContext } from '#main/database/database'
 import { logger } from '#main/logger'
 import { DATABASE_FILENAME } from '#shared/app/constants'
 import { drizzle } from 'drizzle-orm/node-sqlite'
@@ -17,13 +18,6 @@ export interface DatabaseBootstrapSnapshot {
   status: DatabaseInitStatus
 }
 
-export interface DatabaseContext {
-  client: DatabaseSync
-  db: NodeSQLiteDatabase<typeof databaseSchema>
-  filePath: string
-}
-
-let databaseContext: DatabaseContext | null = null
 let initStatus: DatabaseInitStatus = 'idle'
 let initErrorMessage: string | null = null
 let bootstrapPromise: Promise<DatabaseContext> | null = null
@@ -84,7 +78,7 @@ function shouldAdoptExistingSchema(client: DatabaseSync) {
   )
 }
 
-function initializeDatabase(db: NodeSQLiteDatabase<typeof databaseSchema>, client: DatabaseSync) {
+function initializeDatabase(db: DatabaseContext['db'], client: DatabaseSync) {
   client.exec('PRAGMA foreign_keys = ON;')
   const migrationsFolder = getMigrationsFolderPath()
 
@@ -127,13 +121,11 @@ export function getDatabaseBootstrapSnapshot(): DatabaseBootstrapSnapshot {
   }
 }
 
-export function getDatabaseContext() {
-  return databaseContext
-}
-
 export function startDatabaseBootstrap() {
-  if (databaseContext && initStatus === 'ready')
-    return Promise.resolve(databaseContext)
+  const currentContext = getDatabaseContext()
+
+  if (currentContext && initStatus === 'ready')
+    return Promise.resolve(currentContext)
 
   if (bootstrapPromise)
     return bootstrapPromise
@@ -144,7 +136,7 @@ export function startDatabaseBootstrap() {
   bootstrapPromise = Promise.resolve().then(() => {
     closeDatabase()
     const context = createDatabaseContext()
-    databaseContext = context
+    setDatabaseContext(context)
     initStatus = 'ready'
     logger.info({ filePath: context.filePath }, 'SQLite bootstrap completed')
     return context
@@ -162,12 +154,4 @@ export function startDatabaseBootstrap() {
 
 export function startDatabaseBootstrapInBackground() {
   void startDatabaseBootstrap().catch(() => {})
-}
-
-export function closeDatabase() {
-  if (!databaseContext)
-    return
-
-  databaseContext.client.close()
-  databaseContext = null
 }

@@ -1,5 +1,6 @@
 import process from 'node:process'
-import { closeDatabase, startDatabaseBootstrapInBackground } from '#main/database/bootstrap'
+import { startDatabaseBootstrapInBackground } from '#main/database/bootstrap'
+import { closeDatabase } from '#main/database/database'
 import { flushLogs, logger } from '#main/logger'
 import { createMainWindow } from '#main/windows/main-window'
 import { app, BrowserWindow } from 'electron'

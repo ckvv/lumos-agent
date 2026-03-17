@@ -1,8 +1,13 @@
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
+function createIsoTimestamp() {
+  return new Date().toISOString()
+}
+
 const auditColumns = {
-  createdAt: text('created_at').notNull(),
-  updatedAt: text('updated_at').notNull(),
+  createdAt: text('created_at').notNull().$defaultFn(createIsoTimestamp),
+  // `updatedAt` 依赖 Drizzle 运行时自动补值，insert / update 都不需要 service 显式维护。
+  updatedAt: text('updated_at').notNull().$onUpdateFn(createIsoTimestamp),
   deletedAt: text('deleted_at'),
 }
 
