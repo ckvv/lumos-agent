@@ -1,7 +1,7 @@
 import os from 'node:os'
 import path from 'node:path'
 import process from 'node:process'
-import { APP_NAME, DATABASE_FILENAME } from '#shared/app/constants'
+import { APP_NAME, DATABASE_FILENAME } from '#shared/app/constants.ts'
 
 export interface ResolveDatabaseFilePathOptions {
   allowEnvOverride?: boolean

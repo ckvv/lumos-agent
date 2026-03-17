@@ -23,7 +23,6 @@
 - On startup, the main process applies migrations before exposing the database to the rest of the app.
 - In development, migrations are loaded from the repository `drizzle/` directory.
 - In packaged apps, migrations are loaded from the bundled app resources directory.
-- If a local database already has the managed tables but no Drizzle migration records yet, bootstrap adopts the existing schema with `init` mode instead of re-running `CREATE TABLE`.
 
 ## Updating the schema
 
