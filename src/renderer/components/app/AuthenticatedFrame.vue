@@ -67,7 +67,7 @@ async function handleLogout() {
 
           <div
             v-else
-            class="grid min-h-0 gap-4 overflow-hidden"
+            class="grid h-full min-h-0 gap-4 overflow-hidden"
             :class="hasSidebar ? 'lg:grid-cols-[18.5rem_minmax(0,1fr)]' : ''"
           >
             <aside
@@ -79,7 +79,7 @@ async function handleLogout() {
               </div>
             </aside>
 
-            <section class="grid min-h-0 overflow-hidden">
+            <section class="grid h-full min-h-0 overflow-hidden">
               <slot />
             </section>
           </div>

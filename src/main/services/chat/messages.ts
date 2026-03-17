@@ -21,6 +21,10 @@ function cloneAssistantMessage(message: AssistantMessage | null) {
   return structuredClone(message)
 }
 
+function isCanceledStream(signal?: AbortSignal) {
+  return Boolean(signal?.aborted)
+}
+
 function resolveRequestSystemPrompt(runtimeConfig: ChatRuntimeConfig, api: string) {
   const normalizedPrompt = runtimeConfig.systemPrompt.trim()
 
@@ -109,6 +113,10 @@ export async function* sendConversationMessage(
       }
 
       if (event.type === 'error') {
+        // 手动暂停会触发 provider / transport abort，这里不应该再向前端冒充成失败。
+        if (isCanceledStream(signal) || event.error.stopReason === 'aborted')
+          return
+
         failedMessage = mergeFailedAssistantMessage(
           cloneAssistantMessage(event.error),
           partialMessage,
@@ -132,8 +140,14 @@ export async function* sendConversationMessage(
     }
   }
   catch (error) {
+    if (isCanceledStream(signal))
+      return
+
     failureReason = error instanceof Error ? error.message : 'Unknown chat streaming error'
   }
+
+  if (isCanceledStream(signal))
+    return
 
   if (completedMessage) {
     const assistantMessage = appendConversationMessage(input.conversationId, completedMessage, normalizedRuntimeConfig)

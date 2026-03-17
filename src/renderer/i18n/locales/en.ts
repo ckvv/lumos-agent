@@ -129,7 +129,6 @@ export const en = {
       cancelRename: 'Cancel',
       confirmDelete: 'Delete this conversation?',
       delete: 'Delete',
-      description: 'Recent conversations',
       empty: 'No conversations yet. Create an empty one first, or send the first message to start automatically.',
       newConversation: 'New',
       noMessages: 'No messages yet',

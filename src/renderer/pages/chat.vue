@@ -31,31 +31,33 @@ const workspace = useChatWorkspace()
       />
     </template>
 
-    <ChatWorkspaceView
-      v-model="workspace.composerValue.value"
-      :can-send="workspace.canSend.value"
-      :conversation-count="workspace.conversationCount.value"
-      :conversation-title="workspace.conversationTitle.value"
-      :error-message="workspace.errorMessage.value"
-      :is-busy="workspace.isConversationListBusy.value"
-      :is-loading="workspace.isConversationLoading.value"
-      :is-sending="workspace.isSending.value"
-      :messages="workspace.messages.value"
-      :model-items="workspace.modelItems.value"
-      :model-name="workspace.selectedModelName.value"
-      :partial-assistant-message="workspace.partialAssistantMessage.value"
-      :provider-items="workspace.providerItems.value"
-      :provider-load-error="workspace.providerLoadError.value"
-      :provider-name="workspace.selectedProviderName.value"
-      :selected-model-id="workspace.selectedModelId.value"
-      :selected-provider-id="workspace.selectedProviderId.value"
-      @create-conversation="workspace.handleCreateConversation"
-      @model-change="workspace.handleModelChange"
-      @open-history="workspace.openConversationHistory"
-      @provider-change="workspace.handleProviderChange"
-      @send="workspace.handleSendMessage"
-      @stop="workspace.handleStopMessage"
-    />
+    <div class="h-full min-h-0">
+      <ChatWorkspaceView
+        v-model="workspace.composerValue.value"
+        :can-send="workspace.canSend.value"
+        :conversation-count="workspace.conversationCount.value"
+        :conversation-title="workspace.conversationTitle.value"
+        :error-message="workspace.errorMessage.value"
+        :is-busy="workspace.isConversationListBusy.value"
+        :is-loading="workspace.isConversationLoading.value"
+        :is-sending="workspace.isSending.value"
+        :messages="workspace.messages.value"
+        :model-items="workspace.modelItems.value"
+        :model-name="workspace.selectedModelName.value"
+        :partial-assistant-message="workspace.partialAssistantMessage.value"
+        :provider-items="workspace.providerItems.value"
+        :provider-load-error="workspace.providerLoadError.value"
+        :provider-name="workspace.selectedProviderName.value"
+        :selected-model-id="workspace.selectedModelId.value"
+        :selected-provider-id="workspace.selectedProviderId.value"
+        @create-conversation="workspace.handleCreateConversation"
+        @model-change="workspace.handleModelChange"
+        @open-history="workspace.openConversationHistory"
+        @provider-change="workspace.handleProviderChange"
+        @send="workspace.handleSendMessage"
+        @stop="workspace.handleStopMessage"
+      />
+    </div>
 
     <ChatHistorySlideover
       v-model:open="workspace.isHistoryOpen.value"

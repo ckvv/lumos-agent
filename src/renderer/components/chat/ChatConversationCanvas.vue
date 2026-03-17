@@ -86,35 +86,33 @@ function handleComposerKeydown(event: KeyboardEvent) {
     />
 
     <footer class="shrink-0 border-t border-default/70 bg-elevated/60 p-4 sm:p-5">
-      <UTextarea
-        v-model="composerValue"
-        autoresize
-        class="w-full"
-        :disabled="isSending"
-        :maxrows="12"
-        :placeholder="t('chat.composer.placeholder')"
-        :rows="3"
-        trailing
-        :ui="{
-          base: 'min-h-28 pb-12 pe-14',
-          trailing: 'absolute end-3 bottom-3 inset-y-auto flex items-end',
-        }"
-        @keydown="handleComposerKeydown"
-      >
-        <template #trailing>
-          <UButton
-            class="rounded-full shadow-sm"
-            :aria-label="isSending ? t('chat.composer.pause') : t('chat.composer.send')"
-            :color="isSending ? 'warning' : 'primary'"
-            :disabled="isSending ? false : !canSend"
-            :icon="isSending ? 'i-lucide-square' : 'i-lucide-send-horizontal'"
-            size="lg"
-            square
-            :title="isSending ? t('chat.composer.pause') : t('chat.composer.send')"
-            @click="isSending ? emit('stop') : emit('send')"
-          />
-        </template>
-      </UTextarea>
+      <div class="relative">
+        <UTextarea
+          v-model="composerValue"
+          autoresize
+          class="w-full"
+          :disabled="isSending"
+          :maxrows="12"
+          :placeholder="t('chat.composer.placeholder')"
+          :rows="3"
+          :ui="{
+            base: 'min-h-28 pb-14 pe-16',
+          }"
+          @keydown="handleComposerKeydown"
+        />
+
+        <UButton
+          class="absolute end-3 bottom-3 z-10 rounded-full shadow-sm"
+          :aria-label="isSending ? t('chat.composer.pause') : t('chat.composer.send')"
+          :color="isSending ? 'warning' : 'primary'"
+          :disabled="isSending ? false : !canSend"
+          :icon="isSending ? 'i-lucide-square' : 'i-lucide-send-horizontal'"
+          size="lg"
+          square
+          :title="isSending ? t('chat.composer.pause') : t('chat.composer.send')"
+          @click="isSending ? emit('stop') : emit('send')"
+        />
+      </div>
     </footer>
   </section>
 </template>

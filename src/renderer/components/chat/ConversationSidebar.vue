@@ -55,9 +55,6 @@ function submitRename(id: number) {
         <h2 class="m-0 text-base font-semibold text-highlighted">
           {{ t('chat.sidebar.title') }}
         </h2>
-        <p class="m-0 text-xs text-toned">
-          {{ t('chat.sidebar.description') }}
-        </p>
       </div>
 
       <UButton

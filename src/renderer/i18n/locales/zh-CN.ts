@@ -127,7 +127,6 @@ export const zhCN = {
       cancelRename: '取消',
       confirmDelete: '确定删除这个会话吗？',
       delete: '删除',
-      description: '最近使用的对话',
       empty: '还没有会话。先创建一个空会话，或者直接发送第一条消息自动开始。',
       newConversation: '新建',
       noMessages: '还没有消息',
