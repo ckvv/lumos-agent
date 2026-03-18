@@ -146,6 +146,8 @@ export const en = {
       historyDrawerDescription: 'Recent conversations stay here and can be reopened whenever you need them.',
       historyDrawerTitle: 'Conversation history',
       historyLoadError: 'Failed to load conversations',
+      modelMenu: 'Switch model',
+      modelMenuHint: 'Switch provider and model from a single menu',
       newConversation: 'New conversation',
       providerDescription: 'Switch the provider and model for the current conversation here while keeping history out of the main canvas.',
       providerSection: 'Current setup',

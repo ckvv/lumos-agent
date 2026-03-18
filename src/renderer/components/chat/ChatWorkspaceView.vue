@@ -1,13 +1,9 @@
 <script setup lang="ts">
+import type { ChatModelSwitchGroup } from '#renderer/components/chat/types'
 import type { ConversationMessageRecord } from '#shared/chat/types'
 import type { AssistantMessage } from '@mariozechner/pi-ai'
 import ChatConversationCanvas from '#renderer/components/chat/ChatConversationCanvas.vue'
 import ChatWorkspaceHeader from '#renderer/components/chat/ChatWorkspaceHeader.vue'
-
-interface SelectItem {
-  label: string
-  value: string
-}
 
 defineProps<{
   canSend: boolean
@@ -18,10 +14,9 @@ defineProps<{
   isLoading?: boolean
   isSending?: boolean
   messages: readonly ConversationMessageRecord[]
-  modelItems: SelectItem[]
+  modelSwitchGroups: ChatModelSwitchGroup[]
   modelName: string | null
   partialAssistantMessage: AssistantMessage | null
-  providerItems: SelectItem[]
   providerLoadError: string | null
   providerName: string | null
   selectedModelId: string | null
@@ -30,9 +25,8 @@ defineProps<{
 
 const emit = defineEmits<{
   createConversation: []
-  modelChange: [value: string | number]
   openHistory: []
-  providerChange: [value: string | number]
+  runtimeChange: [value: { providerConfigId: number, modelId: string }]
   send: []
   stop: []
 }>()
@@ -48,15 +42,15 @@ const composerValue = defineModel<string>({
       :conversation-count="conversationCount"
       :conversation-title="conversationTitle"
       :is-busy="isBusy"
-      :model-items="modelItems"
-      :provider-items="providerItems"
+      :model-name="modelName"
+      :model-switch-groups="modelSwitchGroups"
       :provider-load-error="providerLoadError"
+      :provider-name="providerName"
       :selected-model-id="selectedModelId"
       :selected-provider-id="selectedProviderId"
       @create-conversation="emit('createConversation')"
-      @model-change="emit('modelChange', $event)"
       @open-history="emit('openHistory')"
-      @provider-change="emit('providerChange', $event)"
+      @runtime-change="emit('runtimeChange', $event)"
     />
 
     <ChatConversationCanvas

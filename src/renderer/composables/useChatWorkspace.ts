@@ -1,3 +1,4 @@
+import type { ChatModelSwitchGroup } from '#renderer/components/chat/types'
 import type { ChatRuntimeConfig } from '#shared/chat/types'
 import { useChatStream } from '#renderer/composables/useChatStream'
 import { useConversationDetail } from '#renderer/composables/useConversationDetail'
@@ -71,22 +72,23 @@ export function useChatWorkspace() {
     usableConfigs.value.find(config => config.id === effectiveRuntimeConfig.value.providerConfigId) ?? null,
   )
 
-  const providerItems = computed(() =>
+  const modelSwitchGroups = computed<ChatModelSwitchGroup[]>(() =>
     usableConfigs.value.map(config => ({
-      label: config.displayName,
-      value: String(config.id),
+      models: config.models.map(model => ({
+        modelId: model.id,
+        modelName: model.name,
+        providerConfigId: config.id,
+        providerName: config.displayName,
+      })),
+      providerConfigId: config.id,
+      providerName: config.displayName,
     })),
   )
 
-  const modelItems = computed(() =>
-    selectedProviderConfig.value?.models.map(model => ({
-      label: model.name,
-      value: model.id,
-    })) ?? [],
-  )
-
   const selectedModelName = computed(() =>
-    modelItems.value.find(model => model.value === effectiveRuntimeConfig.value.modelId)?.label ?? null,
+    selectedProviderConfig.value?.models
+      .find(model => model.id === effectiveRuntimeConfig.value.modelId)
+      ?.name ?? null,
   )
 
   const canSend = computed(() =>
@@ -170,21 +172,16 @@ export function useChatWorkspace() {
     conversationList.upsertConversation(conversation)
   }
 
-  async function handleProviderChange(value: string | number) {
-    const nextConfig = usableConfigs.value.find(config => config.id === Number(value))
+  async function handleRuntimeChange(nextSelection: { providerConfigId: number, modelId: string }) {
+    const nextConfig = usableConfigs.value.find(config => config.id === nextSelection.providerConfigId)
+    const nextModel = nextConfig?.models.find(model => model.id === nextSelection.modelId) ?? null
 
-    if (!nextConfig)
+    if (!nextConfig || !nextModel)
       return
 
     await persistRuntimeConfig(buildUpdatedRuntimeConfig({
-      modelId: nextConfig.models[0]?.id ?? null,
+      modelId: nextModel.id,
       providerConfigId: nextConfig.id,
-    }))
-  }
-
-  async function handleModelChange(value: string | number) {
-    await persistRuntimeConfig(buildUpdatedRuntimeConfig({
-      modelId: String(value),
     }))
   }
 
@@ -292,9 +289,8 @@ export function useChatWorkspace() {
     handleConversationSelection,
     handleCreateConversation,
     handleDeleteConversation,
-    handleModelChange,
-    handleProviderChange,
     handleRenameConversation,
+    handleRuntimeChange,
     handleSendMessage,
     handleStopMessage,
     isConversationListBusy,
@@ -303,10 +299,9 @@ export function useChatWorkspace() {
     isHistoryOpen,
     isSending: chatStream.isSending,
     messages: conversationDetail.messages,
-    modelItems,
+    modelSwitchGroups,
     openConversationHistory,
     partialAssistantMessage: chatStream.partialAssistantMessage,
-    providerItems,
     providerLoadError: providerSettings.errorMessage,
     selectedConversationId,
     selectedModelId: computed(() => effectiveRuntimeConfig.value.modelId),

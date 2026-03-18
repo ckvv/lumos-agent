@@ -24,6 +24,7 @@ declare module 'vue' {
     ChatConversationCanvas: typeof import('./src/renderer/components/chat/ChatConversationCanvas.vue')['default']
     ChatConversationEmptyState: typeof import('./src/renderer/components/chat/ChatConversationEmptyState.vue')['default']
     ChatHistorySlideover: typeof import('./src/renderer/components/chat/ChatHistorySlideover.vue')['default']
+    ChatModelSwitcher: typeof import('./src/renderer/components/chat/ChatModelSwitcher.vue')['default']
     ChatWorkspaceHeader: typeof import('./src/renderer/components/chat/ChatWorkspaceHeader.vue')['default']
     ChatWorkspaceView: typeof import('./src/renderer/components/chat/ChatWorkspaceView.vue')['default']
     ConversationSidebar: typeof import('./src/renderer/components/chat/ConversationSidebar.vue')['default']
