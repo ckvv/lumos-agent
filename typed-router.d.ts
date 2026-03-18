@@ -40,13 +40,6 @@ declare module 'vue-router/auto-routes' {
       { path: ParamValue<false> },
       | never
     >,
-    'about': RouteRecordInfo<
-      'about',
-      '/about',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     'auth': RouteRecordInfo<
       'auth',
       '/auth',
@@ -57,13 +50,6 @@ declare module 'vue-router/auto-routes' {
     'chat': RouteRecordInfo<
       'chat',
       '/chat',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    'provider-settings': RouteRecordInfo<
-      'provider-settings',
-      '/settings/providers',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -93,12 +79,6 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/renderer/pages/about.vue': {
-      routes:
-        | 'about'
-      views:
-        | never
-    }
     'src/renderer/pages/auth.vue': {
       routes:
         | 'auth'
@@ -108,12 +88,6 @@ declare module 'vue-router/auto-routes' {
     'src/renderer/pages/chat.vue': {
       routes:
         | 'chat'
-      views:
-        | never
-    }
-    'src/renderer/pages/settings/providers.vue': {
-      routes:
-        | 'provider-settings'
       views:
         | never
     }

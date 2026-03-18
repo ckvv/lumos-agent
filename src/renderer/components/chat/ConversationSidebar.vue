@@ -16,6 +16,8 @@ const emit = defineEmits<{
   create: []
   delete: [conversationId: number]
   logout: []
+  openAbout: []
+  openProviderSettings: []
   rename: [payload: { id: number, title: string }]
   select: [conversationId: number]
 }>()
@@ -166,6 +168,8 @@ function submitRename(id: number) {
         <AuthenticatedUserMenu
           :current-username="currentUsername"
           @logout="emit('logout')"
+          @open-about="emit('openAbout')"
+          @open-provider-settings="emit('openProviderSettings')"
         />
       </div>
     </div>

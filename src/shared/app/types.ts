@@ -1,7 +1,7 @@
 import type { AuthBootstrapState, DatabaseInitStatus } from '#shared/auth/types'
 import type { CapabilityFlags } from '#shared/chat/types'
 
-export type AppRecommendedRoute = '/' | '/auth' | '/chat' | '/settings/providers'
+export type AppRecommendedRoute = '/' | '/auth' | '/chat'
 
 export interface AppBootstrapDatabaseState {
   errorMessage: string | null
@@ -18,7 +18,6 @@ export interface AppBootstrapAuthState {
 export interface AppBootstrapRoutingState {
   canAccessChat: boolean
   recommendedRoute: AppRecommendedRoute
-  shouldRedirectToProviderSettings: boolean
 }
 
 export interface AppBootstrapProviderSummary {

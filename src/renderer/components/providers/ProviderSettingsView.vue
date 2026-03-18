@@ -5,10 +5,8 @@ import { useProviderSettings } from '#renderer/composables/useProviderSettings'
 import { confirmAction } from '#renderer/utils/confirm'
 import { computed, onMounted, reactive, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
 
 const { t } = useI18n()
-const router = useRouter()
 const bootstrap = useAppBootstrap()
 const providerSettings = useProviderSettings()
 
@@ -97,25 +95,14 @@ function resetCompatibleForm() {
   delete compatibleForm.id
 }
 
-async function refreshBootstrapAndMaybeRedirect() {
-  const previouslyHadUsableProvider = bootstrap.hasUsableProvider.value
-  await refreshBootstrapAfterProviderMutation(previouslyHadUsableProvider)
-}
-
-async function refreshBootstrapAfterProviderMutation(previouslyHadUsableProvider: boolean, allowRedirect = true) {
+async function refreshBootstrapAfterProviderMutation() {
   await bootstrap.refreshBootstrap()
-
-  if (!allowRedirect)
-    return
-
-  if (!previouslyHadUsableProvider && bootstrap.hasUsableProvider.value)
-    await router.replace('/chat')
 }
 
 async function handleSaveBuiltinApiKey(providerId: string) {
   await providerSettings.saveBuiltinApiKeyConfig(providerId, builtinApiKeys[providerId])
   builtinApiKeys[providerId] = ''
-  await refreshBootstrapAndMaybeRedirect()
+  await refreshBootstrapAfterProviderMutation()
 }
 
 async function handleSaveCompatibleProvider() {
@@ -128,7 +115,7 @@ async function handleSaveCompatibleProvider() {
   })
 
   resetCompatibleForm()
-  await refreshBootstrapAndMaybeRedirect()
+  await refreshBootstrapAfterProviderMutation()
 }
 
 async function handleDeleteConfig(id: number) {
@@ -136,23 +123,20 @@ async function handleDeleteConfig(id: number) {
     return
 
   await providerSettings.deleteConfig(id)
-  await refreshBootstrapAfterProviderMutation(bootstrap.hasUsableProvider.value, false)
+  await refreshBootstrapAfterProviderMutation()
 }
 
 async function handleToggleConfig(config: Readonly<ProviderConfigDetail>) {
-  const previouslyHadUsableProvider = bootstrap.hasUsableProvider.value
   await providerSettings.setEnabled(config.id, !config.isEnabled)
-  await refreshBootstrapAfterProviderMutation(previouslyHadUsableProvider)
+  await refreshBootstrapAfterProviderMutation()
 }
 
 async function handleSyncCompatibleModels(id: number) {
-  const previouslyHadUsableProvider = bootstrap.hasUsableProvider.value
   await providerSettings.syncCompatibleModels(id)
-  await refreshBootstrapAfterProviderMutation(previouslyHadUsableProvider)
+  await refreshBootstrapAfterProviderMutation()
 }
 
 async function handleSaveManualModel(providerConfigId: number) {
-  const previouslyHadUsableProvider = bootstrap.hasUsableProvider.value
   const form = getManualModelForm(providerConfigId)
 
   await providerSettings.saveCompatibleModel({
@@ -173,7 +157,7 @@ async function handleSaveManualModel(providerConfigId: number) {
     reasoning: false,
     supportsImageInput: false,
   }
-  await refreshBootstrapAfterProviderMutation(previouslyHadUsableProvider)
+  await refreshBootstrapAfterProviderMutation()
 }
 
 async function handleDeleteManualModel(providerConfigId: number, modelId: string) {
@@ -181,7 +165,7 @@ async function handleDeleteManualModel(providerConfigId: number, modelId: string
     return
 
   await providerSettings.deleteCompatibleModel(providerConfigId, modelId)
-  await refreshBootstrapAfterProviderMutation(bootstrap.hasUsableProvider.value, false)
+  await refreshBootstrapAfterProviderMutation()
 }
 
 async function handleStartOAuth(providerId: string) {
@@ -217,7 +201,7 @@ watch(
     if (eventType !== 'success')
       return
 
-    await refreshBootstrapAndMaybeRedirect()
+    await refreshBootstrapAfterProviderMutation()
   },
 )
 </script>

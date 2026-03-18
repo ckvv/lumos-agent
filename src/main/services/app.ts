@@ -37,7 +37,6 @@ function getUnavailableBootstrap(): AppBootstrap {
     routing: {
       canAccessChat: false,
       recommendedRoute: '/auth',
-      shouldRedirectToProviderSettings: false,
     },
   }
 }
@@ -85,7 +84,6 @@ export function getAppBootstrap(): AppBootstrap {
     routing: {
       canAccessChat: authSnapshot.isAuthenticated,
       recommendedRoute,
-      shouldRedirectToProviderSettings: false,
     },
   }
 }

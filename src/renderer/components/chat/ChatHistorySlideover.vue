@@ -16,6 +16,8 @@ const emit = defineEmits<{
   create: []
   delete: [conversationId: number]
   logout: []
+  openAbout: []
+  openProviderSettings: []
   rename: [payload: { id: number, title: string }]
   select: [conversationId: number]
 }>()
@@ -33,6 +35,16 @@ function handleCreate() {
 
 function handleSelect(conversationId: number) {
   emit('select', conversationId)
+  open.value = false
+}
+
+function handleOpenAbout() {
+  emit('openAbout')
+  open.value = false
+}
+
+function handleOpenProviderSettings() {
+  emit('openProviderSettings')
   open.value = false
 }
 </script>
@@ -64,6 +76,8 @@ function handleSelect(conversationId: number) {
             @create="handleCreate"
             @delete="emit('delete', $event)"
             @logout="emit('logout')"
+            @open-about="handleOpenAbout"
+            @open-provider-settings="handleOpenProviderSettings"
             @rename="emit('rename', $event)"
             @select="handleSelect"
           />

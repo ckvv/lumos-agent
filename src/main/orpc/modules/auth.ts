@@ -39,8 +39,7 @@ const appBootstrapSchema = z.object({
   }),
   routing: z.object({
     canAccessChat: z.boolean(),
-    recommendedRoute: z.enum(['/', '/auth', '/chat', '/settings/providers']),
-    shouldRedirectToProviderSettings: z.boolean(),
+    recommendedRoute: z.enum(['/', '/auth', '/chat']),
   }),
 })
 

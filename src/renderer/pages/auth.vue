@@ -60,11 +60,6 @@ async function handleAuthSubmit(payload: { password: string, username: string })
               :label="t('auth.shell.eyebrow')"
               variant="soft"
             />
-            <UBadge
-              color="neutral"
-              :label="t('auth.shell.aboutLink')"
-              variant="soft"
-            />
           </div>
 
           <div class="grid gap-3">
@@ -85,13 +80,6 @@ async function handleAuthSubmit(payload: { password: string, username: string })
               <li>{{ t('auth.shell.features.workspace') }}</li>
               <li>{{ t('auth.shell.features.persistence') }}</li>
             </ul>
-            <UButton
-              class="w-fit rounded-full"
-              color="neutral"
-              :label="t('auth.shell.viewAbout')"
-              to="/about"
-              variant="outline"
-            />
           </div>
         </div>
 

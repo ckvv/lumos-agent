@@ -1,22 +1,14 @@
 <script setup lang="ts">
-import AuthenticatedUserMenu from '#renderer/components/app/AuthenticatedUserMenu.vue'
 import AuthInitState from '#renderer/components/auth/AuthInitState.vue'
 import { useAppBootstrap } from '#renderer/composables/useAppBootstrap'
 import { computed, useSlots } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
 
 const { t } = useI18n()
-const router = useRouter()
 const bootstrap = useAppBootstrap()
 const slots = useSlots()
 
 const hasSidebar = computed(() => Boolean(slots.sidebar))
-
-async function handleLogout() {
-  await bootstrap.logout()
-  await router.replace('/auth')
-}
 </script>
 
 <template>
@@ -48,7 +40,7 @@ async function handleLogout() {
         </template>
 
         <template v-else>
-          <header class="flex flex-wrap items-center justify-between gap-3 rounded-[1.6rem] border border-default/70 bg-default/92 px-4 py-3 shadow-sm">
+          <header class="grid gap-2 rounded-[1.6rem] border border-default/70 bg-default/92 px-4 py-3 shadow-sm">
             <div class="grid gap-2">
               <div class="flex flex-wrap items-center gap-2">
                 <UBadge
@@ -67,14 +59,6 @@ async function handleLogout() {
               <p class="m-0 text-sm leading-6 text-toned">
                 {{ t('shell.description', { username: bootstrap.currentUsername.value ?? '-' }) }}
               </p>
-            </div>
-
-            <div class="w-full sm:w-auto sm:min-w-72">
-              <AuthenticatedUserMenu
-                :current-username="bootstrap.currentUsername.value"
-                side="bottom"
-                @logout="handleLogout"
-              />
             </div>
           </header>
 

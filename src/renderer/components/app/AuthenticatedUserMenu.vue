@@ -12,6 +12,8 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
+  openAbout: []
+  openProviderSettings: []
   logout: []
 }>()
 
@@ -45,12 +47,12 @@ const menuItems = computed(() => [
     {
       icon: 'i-lucide-sliders-horizontal',
       label: t('navigation.routes.providers'),
-      to: '/settings/providers',
+      onSelect: () => emit('openProviderSettings'),
     },
     {
       icon: 'i-lucide-info',
       label: t('navigation.routes.about'),
-      to: '/about',
+      onSelect: () => emit('openAbout'),
     },
   ],
   [
