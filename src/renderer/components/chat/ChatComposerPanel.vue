@@ -81,9 +81,9 @@ function handleComposerKeydown(event: KeyboardEvent) {
         @keydown="handleComposerKeydown"
       />
 
-      <div class="flex items-center gap-3 px-3 py-3 sm:px-4">
+      <div class="grid grid-cols-[1fr_auto] items-end gap-3 px-3 py-3 sm:px-4">
         <ChatModelSwitcher
-          class="min-w-0 max-w-full flex-1 sm:max-w-[20rem]"
+          class="min-w-0 max-w-full justify-self-start"
           :is-busy="isSending"
           :model-name="modelName"
           :provider-name="providerName"

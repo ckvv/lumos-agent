@@ -67,19 +67,21 @@ const menuItems = computed<DropdownMenuItem[][]>(() =>
     :ui="{ content: 'w-[22rem] max-w-[calc(100vw-2rem)]' }"
   >
     <UButton
-      class="rounded-full border border-default/70 bg-elevated/65 px-3 py-2 text-left data-[state=open]:bg-elevated"
+      class="max-w-full rounded-full"
       color="neutral"
       :disabled="isBusy || !hasOptions"
       icon="i-lucide-sparkles"
       trailing-icon="i-lucide-chevrons-up-down"
       variant="ghost"
       :ui="{
-        base: 'justify-start',
+        base: 'min-w-0 justify-start',
         leadingIcon: 'shrink-0',
         trailingIcon: 'ms-auto shrink-0',
       }"
     >
-      {{ triggerLabel }}
+      <span class="min-w-0 truncate">
+        {{ triggerLabel }}
+      </span>
     </UButton>
 
     <template #content-top>
