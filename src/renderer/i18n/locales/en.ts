@@ -104,7 +104,6 @@ export const en = {
       eyebrow: 'Workspace',
       model: 'Model',
       noModel: 'No model selected yet',
-      noProvider: 'No service selected yet',
       provider: 'Provider',
       providerLoadError: 'Failed to load provider list',
       streamError: 'Chat request failed',

@@ -102,7 +102,6 @@ export const zhCN = {
       eyebrow: 'Workspace',
       model: '模型',
       noModel: '尚未选择模型',
-      noProvider: '尚未选择服务',
       provider: '提供商',
       providerLoadError: '提供商列表加载失败',
       streamError: '聊天请求失败',

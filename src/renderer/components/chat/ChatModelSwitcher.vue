@@ -27,10 +27,6 @@ const triggerLabel = computed(() =>
   props.modelName ?? t('chat.board.noModel'),
 )
 
-const triggerDescription = computed(() =>
-  props.providerName ?? t('chat.board.noProvider'),
-)
-
 const menuItems = computed<DropdownMenuItem[][]>(() =>
   props.switchGroups
     .filter(group => group.models.length > 0)
@@ -83,21 +79,12 @@ const menuItems = computed<DropdownMenuItem[][]>(() =>
         trailingIcon: 'ms-auto shrink-0',
       }"
     >
-      <div class="min-w-0">
-        <p class="m-0 truncate text-sm font-medium text-highlighted">
-          {{ triggerLabel }}
-        </p>
-        <p class="m-0 truncate text-xs text-toned">
-          {{ triggerDescription }}
-        </p>
-      </div>
+      {{ triggerLabel }}
     </UButton>
 
     <template #content-top>
       <div class="border-b border-default/70 px-3 py-2">
-        <p class="m-0 text-xs font-medium text-highlighted">
-          {{ t('chat.workspace.modelMenu') }}
-        </p>
+        {{ t('chat.workspace.modelMenu') }}
       </div>
     </template>
   </UDropdownMenu>
