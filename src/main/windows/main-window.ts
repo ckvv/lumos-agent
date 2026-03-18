@@ -1,4 +1,6 @@
 import path from 'node:path'
+import process from 'node:process'
+import { getWindowIcon } from '#main/app/icon'
 import { MAIN_WINDOW_CONFIG } from '#main/constants'
 import { logger } from '#main/logger'
 import { BrowserWindow } from 'electron'
@@ -7,6 +9,7 @@ export function createMainWindow() {
   const isDevelopment = Boolean(MAIN_WINDOW_VITE_DEV_SERVER_URL)
   const mainWindow = new BrowserWindow({
     ...MAIN_WINDOW_CONFIG,
+    icon: process.platform === 'darwin' ? undefined : getWindowIcon(),
     show: false,
     webPreferences: {
       contextIsolation: true,

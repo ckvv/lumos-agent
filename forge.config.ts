@@ -11,13 +11,13 @@ const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
     extraResource: ['drizzle'],
-    icon: [
-      '/icons/icon.icns',
-    ],
+    icon: './icons/icon',
   },
   rebuildConfig: {},
   makers: [
-    new MakerSquirrel({}),
+    new MakerSquirrel({
+      setupIcon: './icons/icon.ico',
+    }),
     new MakerZIP({}, ['darwin']),
     new MakerRpm({}),
     new MakerDeb({}),

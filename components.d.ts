@@ -17,7 +17,6 @@ declare module 'vue' {
     AppNavigation: typeof import('./src/renderer/components/AppNavigation.vue')['default']
     AppShell: typeof import('./src/renderer/layouts/AppShell.vue')['default']
     AuthenticatedFrame: typeof import('./src/renderer/components/app/AuthenticatedFrame.vue')['default']
-    AuthenticatedFrameSidebar: typeof import('./src/renderer/components/app/AuthenticatedFrameSidebar.vue')['default']
     AuthenticatedUserMenu: typeof import('./src/renderer/components/app/AuthenticatedUserMenu.vue')['default']
     AuthForm: typeof import('./src/renderer/components/auth/AuthForm.vue')['default']
     AuthGate: typeof import('./src/renderer/components/auth/AuthGate.vue')['default']

@@ -1,4 +1,5 @@
 import process from 'node:process'
+import { applyMacAppIcon } from '#main/app/icon'
 import { startDatabaseBootstrapInBackground } from '#main/database/bootstrap'
 import { closeDatabase } from '#main/database/database'
 import { flushLogs, logger } from '#main/logger'
@@ -17,6 +18,7 @@ export function registerAppLifecycle() {
 
   app.on('ready', () => {
     logger.info('Electron app ready')
+    applyMacAppIcon()
     createMainWindow()
     startDatabaseBootstrapInBackground()
   })
