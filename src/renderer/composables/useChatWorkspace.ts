@@ -40,6 +40,8 @@ export function useChatWorkspace() {
     return Number.isFinite(parsed) ? parsed : null
   })
 
+  const isNewConversationView = computed(() => selectedConversationId.value === null)
+
   const usableConfigs = computed(() =>
     providerSettings.configs.value.filter(config => config.isUsable),
   )
@@ -90,6 +92,15 @@ export function useChatWorkspace() {
       ?.name ?? null,
   )
 
+  const selectedConversationTitle = computed(() => {
+    if (!selectedConversationId.value)
+      return t('chat.workspace.newConversation')
+
+    return conversationDetail.conversation.value?.title
+      ?? conversationList.conversations.value.find(item => item.id === selectedConversationId.value)?.title
+      ?? t('chat.workspace.activeConversation')
+  })
+
   const canSend = computed(() =>
     Boolean(composerValue.value.trim())
     && !chatStream.isSending.value
@@ -109,15 +120,18 @@ export function useChatWorkspace() {
   }
 
   async function setSelectedConversation(id: number | null) {
+    const nextQuery = { ...route.query }
+
     if (!id) {
-      await router.replace({ query: {} })
+      delete nextQuery.conversationId
+      await router.replace({ query: nextQuery })
       return
     }
 
+    nextQuery.conversationId = String(id)
+
     await router.replace({
-      query: {
-        conversationId: String(id),
-      },
+      query: nextQuery,
     })
   }
 
@@ -127,9 +141,12 @@ export function useChatWorkspace() {
   }
 
   async function handleCreateConversation() {
-    const conversation = await conversationList.createConversation(effectiveRuntimeConfig.value)
-    conversationList.upsertConversation(conversation)
-    await setSelectedConversation(conversation.id)
+    draftRuntimeConfig.value = {
+      ...effectiveRuntimeConfig.value,
+    }
+
+    await chatStream.stopCurrentStream()
+    await setSelectedConversation(null)
   }
 
   async function handleRenameConversation(payload: { id: number, title: string }) {
@@ -145,10 +162,14 @@ export function useChatWorkspace() {
     await conversationList.deleteConversation(id)
     conversationList.removeConversation(id)
 
-    if (selectedConversationId.value === id) {
-      const nextConversation = conversationList.conversations.value[0] ?? null
-      await setSelectedConversation(nextConversation?.id ?? null)
+    if (selectedConversationId.value !== id)
+      return
+
+    draftRuntimeConfig.value = {
+      ...effectiveRuntimeConfig.value,
     }
+
+    await setSelectedConversation(null)
   }
 
   async function persistRuntimeConfig(nextRuntimeConfig: ChatRuntimeConfig) {
@@ -242,11 +263,6 @@ export function useChatWorkspace() {
 
   watch(selectedConversationId, async (conversationId) => {
     if (!conversationId) {
-      if (conversationList.conversations.value.length > 0) {
-        await setSelectedConversation(conversationList.conversations.value[0].id)
-        return
-      }
-
       conversationDetail.clear()
       return
     }
@@ -256,9 +272,7 @@ export function useChatWorkspace() {
     }
     catch {
       await conversationList.load()
-
-      const fallbackConversation = conversationList.conversations.value[0] ?? null
-      await setSelectedConversation(fallbackConversation?.id ?? null)
+      await setSelectedConversation(null)
     }
   }, { immediate: true })
 
@@ -267,14 +281,12 @@ export function useChatWorkspace() {
       providerSettings.load(),
       conversationList.load(),
     ])
-
-    if (!selectedConversationId.value && conversationList.conversations.value.length > 0)
-      await setSelectedConversation(conversationList.conversations.value[0].id)
   })
 
   return {
     canSend,
     composerValue,
+    conversationListErrorMessage: conversationList.errorMessage,
     conversations: conversationList.conversations,
     errorMessage: chatStream.errorMessage,
     handleConversationSelection,
@@ -287,12 +299,14 @@ export function useChatWorkspace() {
     isConversationListBusy,
     isConversationListLoading: conversationList.isLoading,
     isConversationLoading: conversationDetail.isLoading,
+    isNewConversationView,
     isSending: chatStream.isSending,
     messages: conversationDetail.messages,
     modelSwitchGroups,
     partialAssistantMessage: chatStream.partialAssistantMessage,
     providerLoadError: providerSettings.errorMessage,
     selectedConversationId,
+    selectedConversationTitle,
     selectedModelId: computed(() => effectiveRuntimeConfig.value.modelId),
     selectedModelName,
     selectedProviderId: computed(() => effectiveRuntimeConfig.value.providerConfigId),

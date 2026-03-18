@@ -41,7 +41,7 @@ export function useConversationDetail() {
     if (!detail.value || detail.value.conversation.id !== nextConversation.id) {
       detail.value = {
         conversation: nextConversation,
-        messages: detail.value?.messages ?? [],
+        messages: [],
       }
       return
     }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AboutModal from '#renderer/components/app/AboutModal.vue'
 import AuthenticatedFrame from '#renderer/components/app/AuthenticatedFrame.vue'
+import ChatHistorySlideover from '#renderer/components/chat/ChatHistorySlideover.vue'
 import ChatWorkspaceView from '#renderer/components/chat/ChatWorkspaceView.vue'
 import ConversationSidebar from '#renderer/components/chat/ConversationSidebar.vue'
 import ProviderSettingsModal from '#renderer/components/providers/ProviderSettingsModal.vue'
@@ -20,6 +21,7 @@ const router = useRouter()
 const bootstrap = useAppBootstrap()
 const workspace = useChatWorkspace()
 const isAboutOpen = shallowRef(false)
+const isHistoryOpen = shallowRef(false)
 const isProviderSettingsOpen = shallowRef(false)
 
 async function handleLogout() {
@@ -59,9 +61,10 @@ function handleOpenProviderSettings() {
       <ChatWorkspaceView
         v-model="workspace.composerValue.value"
         :can-send="workspace.canSend.value"
+        :conversation-title="workspace.selectedConversationTitle.value"
         :error-message="workspace.errorMessage.value"
-        :is-busy="workspace.isConversationListBusy.value"
         :is-loading="workspace.isConversationLoading.value"
+        :is-new-conversation-view="workspace.isNewConversationView.value"
         :is-sending="workspace.isSending.value"
         :messages="workspace.messages.value"
         :model-switch-groups="workspace.modelSwitchGroups.value"
@@ -71,11 +74,30 @@ function handleOpenProviderSettings() {
         :provider-name="workspace.selectedProviderName.value"
         :selected-model-id="workspace.selectedModelId.value"
         :selected-provider-id="workspace.selectedProviderId.value"
+        @open-history="isHistoryOpen = true"
         @runtime-change="workspace.handleRuntimeChange"
         @send="workspace.handleSendMessage"
         @stop="workspace.handleStopMessage"
       />
     </div>
+
+    <ChatHistorySlideover
+      v-model:open="isHistoryOpen"
+      :conversations="workspace.conversations.value"
+      :current-username="bootstrap.currentUsername.value"
+      :error-message="workspace.conversationListErrorMessage.value"
+      :is-busy="workspace.isConversationListBusy.value"
+      :is-loading="workspace.isConversationListLoading.value"
+      :selected-conversation-id="workspace.selectedConversationId.value"
+      @create="workspace.handleCreateConversation"
+      @delete="workspace.handleDeleteConversation"
+      @logout="handleLogout"
+      @open-about="handleOpenAbout"
+      @open-provider-settings="handleOpenProviderSettings"
+      @rename="workspace.handleRenameConversation"
+      @select="workspace.handleConversationSelection"
+    />
+
     <AboutModal v-model:open="isAboutOpen" />
 
     <ProviderSettingsModal v-model:open="isProviderSettingsOpen" />

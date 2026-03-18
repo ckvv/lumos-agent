@@ -24,7 +24,7 @@ const hasOptions = computed(() =>
 )
 
 const triggerLabel = computed(() =>
-  props.modelName ?? t('chat.empty.noModel'),
+  props.modelName ?? t('chat.board.noModel'),
 )
 
 const triggerDescription = computed(() =>
@@ -63,7 +63,7 @@ const menuItems = computed<DropdownMenuItem[][]>(() =>
 <template>
   <UDropdownMenu
     :content="{
-      align: 'end',
+      align: 'start',
       collisionPadding: 16,
       sideOffset: 10,
     }"
@@ -72,12 +72,12 @@ const menuItems = computed<DropdownMenuItem[][]>(() =>
     :ui="{ content: 'w-[22rem] max-w-[calc(100vw-2rem)]' }"
   >
     <UButton
-      class="w-full rounded-[1rem] px-3 py-2 text-left data-[state=open]:bg-elevated"
+      class="w-full rounded-full border border-default/70 bg-elevated/65 px-3 py-2 text-left data-[state=open]:bg-elevated"
       color="neutral"
       :disabled="isBusy || !hasOptions"
       icon="i-lucide-sparkles"
       trailing-icon="i-lucide-chevrons-up-down"
-      variant="soft"
+      variant="ghost"
       :ui="{
         base: 'justify-start',
         leadingIcon: 'shrink-0',
