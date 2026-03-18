@@ -191,6 +191,11 @@ export function createChatWorkspace() {
     }
   }
 
+  function isActiveConversation(conversationId: number) {
+    return selectedConversationId.value === conversationId
+      || conversationDetail.conversation.value?.id === conversationId
+  }
+
   async function navigateToConversation(id: number | null, options?: { replace?: boolean }) {
     const targetPath = buildChatPath(id)
 
@@ -299,6 +304,8 @@ export function createChatWorkspace() {
 
     composerValue.value = ''
 
+    const activeConversationId = conversationId
+
     await chatStream.sendMessage({
       conversationId,
       runtimeConfig: effectiveRuntimeConfig.value,
@@ -308,10 +315,11 @@ export function createChatWorkspace() {
         if (event.type === 'started') {
           conversationList.upsertConversation(event.conversation)
 
-          if (conversationDetail.conversation.value?.id === event.conversation.id) {
-            conversationDetail.replaceConversation(event.conversation)
-            conversationDetail.appendMessage(event.startedMessage)
-          }
+          if (!isActiveConversation(event.conversation.id))
+            return
+
+          conversationDetail.replaceConversation(event.conversation)
+          conversationDetail.appendMessage(event.startedMessage)
 
           return
         }
@@ -319,10 +327,11 @@ export function createChatWorkspace() {
         if (event.type === 'completed') {
           conversationList.upsertConversation(event.conversation)
 
-          if (conversationDetail.conversation.value?.id === event.conversation.id) {
-            conversationDetail.replaceConversation(event.conversation)
-            conversationDetail.replaceLastAssistantMessage(event.assistantMessage)
-          }
+          if (!isActiveConversation(event.conversation.id))
+            return
+
+          conversationDetail.replaceConversation(event.conversation)
+          conversationDetail.replaceLastAssistantMessage(event.assistantMessage)
 
           return
         }
@@ -330,11 +339,18 @@ export function createChatWorkspace() {
         if (event.type === 'failed') {
           conversationList.upsertConversation(event.conversation)
 
-          if (conversationDetail.conversation.value?.id === event.conversation.id) {
-            conversationDetail.replaceConversation(event.conversation)
-            conversationDetail.replaceLastAssistantMessage(event.assistantMessage)
-          }
+          if (!isActiveConversation(event.conversation.id))
+            return
+
+          conversationDetail.replaceConversation(event.conversation)
+          conversationDetail.replaceLastAssistantMessage(event.assistantMessage)
         }
+      },
+      onFinish: () => {
+        if (!isActiveConversation(activeConversationId))
+          return
+
+        void conversationDetail.load(activeConversationId)
       },
     })
   }
@@ -380,14 +396,14 @@ export function createChatWorkspace() {
 
     const currentToken = ++selectionSyncToken
 
-    await chatStream.stopCurrentStream()
-
     if (!hasParam) {
+      await chatStream.stopCurrentStream()
       conversationDetail.clear()
       return
     }
 
     if (!conversationId) {
+      await chatStream.stopCurrentStream()
       conversationDetail.clear()
       await reloadConversationListSafely(conversationList.load)
 
@@ -400,9 +416,12 @@ export function createChatWorkspace() {
       return
     }
 
+    // 新建会话后首条消息会先本地注入空详情再 replace 到 /chat/:id。
+    // 这里如果先 stopCurrentStream，会把刚启动的流错误中断掉。
     if (conversationDetail.conversation.value?.id === conversationId)
       return
 
+    await chatStream.stopCurrentStream()
     conversationDetail.clear()
 
     try {
