@@ -55,23 +55,22 @@ function submitRename(id: number) {
 
 <template>
   <section class="flex h-full min-h-0 flex-col gap-4 rounded-[1.7rem] border border-default/70 bg-default/92 p-4 shadow-sm">
-    <div class="flex items-center justify-between gap-3">
-      <div class="grid gap-1">
-        <h2 class="m-0 text-base font-semibold text-highlighted">
-          {{ t('chat.sidebar.title') }}
-        </h2>
-      </div>
-
+    <div class="grid gap-3">
       <UButton
-        class="rounded-full"
+        class="w-full justify-center rounded-[1rem]"
         color="primary"
         :disabled="isBusy"
+        icon="i-lucide-square-pen"
         :label="t('chat.sidebar.newConversation')"
-        size="sm"
+        size="xl"
         @click="emit('create')"
       />
     </div>
-
+    <div class="grid gap-1">
+      <h2 class="m-0 text-base font-semibold text-highlighted">
+        {{ t('chat.sidebar.title') }}
+      </h2>
+    </div>
     <div class="flex min-h-0 flex-1 flex-col gap-4">
       <div
         v-if="isLoading && !hasConversations"
