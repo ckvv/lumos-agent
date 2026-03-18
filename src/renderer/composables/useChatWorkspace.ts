@@ -173,7 +173,7 @@ export function createChatWorkspace() {
       ?? t('chat.workspace.activeConversation')
   })
 
-  const currentConversationStreamState = chatStream.getConversationStreamState(selectedConversationId.value)
+  const currentConversationStreamState = chatStream.getConversationStreamState(selectedConversationId)
 
   const canSend = computed(() =>
     Boolean(composerValue.value.trim())
@@ -450,7 +450,6 @@ export function createChatWorkspace() {
     composerValue,
     conversationListErrorMessage: conversationList.errorMessage,
     conversations: conversationList.conversations,
-    errorMessage: chatStream.errorMessage,
     handleConversationSelection,
     handleCreateConversation,
     handleDeleteConversation,

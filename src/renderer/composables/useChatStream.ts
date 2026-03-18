@@ -1,8 +1,9 @@
 import type { ChatRuntimeConfig, ChatStreamEvent } from '#shared/chat/types'
 import type { AssistantMessage } from '@mariozechner/pi-ai'
+import type { MaybeRefOrGetter } from 'vue'
 import { getORPCErrorMessage, runWithORPCClient } from '#renderer/composables/useORPCRequest'
 import { consumeEventIterator } from '@orpc/client'
-import { computed, onBeforeUnmount, shallowReadonly, shallowRef } from 'vue'
+import { computed, onBeforeUnmount, shallowReadonly, shallowRef, toValue } from 'vue'
 
 interface ConversationStreamState {
   errorMessage: string | null
@@ -208,8 +209,8 @@ export function useChatStream() {
   })
 
   return {
-    getConversationStreamState: (conversationId: number | null) => computed(() =>
-      getConversationStreamStateValue(conversationId),
+    getConversationStreamState: (conversationId: MaybeRefOrGetter<number | null>) => computed(() =>
+      getConversationStreamStateValue(toValue(conversationId)),
     ),
     streamingConversationIds: computed(() =>
       Object.entries(streamStates.value)
