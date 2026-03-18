@@ -129,7 +129,7 @@ const centeredTitle = computed(() =>
         </div>
       </div>
 
-      <footer class="shrink-0 border-t border-default/70 bg-elevated/35 p-4 sm:p-5">
+      <footer class="shrink-0 p-4 sm:p-5">
         <div class="mx-auto w-full max-w-4xl">
           <ChatComposerPanel
             v-model="composerValue"

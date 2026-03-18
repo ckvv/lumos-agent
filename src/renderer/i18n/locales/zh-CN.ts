@@ -136,7 +136,6 @@ export const zhCN = {
       historyDrawerTitle: '会话历史',
       historyLoadError: '会话列表加载失败',
       modelMenu: '切换模型',
-      modelMenuHint: '在一个菜单里切换 provider 与模型',
       newConversation: '新建对话',
       providerDescription: '在输入框里切换当前聊天使用的 provider 与模型。',
       providerSection: '当前配置',

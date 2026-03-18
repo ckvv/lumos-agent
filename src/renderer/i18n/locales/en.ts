@@ -138,7 +138,6 @@ export const en = {
       historyDrawerTitle: 'Conversation history',
       historyLoadError: 'Failed to load conversations',
       modelMenu: 'Switch model',
-      modelMenuHint: 'Switch provider and model from a single menu',
       newConversation: 'New conversation',
       providerDescription: 'Switch the provider and model for the current chat directly from the composer.',
       providerSection: 'Current setup',

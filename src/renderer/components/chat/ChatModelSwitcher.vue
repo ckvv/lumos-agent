@@ -43,7 +43,6 @@ const menuItems = computed<DropdownMenuItem[][]>(() =>
         checked:
           props.selectedProviderId === model.providerConfigId
           && props.selectedModelId === model.modelId,
-        description: model.modelId === model.modelName ? undefined : model.modelId,
         label: model.modelName,
         type: 'checkbox' as const,
         onUpdateChecked: (checked: boolean) => {
@@ -98,9 +97,6 @@ const menuItems = computed<DropdownMenuItem[][]>(() =>
       <div class="border-b border-default/70 px-3 py-2">
         <p class="m-0 text-xs font-medium text-highlighted">
           {{ t('chat.workspace.modelMenu') }}
-        </p>
-        <p class="m-0 text-xs text-toned">
-          {{ t('chat.workspace.modelMenuHint') }}
         </p>
       </div>
     </template>
