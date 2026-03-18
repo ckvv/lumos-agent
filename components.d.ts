@@ -11,7 +11,9 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AboutModal: typeof import('./src/renderer/components/app/AboutModal.vue')['default']
     AboutView: typeof import('./src/renderer/components/AboutView.vue')['default']
+    AppModalShell: typeof import('./src/renderer/components/app/AppModalShell.vue')['default']
     AppNavigation: typeof import('./src/renderer/components/AppNavigation.vue')['default']
     AppShell: typeof import('./src/renderer/layouts/AppShell.vue')['default']
     AuthenticatedFrame: typeof import('./src/renderer/components/app/AuthenticatedFrame.vue')['default']
@@ -29,6 +31,7 @@ declare module 'vue' {
     HomeView: typeof import('./src/renderer/components/HomeView.vue')['default']
     LocaleSwitcher: typeof import('./src/renderer/components/LocaleSwitcher.vue')['default']
     MessageBubble: typeof import('./src/renderer/components/chat/MessageBubble.vue')['default']
+    ProviderSettingsModal: typeof import('./src/renderer/components/providers/ProviderSettingsModal.vue')['default']
     ProviderSettingsView: typeof import('./src/renderer/components/providers/ProviderSettingsView.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import AboutView from '#renderer/components/AboutView.vue'
+import AboutModal from '#renderer/components/app/AboutModal.vue'
 import AuthenticatedFrame from '#renderer/components/app/AuthenticatedFrame.vue'
 import ChatHistorySlideover from '#renderer/components/chat/ChatHistorySlideover.vue'
 import ChatWorkspaceView from '#renderer/components/chat/ChatWorkspaceView.vue'
 import ConversationSidebar from '#renderer/components/chat/ConversationSidebar.vue'
-import ProviderSettingsView from '#renderer/components/providers/ProviderSettingsView.vue'
+import ProviderSettingsModal from '#renderer/components/providers/ProviderSettingsModal.vue'
 import { useAppBootstrap } from '#renderer/composables/useAppBootstrap'
 import { useChatWorkspace } from '#renderer/composables/useChatWorkspace'
 import { shallowRef } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 definePage({
@@ -18,7 +17,6 @@ definePage({
   name: 'chat',
 })
 
-const { t } = useI18n()
 const router = useRouter()
 const bootstrap = useAppBootstrap()
 const workspace = useChatWorkspace()
@@ -102,51 +100,8 @@ function handleOpenProviderSettings() {
       @rename="workspace.handleRenameConversation"
       @select="workspace.handleConversationSelection"
     />
+    <AboutModal v-model:open="isAboutOpen" />
 
-    <UModal
-      v-model:open="isAboutOpen"
-      :close="false"
-      class="sm:max-w-5xl"
-      :title="t('navigation.routes.about')"
-    >
-      <template #content="{ close }">
-        <div class="relative">
-          <UButton
-            class="absolute top-4 right-4 z-10 rounded-full"
-            color="neutral"
-            icon="i-lucide-x"
-            variant="ghost"
-            @click="close"
-          />
-
-          <div class="max-h-[85vh] overflow-y-auto px-4 py-12 sm:px-5 sm:py-14">
-            <AboutView />
-          </div>
-        </div>
-      </template>
-    </UModal>
-
-    <UModal
-      v-model:open="isProviderSettingsOpen"
-      :close="false"
-      class="sm:max-w-6xl"
-      :title="t('navigation.routes.providers')"
-    >
-      <template #content="{ close }">
-        <div class="relative">
-          <UButton
-            class="absolute top-4 right-4 z-10 rounded-full"
-            color="neutral"
-            icon="i-lucide-x"
-            variant="ghost"
-            @click="close"
-          />
-
-          <div class="max-h-[85vh] overflow-y-auto px-4 py-12 sm:px-5 sm:py-14">
-            <ProviderSettingsView v-if="isProviderSettingsOpen" />
-          </div>
-        </div>
-      </template>
-    </UModal>
+    <ProviderSettingsModal v-model:open="isProviderSettingsOpen" />
   </AuthenticatedFrame>
 </template>
