@@ -37,7 +37,7 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <section class="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-3 overflow-hidden">
+  <section class="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-3 overflow-hidden lg:grid-rows-[minmax(0,1fr)] lg:gap-0">
     <div class="flex items-center justify-between gap-3 lg:hidden">
       <UButton
         color="neutral"
