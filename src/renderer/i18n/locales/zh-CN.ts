@@ -99,7 +99,6 @@ export const zhCN = {
   },
   chat: {
     board: {
-      eyebrow: 'Workspace',
       model: '模型',
       noModel: '尚未选择模型',
       provider: '提供商',
@@ -139,7 +138,6 @@ export const zhCN = {
       providerDescription: '在输入框里切换当前聊天使用的 provider 与模型。',
       providerSection: '当前配置',
       resumeHint: '继续当前上下文，或切换 provider / model 进入新的工作流。',
-      startHint: '先在输入框底部确认 provider 和模型，然后直接发送开始聊天。',
     },
   },
   providers: {

@@ -101,7 +101,6 @@ export const en = {
   },
   chat: {
     board: {
-      eyebrow: 'Workspace',
       model: 'Model',
       noModel: 'No model selected yet',
       provider: 'Provider',
@@ -141,7 +140,6 @@ export const en = {
       providerDescription: 'Switch the provider and model for the current chat directly from the composer.',
       providerSection: 'Current setup',
       resumeHint: 'Resume the current context or switch provider / model for a different flow.',
-      startHint: 'Confirm the provider and model in the composer toolbar, then send to start chatting.',
     },
   },
   providers: {

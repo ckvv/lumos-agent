@@ -67,19 +67,9 @@ const centeredTitle = computed(() =>
       class="flex min-h-0 flex-1 items-center justify-center overflow-y-auto px-4 py-6 sm:px-6 sm:py-8"
     >
       <div class="grid w-full max-w-4xl gap-6">
-        <div class="grid gap-3 text-center">
-          <p class="m-0 text-xs font-medium uppercase tracking-[0.24em] text-toned">
-            {{ t('chat.board.eyebrow') }}
-          </p>
-          <div class="grid gap-2">
-            <h1 class="m-0 text-3xl font-semibold tracking-tight text-highlighted sm:text-4xl">
-              {{ centeredTitle }}
-            </h1>
-            <p class="m-0 text-sm leading-7 text-toned sm:text-base">
-              {{ t('chat.workspace.startHint') }}
-            </p>
-          </div>
-        </div>
+        <h1 class="text-center m-0 text-3xl font-semibold tracking-tight text-highlighted sm:text-4xl">
+          {{ centeredTitle }}
+        </h1>
 
         <ChatComposerPanel
           v-model="composerValue"
