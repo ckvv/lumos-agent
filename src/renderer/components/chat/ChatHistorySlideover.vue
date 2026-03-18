@@ -10,7 +10,7 @@ defineProps<{
   isBusy?: boolean
   isLoading?: boolean
   selectedConversationId: number | null
-  streamingConversationId?: number | null
+  streamingConversationIds?: readonly number[]
 }>()
 
 const emit = defineEmits<{
@@ -74,7 +74,7 @@ function handleOpenProviderSettings() {
             :is-busy="isBusy"
             :is-loading="isLoading"
             :selected-conversation-id="selectedConversationId"
-            :streaming-conversation-id="streamingConversationId"
+            :streaming-conversation-ids="streamingConversationIds"
             @create="handleCreate"
             @delete="emit('delete', $event)"
             @logout="emit('logout')"

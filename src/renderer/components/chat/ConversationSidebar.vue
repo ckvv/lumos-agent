@@ -10,7 +10,7 @@ const props = defineProps<{
   isBusy?: boolean
   isLoading?: boolean
   selectedConversationId: number | null
-  streamingConversationId?: number | null
+  streamingConversationIds?: readonly number[]
 }>()
 
 const emit = defineEmits<{
@@ -29,6 +29,7 @@ const editingConversationId = shallowRef<number | null>(null)
 const editingTitle = shallowRef('')
 
 const hasConversations = computed(() => props.conversations.length > 0)
+const streamingConversationIdSet = computed(() => new Set(props.streamingConversationIds ?? []))
 
 function startRenaming(conversation: ConversationSummary) {
   editingConversationId.value = conversation.id
@@ -51,6 +52,10 @@ function submitRename(id: number) {
     title,
   })
   stopRenaming()
+}
+
+function isConversationStreaming(conversationId: number) {
+  return streamingConversationIdSet.value.has(conversationId)
 }
 </script>
 
@@ -134,7 +139,7 @@ function submitRename(id: number) {
             >
               <span class="flex size-4 shrink-0 items-center justify-center">
                 <UIcon
-                  v-if="conversation.id === streamingConversationId"
+                  v-if="isConversationStreaming(conversation.id)"
                   class="animate-spin text-primary"
                   name="i-lucide-loader-circle"
                 />
@@ -153,7 +158,7 @@ function submitRename(id: number) {
             >
               <UButton
                 color="neutral"
-                :disabled="isBusy || conversation.id === streamingConversationId"
+                :disabled="isBusy || isConversationStreaming(conversation.id)"
                 icon="i-lucide-pencil-line"
                 size="xs"
                 variant="ghost"
@@ -161,7 +166,7 @@ function submitRename(id: number) {
               />
               <UButton
                 color="error"
-                :disabled="isBusy || conversation.id === streamingConversationId"
+                :disabled="isBusy || isConversationStreaming(conversation.id)"
                 icon="i-lucide-trash-2"
                 size="xs"
                 variant="ghost"

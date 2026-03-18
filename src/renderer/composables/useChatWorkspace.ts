@@ -173,16 +173,11 @@ export function createChatWorkspace() {
       ?? t('chat.workspace.activeConversation')
   })
 
-  const streamingConversationId = computed(() => chatStream.activeConversationId.value)
-
-  const isCurrentConversationStreaming = computed(() =>
-    Boolean(selectedConversationId.value)
-    && streamingConversationId.value === selectedConversationId.value,
-  )
+  const currentConversationStreamState = chatStream.getConversationStreamState(selectedConversationId.value)
 
   const canSend = computed(() =>
     Boolean(composerValue.value.trim())
-    && !chatStream.isSending.value
+    && !currentConversationStreamState.value.isSending
     && Boolean(effectiveRuntimeConfig.value.providerConfigId)
     && Boolean(effectiveRuntimeConfig.value.modelId),
   )
@@ -360,7 +355,10 @@ export function createChatWorkspace() {
   }
 
   async function handleStopMessage() {
-    await chatStream.stopCurrentStream({
+    if (!selectedConversationId.value)
+      return
+
+    await chatStream.stopConversationStream(selectedConversationId.value, {
       preservePartial: true,
     })
   }
@@ -465,15 +463,15 @@ export function createChatWorkspace() {
     isConversationListLoading: conversationList.isLoading,
     isConversationLoading: conversationDetail.isLoading,
     isNewConversationView,
-    isSending: isCurrentConversationStreaming,
+    isSending: computed(() => currentConversationStreamState.value.isSending),
     messages: conversationDetail.messages,
     modelSwitchGroups,
     partialAssistantMessage: computed(() =>
-      isCurrentConversationStreaming.value ? chatStream.partialAssistantMessage.value : null,
+      currentConversationStreamState.value.partialAssistantMessage,
     ),
     providerLoadError: providerSettings.errorMessage,
     selectedConversationErrorMessage: computed(() =>
-      isCurrentConversationStreaming.value ? chatStream.errorMessage.value : null,
+      currentConversationStreamState.value.errorMessage,
     ),
     selectedConversationId,
     selectedConversationTitle,
@@ -481,7 +479,7 @@ export function createChatWorkspace() {
     selectedModelName,
     selectedProviderId: computed(() => effectiveRuntimeConfig.value.providerConfigId),
     selectedProviderName: computed(() => selectedProviderConfig.value?.displayName ?? null),
-    streamingConversationId,
+    streamingConversationIds: chatStream.streamingConversationIds,
   }
 }
 
