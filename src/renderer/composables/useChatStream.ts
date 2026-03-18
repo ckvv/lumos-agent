@@ -8,6 +8,7 @@ const errorMessage = shallowRef<string | null>(null)
 const isSending = shallowRef(false)
 const partialAssistantMessage = shallowRef<AssistantMessage | null>(null)
 const isStoppingStream = shallowRef(false)
+const activeConversationId = shallowRef<number | null>(null)
 
 let stopStream: (() => Promise<void>) | null = null
 
@@ -30,6 +31,7 @@ export function useChatStream() {
     partialAssistantMessage.value = null
     isSending.value = true
     isStoppingStream.value = false
+    activeConversationId.value = payload.conversationId
 
     try {
       const iterator = await runWithORPCClient(client => client.chat.messages.send(payload))
@@ -58,6 +60,7 @@ export function useChatStream() {
         onFinish: () => {
           isSending.value = false
           stopStream = null
+          activeConversationId.value = null
           handlers?.onFinish?.()
         },
       })
@@ -66,6 +69,7 @@ export function useChatStream() {
       errorMessage.value = getORPCErrorMessage(error)
       isSending.value = false
       isStoppingStream.value = false
+      activeConversationId.value = null
       throw error
     }
   }
@@ -92,6 +96,7 @@ export function useChatStream() {
       isSending.value = false
       errorMessage.value = null
       isStoppingStream.value = false
+      activeConversationId.value = null
 
       if (!preservePartial)
         partialAssistantMessage.value = null
@@ -103,6 +108,7 @@ export function useChatStream() {
   })
 
   return {
+    activeConversationId: shallowReadonly(activeConversationId),
     errorMessage: shallowReadonly(errorMessage),
     isSending: shallowReadonly(isSending),
     partialAssistantMessage: shallowReadonly(partialAssistantMessage),

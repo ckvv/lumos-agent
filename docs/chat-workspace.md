@@ -115,3 +115,4 @@ Failure handling expectations:
 - render persisted assistant error messages inside the message bubble, not only as transient page alerts
 - recover from deleted conversations, invalid ids, or missing selections by falling back to `/chat`
 - surface oRPC and provider failures as visible UI messages
+- allow switching away from a streaming conversation without canceling the active response; show the active stream state in the conversation list

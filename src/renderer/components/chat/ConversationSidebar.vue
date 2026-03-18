@@ -10,6 +10,7 @@ const props = defineProps<{
   isBusy?: boolean
   isLoading?: boolean
   selectedConversationId: number | null
+  streamingConversationId?: number | null
 }>()
 
 const emit = defineEmits<{
@@ -127,10 +128,18 @@ function submitRename(id: number) {
 
           <template v-else>
             <button
-              class="min-w-0 flex-1 text-left"
+              class="flex min-w-0 flex-1 items-center gap-2 text-left"
               type="button"
               @click="emit('select', conversation.id)"
             >
+              <span class="flex size-4 shrink-0 items-center justify-center">
+                <UIcon
+                  v-if="conversation.id === streamingConversationId"
+                  class="animate-spin text-primary"
+                  name="i-lucide-loader-circle"
+                />
+              </span>
+
               <span class="block truncate text-sm font-medium text-highlighted">
                 {{ conversation.title }}
               </span>
@@ -144,7 +153,7 @@ function submitRename(id: number) {
             >
               <UButton
                 color="neutral"
-                :disabled="isBusy"
+                :disabled="isBusy || conversation.id === streamingConversationId"
                 icon="i-lucide-pencil-line"
                 size="xs"
                 variant="ghost"
@@ -152,7 +161,7 @@ function submitRename(id: number) {
               />
               <UButton
                 color="error"
-                :disabled="isBusy"
+                :disabled="isBusy || conversation.id === streamingConversationId"
                 icon="i-lucide-trash-2"
                 size="xs"
                 variant="ghost"

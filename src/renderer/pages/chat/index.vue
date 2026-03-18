@@ -26,7 +26,7 @@ const { t } = useI18n()
     <ChatNewConversationView
       v-model="workspace.composerValue.value"
       :can-send="workspace.canSend.value"
-      :error-message="workspace.errorMessage.value"
+      :error-message="workspace.selectedConversationErrorMessage.value"
       :is-sending="workspace.isSending.value"
       :model-switch-groups="workspace.modelSwitchGroups.value"
       :model-name="workspace.selectedModelName.value"

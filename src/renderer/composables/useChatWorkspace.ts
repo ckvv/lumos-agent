@@ -173,6 +173,13 @@ export function createChatWorkspace() {
       ?? t('chat.workspace.activeConversation')
   })
 
+  const streamingConversationId = computed(() => chatStream.activeConversationId.value)
+
+  const isCurrentConversationStreaming = computed(() =>
+    Boolean(selectedConversationId.value)
+    && streamingConversationId.value === selectedConversationId.value,
+  )
+
   const canSend = computed(() =>
     Boolean(composerValue.value.trim())
     && !chatStream.isSending.value
@@ -181,7 +188,7 @@ export function createChatWorkspace() {
   )
 
   const isConversationListBusy = computed(() =>
-    chatStream.isSending.value || conversationList.isMutating.value,
+    conversationList.isMutating.value,
   )
 
   function buildUpdatedRuntimeConfig(partial: Partial<ChatRuntimeConfig>) {
@@ -213,8 +220,6 @@ export function createChatWorkspace() {
   }
 
   async function handleConversationSelection(id: number) {
-    await chatStream.stopCurrentStream()
-
     if (selectedConversationId.value === id && routeConversationState.value.hasParam)
       return
 
@@ -226,7 +231,6 @@ export function createChatWorkspace() {
       ...effectiveRuntimeConfig.value,
     }
 
-    await chatStream.stopCurrentStream()
     await navigateToConversation(null)
   }
 
@@ -397,13 +401,11 @@ export function createChatWorkspace() {
     const currentToken = ++selectionSyncToken
 
     if (!hasParam) {
-      await chatStream.stopCurrentStream()
       conversationDetail.clear()
       return
     }
 
     if (!conversationId) {
-      await chatStream.stopCurrentStream()
       conversationDetail.clear()
       await reloadConversationListSafely(conversationList.load)
 
@@ -421,7 +423,6 @@ export function createChatWorkspace() {
     if (conversationDetail.conversation.value?.id === conversationId)
       return
 
-    await chatStream.stopCurrentStream()
     conversationDetail.clear()
 
     try {
@@ -464,17 +465,23 @@ export function createChatWorkspace() {
     isConversationListLoading: conversationList.isLoading,
     isConversationLoading: conversationDetail.isLoading,
     isNewConversationView,
-    isSending: chatStream.isSending,
+    isSending: isCurrentConversationStreaming,
     messages: conversationDetail.messages,
     modelSwitchGroups,
-    partialAssistantMessage: chatStream.partialAssistantMessage,
+    partialAssistantMessage: computed(() =>
+      isCurrentConversationStreaming.value ? chatStream.partialAssistantMessage.value : null,
+    ),
     providerLoadError: providerSettings.errorMessage,
+    selectedConversationErrorMessage: computed(() =>
+      isCurrentConversationStreaming.value ? chatStream.errorMessage.value : null,
+    ),
     selectedConversationId,
     selectedConversationTitle,
     selectedModelId: computed(() => effectiveRuntimeConfig.value.modelId),
     selectedModelName,
     selectedProviderId: computed(() => effectiveRuntimeConfig.value.providerConfigId),
     selectedProviderName: computed(() => selectedProviderConfig.value?.displayName ?? null),
+    streamingConversationId,
   }
 }
 
