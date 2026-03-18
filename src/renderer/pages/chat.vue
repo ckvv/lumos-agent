@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import AboutModal from '#renderer/components/app/AboutModal.vue'
 import AuthenticatedFrame from '#renderer/components/app/AuthenticatedFrame.vue'
-import ChatHistorySlideover from '#renderer/components/chat/ChatHistorySlideover.vue'
 import ChatWorkspaceView from '#renderer/components/chat/ChatWorkspaceView.vue'
 import ConversationSidebar from '#renderer/components/chat/ConversationSidebar.vue'
 import ProviderSettingsModal from '#renderer/components/providers/ProviderSettingsModal.vue'
@@ -60,8 +59,6 @@ function handleOpenProviderSettings() {
       <ChatWorkspaceView
         v-model="workspace.composerValue.value"
         :can-send="workspace.canSend.value"
-        :conversation-count="workspace.conversationCount.value"
-        :conversation-title="workspace.conversationTitle.value"
         :error-message="workspace.errorMessage.value"
         :is-busy="workspace.isConversationListBusy.value"
         :is-loading="workspace.isConversationLoading.value"
@@ -74,30 +71,11 @@ function handleOpenProviderSettings() {
         :provider-name="workspace.selectedProviderName.value"
         :selected-model-id="workspace.selectedModelId.value"
         :selected-provider-id="workspace.selectedProviderId.value"
-        @create-conversation="workspace.handleCreateConversation"
-        @open-history="workspace.openConversationHistory"
         @runtime-change="workspace.handleRuntimeChange"
         @send="workspace.handleSendMessage"
         @stop="workspace.handleStopMessage"
       />
     </div>
-
-    <ChatHistorySlideover
-      v-model:open="workspace.isHistoryOpen.value"
-      :conversations="workspace.conversations.value"
-      :current-username="bootstrap.currentUsername.value"
-      :error-message="workspace.sidebarErrorMessage.value"
-      :is-busy="workspace.isConversationListBusy.value"
-      :is-loading="workspace.isConversationListLoading.value"
-      :selected-conversation-id="workspace.selectedConversationId.value"
-      @create="workspace.handleCreateConversation"
-      @delete="workspace.handleDeleteConversation"
-      @logout="handleLogout"
-      @open-about="handleOpenAbout"
-      @open-provider-settings="handleOpenProviderSettings"
-      @rename="workspace.handleRenameConversation"
-      @select="workspace.handleConversationSelection"
-    />
     <AboutModal v-model:open="isAboutOpen" />
 
     <ProviderSettingsModal v-model:open="isProviderSettingsOpen" />

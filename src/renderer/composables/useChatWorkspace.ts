@@ -20,7 +20,6 @@ export function useChatWorkspace() {
   const chatStream = useChatStream()
 
   const composerValue = shallowRef('')
-  const isHistoryOpen = shallowRef(false)
   const draftRuntimeConfig = shallowRef<ChatRuntimeConfig>({
     enabledCapabilities: [],
     modelId: null,
@@ -125,18 +124,12 @@ export function useChatWorkspace() {
   async function handleConversationSelection(id: number) {
     await chatStream.stopCurrentStream()
     await setSelectedConversation(id)
-    isHistoryOpen.value = false
   }
 
   async function handleCreateConversation() {
     const conversation = await conversationList.createConversation(effectiveRuntimeConfig.value)
     conversationList.upsertConversation(conversation)
     await setSelectedConversation(conversation.id)
-    isHistoryOpen.value = false
-  }
-
-  function openConversationHistory() {
-    isHistoryOpen.value = true
   }
 
   async function handleRenameConversation(payload: { id: number, title: string }) {
@@ -282,8 +275,6 @@ export function useChatWorkspace() {
   return {
     canSend,
     composerValue,
-    conversationCount: conversationList.conversationCount,
-    conversationTitle: computed(() => conversationDetail.conversation.value?.title ?? null),
     conversations: conversationList.conversations,
     errorMessage: chatStream.errorMessage,
     handleConversationSelection,
@@ -296,11 +287,9 @@ export function useChatWorkspace() {
     isConversationListBusy,
     isConversationListLoading: conversationList.isLoading,
     isConversationLoading: conversationDetail.isLoading,
-    isHistoryOpen,
     isSending: chatStream.isSending,
     messages: conversationDetail.messages,
     modelSwitchGroups,
-    openConversationHistory,
     partialAssistantMessage: chatStream.partialAssistantMessage,
     providerLoadError: providerSettings.errorMessage,
     selectedConversationId,
@@ -308,6 +297,5 @@ export function useChatWorkspace() {
     selectedModelName,
     selectedProviderId: computed(() => effectiveRuntimeConfig.value.providerConfigId),
     selectedProviderName: computed(() => selectedProviderConfig.value?.displayName ?? null),
-    sidebarErrorMessage: conversationList.errorMessage,
   }
 }
