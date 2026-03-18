@@ -41,9 +41,6 @@ router.beforeEach(async (to) => {
   if (bootstrap.viewState.value !== 'ready' || !bootstrap.isAuthenticated.value)
     return '/auth'
 
-  if (to.matched.some(record => record.meta.requiresProvider) && !bootstrap.hasUsableProvider.value)
-    return '/settings/providers'
-
   return true
 })
 

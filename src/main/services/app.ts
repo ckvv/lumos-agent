@@ -42,12 +42,9 @@ function getUnavailableBootstrap(): AppBootstrap {
   }
 }
 
-function buildRecommendedRoute(isAuthenticated: boolean, hasUsableProvider: boolean): AppRecommendedRoute {
+function buildRecommendedRoute(isAuthenticated: boolean): AppRecommendedRoute {
   if (!isAuthenticated)
     return '/auth'
-
-  if (!hasUsableProvider)
-    return '/settings/providers'
 
   return '/chat'
 }
@@ -66,7 +63,7 @@ export function getAppBootstrap(): AppBootstrap {
   const authSnapshot = getAuthSessionSnapshot()
   const providerSummary = getProviderSummary()
   const capabilityFlags = buildCapabilityFlags()
-  const recommendedRoute = buildRecommendedRoute(authSnapshot.isAuthenticated, providerSummary.hasUsableProvider)
+  const recommendedRoute = buildRecommendedRoute(authSnapshot.isAuthenticated)
 
   return {
     auth: authSnapshot,
@@ -86,9 +83,9 @@ export function getAppBootstrap(): AppBootstrap {
     },
     providerSummary,
     routing: {
-      canAccessChat: authSnapshot.isAuthenticated && providerSummary.hasUsableProvider,
+      canAccessChat: authSnapshot.isAuthenticated,
       recommendedRoute,
-      shouldRedirectToProviderSettings: authSnapshot.isAuthenticated && !providerSummary.hasUsableProvider,
+      shouldRedirectToProviderSettings: false,
     },
   }
 }

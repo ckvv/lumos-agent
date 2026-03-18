@@ -3,17 +3,25 @@ import AuthenticatedFrame from '#renderer/components/app/AuthenticatedFrame.vue'
 import ChatHistorySlideover from '#renderer/components/chat/ChatHistorySlideover.vue'
 import ChatWorkspaceView from '#renderer/components/chat/ChatWorkspaceView.vue'
 import ConversationSidebar from '#renderer/components/chat/ConversationSidebar.vue'
+import { useAppBootstrap } from '#renderer/composables/useAppBootstrap'
 import { useChatWorkspace } from '#renderer/composables/useChatWorkspace'
+import { useRouter } from 'vue-router'
 
 definePage({
   meta: {
     requiresAuth: true,
-    requiresProvider: true,
   },
   name: 'chat',
 })
 
+const router = useRouter()
+const bootstrap = useAppBootstrap()
 const workspace = useChatWorkspace()
+
+async function handleLogout() {
+  await bootstrap.logout()
+  await router.replace('/auth')
+}
 </script>
 
 <template>
@@ -21,11 +29,13 @@ const workspace = useChatWorkspace()
     <template #sidebar>
       <ConversationSidebar
         :conversations="workspace.conversations.value"
+        :current-username="bootstrap.currentUsername.value"
         :is-busy="workspace.isConversationListBusy.value"
         :is-loading="workspace.isConversationListLoading.value"
         :selected-conversation-id="workspace.selectedConversationId.value"
         @create="workspace.handleCreateConversation"
         @delete="workspace.handleDeleteConversation"
+        @logout="handleLogout"
         @rename="workspace.handleRenameConversation"
         @select="workspace.handleConversationSelection"
       />
@@ -62,12 +72,14 @@ const workspace = useChatWorkspace()
     <ChatHistorySlideover
       v-model:open="workspace.isHistoryOpen.value"
       :conversations="workspace.conversations.value"
+      :current-username="bootstrap.currentUsername.value"
       :error-message="workspace.sidebarErrorMessage.value"
       :is-busy="workspace.isConversationListBusy.value"
       :is-loading="workspace.isConversationListLoading.value"
       :selected-conversation-id="workspace.selectedConversationId.value"
       @create="workspace.handleCreateConversation"
       @delete="workspace.handleDeleteConversation"
+      @logout="handleLogout"
       @rename="workspace.handleRenameConversation"
       @select="workspace.handleConversationSelection"
     />

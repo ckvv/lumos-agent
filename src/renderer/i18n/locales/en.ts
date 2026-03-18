@@ -14,7 +14,7 @@ export const en = {
   auth: {
     shell: {
       aboutLink: 'Public About',
-      description: 'Create the device-local account first, then move into provider setup and the chat workspace. Credentials and history stay under main-process control.',
+      description: 'Create the device-local account first, then land directly in the chat workspace; provider settings stay available from inside the workspace. Credentials and history stay under main-process control.',
       eyebrow: 'Local authentication',
       features: {
         persistence: 'Chat messages, provider configs, and future capability bindings are persisted in local SQLite.',
@@ -168,7 +168,7 @@ export const en = {
       placeholder: 'Enter a new API key. Leave empty to keep the current secret.',
       save: 'Save API key',
     },
-    body: 'If no usable provider exists after login, the app lands here first. Once configuration is complete, you can go back to the chat workspace and switch provider / model inside the same conversation.',
+    body: 'Provider management lives here. Even if no usable provider is configured yet, the chat workspace remains the primary surface and you can return here whenever setup is needed.',
     compatible: {
       apiKey: 'API key',
       baseUrl: 'Base URL',

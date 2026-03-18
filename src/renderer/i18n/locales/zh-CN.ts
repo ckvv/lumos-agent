@@ -12,7 +12,7 @@ export const zhCN = {
   auth: {
     shell: {
       aboutLink: '公开 About',
-      description: '先建立本机唯一账号，再进入 provider 设置与聊天工作台。所有凭证与历史记录都通过主进程统一管理。',
+      description: '先建立本机唯一账号，再直接进入聊天工作台；provider 设置可在工作台内随时切换进入。所有凭证与历史记录都通过主进程统一管理。',
       eyebrow: '本地认证',
       features: {
         persistence: '聊天消息、provider 配置和后续 capability 绑定都会持久化到本地 SQLite。',
@@ -166,7 +166,7 @@ export const zhCN = {
       placeholder: '输入新的 API key，留空则保留现有密钥',
       save: '保存 API key',
     },
-    body: '登录后如果还没有可用 provider，会先进入这里。配置完成后即可回到聊天工作台，并在同一会话里切换 provider 与 model。',
+    body: '这里负责集中管理 provider。即使刚登录还没配置可用 provider，也可以先留在聊天工作台，再按需回到这里补齐配置。',
     compatible: {
       apiKey: 'API Key',
       baseUrl: 'Base URL',

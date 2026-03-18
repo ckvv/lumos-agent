@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 
 defineProps<{
   conversations: readonly ConversationSummary[]
+  currentUsername: string | null
   errorMessage: string | null
   isBusy?: boolean
   isLoading?: boolean
@@ -14,6 +15,7 @@ defineProps<{
 const emit = defineEmits<{
   create: []
   delete: [conversationId: number]
+  logout: []
   rename: [payload: { id: number, title: string }]
   select: [conversationId: number]
 }>()
@@ -55,11 +57,13 @@ function handleSelect(conversationId: number) {
         <div class="min-h-0 flex-1">
           <ConversationSidebar
             :conversations="conversations"
+            :current-username="currentUsername"
             :is-busy="isBusy"
             :is-loading="isLoading"
             :selected-conversation-id="selectedConversationId"
             @create="handleCreate"
             @delete="emit('delete', $event)"
+            @logout="emit('logout')"
             @rename="emit('rename', $event)"
             @select="handleSelect"
           />

@@ -4,9 +4,12 @@ import { useLocale } from '#renderer/composables/useLocale'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   currentUsername: string | null
-}>()
+  side?: 'bottom' | 'top'
+}>(), {
+  side: 'top',
+})
 
 const emit = defineEmits<{
   logout: []
@@ -73,7 +76,7 @@ const menuItems = computed(() => [
     :content="{
       align: 'start',
       collisionPadding: 16,
-      side: 'top',
+      side: props.side,
       sideOffset: 12,
     }"
     :items="menuItems"
