@@ -1,15 +1,60 @@
 import type { ChatModelSwitchGroup } from '#renderer/components/chat/types'
 import type { ChatRuntimeConfig } from '#shared/chat/types'
+import type { InjectionKey } from 'vue'
+import type { LocationQuery, LocationQueryRaw } from 'vue-router'
 import { useChatStream } from '#renderer/composables/useChatStream'
 import { useConversationDetail } from '#renderer/composables/useConversationDetail'
 import { useConversationList } from '#renderer/composables/useConversationList'
 import { useProviderSettings } from '#renderer/composables/useProviderSettings'
 import { confirmAction } from '#renderer/utils/confirm'
-import { computed, onMounted, shallowRef, watch } from 'vue'
+import { computed, inject, onMounted, provide, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
-export function useChatWorkspace() {
+function parseConversationId(value: unknown) {
+  if (typeof value !== 'string' && typeof value !== 'number')
+    return null
+
+  const parsed = Number(value)
+
+  if (!Number.isSafeInteger(parsed) || parsed <= 0)
+    return null
+
+  return parsed
+}
+
+function getFirstRouteValue(value: string | string[] | null | undefined) {
+  return Array.isArray(value) ? value[0] : value
+}
+
+function buildChatPath(conversationId: number | null) {
+  if (!conversationId)
+    return '/chat'
+
+  return `/chat/${conversationId}`
+}
+
+function buildCanonicalChatLocation(conversationId: number | null, query: LocationQuery) {
+  const nextQuery: LocationQueryRaw = { ...query }
+
+  delete nextQuery.conversationId
+
+  return {
+    path: buildChatPath(conversationId),
+    query: Object.keys(nextQuery).length > 0 ? nextQuery : undefined,
+  }
+}
+
+async function reloadConversationListSafely(load: () => Promise<void>) {
+  try {
+    await load()
+  }
+  catch {
+    // 保留已有错误态，同时确保路由回退不会被列表刷新失败阻塞。
+  }
+}
+
+export function createChatWorkspace() {
   const { t } = useI18n()
   const route = useRoute()
   const router = useRouter()
@@ -20,6 +65,7 @@ export function useChatWorkspace() {
   const chatStream = useChatStream()
 
   const composerValue = shallowRef('')
+  const isHistoryOpen = shallowRef(false)
   const draftRuntimeConfig = shallowRef<ChatRuntimeConfig>({
     enabledCapabilities: [],
     modelId: null,
@@ -28,19 +74,45 @@ export function useChatWorkspace() {
     toolPolicy: 'off',
   })
 
-  const selectedConversationId = computed<number | null>(() => {
-    const value = Array.isArray(route.query.conversationId)
-      ? route.query.conversationId[0]
-      : route.query.conversationId
+  const routeConversationState = computed(() => {
+    const routeParams = route.params as Record<string, string | string[] | undefined>
+    const id = getFirstRouteValue(routeParams.id)
 
-    if (!value)
-      return null
+    if (!id) {
+      return {
+        hasParam: false,
+        id: null,
+      }
+    }
 
-    const parsed = Number(value)
-    return Number.isFinite(parsed) ? parsed : null
+    return {
+      hasParam: true,
+      id: parseConversationId(id),
+    }
   })
 
-  const isNewConversationView = computed(() => selectedConversationId.value === null)
+  const legacyConversationState = computed(() => {
+    const id = getFirstRouteValue(route.query.conversationId as string | string[] | null | undefined)
+
+    if (id === undefined) {
+      return {
+        hasQuery: false,
+        id: null,
+      }
+    }
+
+    return {
+      hasQuery: true,
+      id: parseConversationId(id),
+    }
+  })
+
+  const selectedConversationId = computed<number | null>(() => {
+    return routeConversationState.value.id
+  })
+
+  const isNewConversationView = computed(() => !routeConversationState.value.hasParam)
+  const hasLegacyConversationIdQuery = computed(() => legacyConversationState.value.hasQuery)
 
   const usableConfigs = computed(() =>
     providerSettings.configs.value.filter(config => config.isUsable),
@@ -93,7 +165,7 @@ export function useChatWorkspace() {
   )
 
   const selectedConversationTitle = computed(() => {
-    if (!selectedConversationId.value)
+    if (!routeConversationState.value.hasParam)
       return t('chat.workspace.newConversation')
 
     return conversationDetail.conversation.value?.title
@@ -119,25 +191,29 @@ export function useChatWorkspace() {
     }
   }
 
-  async function setSelectedConversation(id: number | null) {
-    const nextQuery = { ...route.query }
+  async function navigateToConversation(id: number | null, options?: { replace?: boolean }) {
+    const targetPath = buildChatPath(id)
 
-    if (!id) {
-      delete nextQuery.conversationId
-      await router.replace({ query: nextQuery })
+    if (route.path === targetPath && !hasLegacyConversationIdQuery.value)
+      return
+
+    const targetLocation = buildCanonicalChatLocation(id, route.query)
+
+    if (options?.replace) {
+      await router.replace(targetLocation)
       return
     }
 
-    nextQuery.conversationId = String(id)
-
-    await router.replace({
-      query: nextQuery,
-    })
+    await router.push(targetLocation)
   }
 
   async function handleConversationSelection(id: number) {
     await chatStream.stopCurrentStream()
-    await setSelectedConversation(id)
+
+    if (selectedConversationId.value === id && routeConversationState.value.hasParam)
+      return
+
+    await navigateToConversation(id)
   }
 
   async function handleCreateConversation() {
@@ -146,13 +222,15 @@ export function useChatWorkspace() {
     }
 
     await chatStream.stopCurrentStream()
-    await setSelectedConversation(null)
+    await navigateToConversation(null)
   }
 
   async function handleRenameConversation(payload: { id: number, title: string }) {
     const conversation = await conversationList.renameConversation(payload.id, payload.title)
     conversationList.upsertConversation(conversation)
-    conversationDetail.replaceConversation(conversation)
+
+    if (conversationDetail.conversation.value?.id === conversation.id)
+      conversationDetail.replaceConversation(conversation)
   }
 
   async function handleDeleteConversation(id: number) {
@@ -169,7 +247,9 @@ export function useChatWorkspace() {
       ...effectiveRuntimeConfig.value,
     }
 
-    await setSelectedConversation(null)
+    await navigateToConversation(null, {
+      replace: true,
+    })
   }
 
   async function persistRuntimeConfig(nextRuntimeConfig: ChatRuntimeConfig) {
@@ -210,9 +290,11 @@ export function useChatWorkspace() {
     if (!conversationId) {
       const conversation = await conversationList.createConversation(effectiveRuntimeConfig.value)
       conversationList.upsertConversation(conversation)
+      conversationDetail.replaceConversation(conversation)
       conversationId = conversation.id
-      await setSelectedConversation(conversation.id)
-      await conversationDetail.load(conversation.id)
+      await navigateToConversation(conversation.id, {
+        replace: true,
+      })
     }
 
     composerValue.value = ''
@@ -225,22 +307,33 @@ export function useChatWorkspace() {
       onEvent: (event) => {
         if (event.type === 'started') {
           conversationList.upsertConversation(event.conversation)
-          conversationDetail.replaceConversation(event.conversation)
-          conversationDetail.appendMessage(event.startedMessage)
+
+          if (conversationDetail.conversation.value?.id === event.conversation.id) {
+            conversationDetail.replaceConversation(event.conversation)
+            conversationDetail.appendMessage(event.startedMessage)
+          }
+
           return
         }
 
         if (event.type === 'completed') {
           conversationList.upsertConversation(event.conversation)
-          conversationDetail.replaceConversation(event.conversation)
-          conversationDetail.replaceLastAssistantMessage(event.assistantMessage)
+
+          if (conversationDetail.conversation.value?.id === event.conversation.id) {
+            conversationDetail.replaceConversation(event.conversation)
+            conversationDetail.replaceLastAssistantMessage(event.assistantMessage)
+          }
+
           return
         }
 
         if (event.type === 'failed') {
           conversationList.upsertConversation(event.conversation)
-          conversationDetail.replaceConversation(event.conversation)
-          conversationDetail.replaceLastAssistantMessage(event.assistantMessage)
+
+          if (conversationDetail.conversation.value?.id === event.conversation.id) {
+            conversationDetail.replaceConversation(event.conversation)
+            conversationDetail.replaceLastAssistantMessage(event.assistantMessage)
+          }
         }
       },
     })
@@ -261,18 +354,69 @@ export function useChatWorkspace() {
     }
   }, { immediate: true })
 
-  watch(selectedConversationId, async (conversationId) => {
-    if (!conversationId) {
+  watch(legacyConversationState, async (legacyState) => {
+    if (!legacyState.hasQuery)
+      return
+
+    if (routeConversationState.value.hasParam) {
+      await navigateToConversation(routeConversationState.value.id, {
+        replace: true,
+      })
+      return
+    }
+
+    await navigateToConversation(legacyState.id, {
+      replace: true,
+    })
+  }, { immediate: true })
+
+  let selectionSyncToken = 0
+
+  watch([() => routeConversationState.value.hasParam, selectedConversationId], async ([hasParam, conversationId], previousValue) => {
+    const [previousHasParam, previousConversationId] = previousValue ?? []
+
+    if (previousHasParam === hasParam && previousConversationId === conversationId)
+      return
+
+    const currentToken = ++selectionSyncToken
+
+    await chatStream.stopCurrentStream()
+
+    if (!hasParam) {
       conversationDetail.clear()
       return
     }
+
+    if (!conversationId) {
+      conversationDetail.clear()
+      await reloadConversationListSafely(conversationList.load)
+
+      if (currentToken !== selectionSyncToken)
+        return
+
+      await navigateToConversation(null, {
+        replace: true,
+      })
+      return
+    }
+
+    if (conversationDetail.conversation.value?.id === conversationId)
+      return
+
+    conversationDetail.clear()
 
     try {
       await conversationDetail.load(conversationId)
     }
     catch {
-      await conversationList.load()
-      await setSelectedConversation(null)
+      await reloadConversationListSafely(conversationList.load)
+
+      if (currentToken !== selectionSyncToken)
+        return
+
+      await navigateToConversation(null, {
+        replace: true,
+      })
     }
   }, { immediate: true })
 
@@ -296,6 +440,7 @@ export function useChatWorkspace() {
     handleRuntimeChange,
     handleSendMessage,
     handleStopMessage,
+    isHistoryOpen,
     isConversationListBusy,
     isConversationListLoading: conversationList.isLoading,
     isConversationLoading: conversationDetail.isLoading,
@@ -312,4 +457,22 @@ export function useChatWorkspace() {
     selectedProviderId: computed(() => effectiveRuntimeConfig.value.providerConfigId),
     selectedProviderName: computed(() => selectedProviderConfig.value?.displayName ?? null),
   }
+}
+
+export type ChatWorkspace = ReturnType<typeof createChatWorkspace>
+
+const chatWorkspaceKey: InjectionKey<ChatWorkspace> = Symbol('chat-workspace')
+
+export function provideChatWorkspace(workspace: ChatWorkspace) {
+  provide(chatWorkspaceKey, workspace)
+  return workspace
+}
+
+export function useChatWorkspace() {
+  const workspace = inject(chatWorkspaceKey, null)
+
+  if (!workspace)
+    throw new Error('Chat workspace context is missing')
+
+  return workspace
 }

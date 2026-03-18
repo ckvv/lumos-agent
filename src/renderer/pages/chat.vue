@@ -2,11 +2,10 @@
 import AboutModal from '#renderer/components/app/AboutModal.vue'
 import AuthenticatedFrame from '#renderer/components/app/AuthenticatedFrame.vue'
 import ChatHistorySlideover from '#renderer/components/chat/ChatHistorySlideover.vue'
-import ChatWorkspaceView from '#renderer/components/chat/ChatWorkspaceView.vue'
 import ConversationSidebar from '#renderer/components/chat/ConversationSidebar.vue'
 import ProviderSettingsModal from '#renderer/components/providers/ProviderSettingsModal.vue'
 import { useAppBootstrap } from '#renderer/composables/useAppBootstrap'
-import { useChatWorkspace } from '#renderer/composables/useChatWorkspace'
+import { createChatWorkspace, provideChatWorkspace } from '#renderer/composables/useChatWorkspace'
 import { shallowRef } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -19,9 +18,8 @@ definePage({
 
 const router = useRouter()
 const bootstrap = useAppBootstrap()
-const workspace = useChatWorkspace()
+const workspace = provideChatWorkspace(createChatWorkspace())
 const isAboutOpen = shallowRef(false)
-const isHistoryOpen = shallowRef(false)
 const isProviderSettingsOpen = shallowRef(false)
 
 async function handleLogout() {
@@ -58,31 +56,11 @@ function handleOpenProviderSettings() {
     </template>
 
     <div class="h-full min-h-0">
-      <ChatWorkspaceView
-        v-model="workspace.composerValue.value"
-        :can-send="workspace.canSend.value"
-        :conversation-title="workspace.selectedConversationTitle.value"
-        :error-message="workspace.errorMessage.value"
-        :is-loading="workspace.isConversationLoading.value"
-        :is-new-conversation-view="workspace.isNewConversationView.value"
-        :is-sending="workspace.isSending.value"
-        :messages="workspace.messages.value"
-        :model-switch-groups="workspace.modelSwitchGroups.value"
-        :model-name="workspace.selectedModelName.value"
-        :partial-assistant-message="workspace.partialAssistantMessage.value"
-        :provider-load-error="workspace.providerLoadError.value"
-        :provider-name="workspace.selectedProviderName.value"
-        :selected-model-id="workspace.selectedModelId.value"
-        :selected-provider-id="workspace.selectedProviderId.value"
-        @open-history="isHistoryOpen = true"
-        @runtime-change="workspace.handleRuntimeChange"
-        @send="workspace.handleSendMessage"
-        @stop="workspace.handleStopMessage"
-      />
+      <RouterView />
     </div>
 
     <ChatHistorySlideover
-      v-model:open="isHistoryOpen"
+      v-model:open="workspace.isHistoryOpen.value"
       :conversations="workspace.conversations.value"
       :current-username="bootstrap.currentUsername.value"
       :error-message="workspace.conversationListErrorMessage.value"

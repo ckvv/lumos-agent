@@ -52,6 +52,21 @@ declare module 'vue-router/auto-routes' {
       '/chat',
       Record<never, never>,
       Record<never, never>,
+      | '/chat/'
+      | '/chat/[id]'
+    >,
+    '/chat/': RouteRecordInfo<
+      '/chat/',
+      '/chat',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/chat/[id]': RouteRecordInfo<
+      '/chat/[id]',
+      '/chat/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
       | never
     >,
   }
@@ -87,7 +102,21 @@ declare module 'vue-router/auto-routes' {
     }
     'src/renderer/pages/chat.vue': {
       routes:
+        | '/chat/'
+        | '/chat/[id]'
         | 'chat'
+      views:
+        | 'default'
+    }
+    'src/renderer/pages/chat/index.vue': {
+      routes:
+        | '/chat/'
+      views:
+        | never
+    }
+    'src/renderer/pages/chat/[id].vue': {
+      routes:
+        | '/chat/[id]'
       views:
         | never
     }

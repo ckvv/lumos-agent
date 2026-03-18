@@ -5,23 +5,35 @@ import { computed, shallowReadonly, shallowRef } from 'vue'
 const detail = shallowRef<ConversationDetail | null>(null)
 const errorMessage = shallowRef<string | null>(null)
 const isLoading = shallowRef(false)
+let activeLoadToken = 0
 
 export function useConversationDetail() {
   async function load(id: number) {
+    const loadToken = ++activeLoadToken
+
     isLoading.value = true
     errorMessage.value = null
 
     try {
-      detail.value = await runWithORPCClient(client => client.chat.conversations.getDetail({ id }))
+      const nextDetail = await runWithORPCClient(client => client.chat.conversations.getDetail({ id }))
+
+      if (loadToken !== activeLoadToken)
+        return detail.value
+
+      detail.value = nextDetail
       return detail.value
     }
     catch (error) {
-      detail.value = null
-      errorMessage.value = getORPCErrorMessage(error)
+      if (loadToken === activeLoadToken) {
+        detail.value = null
+        errorMessage.value = getORPCErrorMessage(error)
+      }
+
       throw error
     }
     finally {
-      isLoading.value = false
+      if (loadToken === activeLoadToken)
+        isLoading.value = false
     }
   }
 
@@ -83,8 +95,10 @@ export function useConversationDetail() {
   }
 
   function clear() {
+    activeLoadToken += 1
     detail.value = null
     errorMessage.value = null
+    isLoading.value = false
   }
 
   return {

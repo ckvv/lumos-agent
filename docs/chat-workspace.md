@@ -8,10 +8,17 @@ Route layout:
 
 - `/`: public about page
 - `/auth`: public login / registration
-- `/chat`: protected workspace
+- `/chat`: protected workspace shell + new conversation view
+- `/chat/:id`: protected workspace shell + conversation view
 - `/settings/providers`: protected provider configuration
 
-The protected shell is intentionally thin: top navigation, locale switcher, provider settings entry, and logout. The actual chat experience lives on `/chat`.
+The protected shell is intentionally thin: top navigation, locale switcher, provider settings entry, logout, conversation sidebar, history slideover, and chat-scoped modals.
+The actual chat canvas is rendered by nested child routes:
+
+- `/chat` always means a blank "new conversation" workspace
+- `/chat/:id` always means the selected conversation workspace
+
+The parent `/chat` route owns shared workspace state so draft input, runtime selection, and stream control survive child-route switches.
 Conversation history is still available, but no longer stays pinned on the main canvas by default.
 
 ## Startup and Routing
@@ -23,7 +30,10 @@ Routing rules:
 - unauthenticated users can browse `/` and `/auth`
 - authenticated users are redirected away from `/auth`
 - `/chat` requires both authentication and a usable provider
+- `/chat/:id` uses the same auth / provider gate as `/chat`
 - authenticated users without a usable provider are redirected to `/settings/providers`
+- legacy `#/chat?conversationId=123` links are immediately normalized to `#/chat/123`
+- invalid, deleted, or inaccessible conversation ids fall back to `#/chat`
 
 ## Provider Support
 
@@ -77,7 +87,10 @@ Main renderer composables:
 Main UI surfaces:
 
 - `AuthenticatedFrame`: protected application shell
-- `ChatWorkspaceView`: chat page orchestration
+- `src/renderer/pages/chat.vue`: parent workspace shell + shared chat context provider
+- `src/renderer/pages/chat/index.vue`: new conversation child route
+- `src/renderer/pages/chat/[id].vue`: conversation child route
+- `ChatWorkspaceView`: child-route workspace view
 - `ChatWorkspaceHeader`: focused workspace header and runtime controls
 - `ChatConversationCanvas`: active conversation canvas and composer
 - `ChatHistorySlideover`: on-demand conversation history panel
@@ -101,5 +114,5 @@ Failure handling expectations:
 - keep partial assistant output visible when possible
 - persist failure state into history instead of silently dropping it
 - render persisted assistant error messages inside the message bubble, not only as transient page alerts
-- recover from deleted conversations or missing selections by falling back to the next valid conversation
+- recover from deleted conversations, invalid ids, or missing selections by falling back to `/chat`
 - surface oRPC and provider failures as visible UI messages

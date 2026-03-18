@@ -8,7 +8,8 @@ Route shape:
 
 - `/`: public about page
 - `/auth`: public login / registration page
-- `/chat`: authenticated chat workspace, requires at least one usable provider
+- `/chat`: authenticated chat workspace shell + new conversation view
+- `/chat/:id`: authenticated chat workspace shell + conversation view
 - `/settings/providers`: authenticated provider settings
 
 The renderer never reads SQLite directly and never handles credential storage itself.
@@ -51,9 +52,11 @@ Passwords are hashed with `node:crypto` `scrypt` plus a random salt. Plaintext p
 
 - `/` is always public.
 - `/auth` is public, but authenticated users are redirected to `bootstrap.routing.recommendedRoute`.
+- `/chat` and `/chat/:id` both live under the same authenticated parent route.
 - Routes with `meta.requiresAuth = true` require an authenticated session.
 - Routes with `meta.requiresProvider = true` also require `providerSummary.hasUsableProvider = true`.
 - If a user is authenticated but has no usable provider, `/chat` redirects to `/settings/providers`.
+- Legacy `#/chat?conversationId=123` links are normalized in the renderer to `#/chat/123` before the workspace syncs conversation state.
 
 ## Failure and Retry Behavior
 
