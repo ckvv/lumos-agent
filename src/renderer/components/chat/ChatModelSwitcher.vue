@@ -67,7 +67,7 @@ const menuItems = computed<DropdownMenuItem[][]>(() =>
     :ui="{ content: 'w-[22rem] max-w-[calc(100vw-2rem)]' }"
   >
     <UButton
-      class="w-full rounded-full border border-default/70 bg-elevated/65 px-3 py-2 text-left data-[state=open]:bg-elevated"
+      class="rounded-full border border-default/70 bg-elevated/65 px-3 py-2 text-left data-[state=open]:bg-elevated"
       color="neutral"
       :disabled="isBusy || !hasOptions"
       icon="i-lucide-sparkles"

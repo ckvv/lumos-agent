@@ -89,10 +89,14 @@ const menuItems = computed(() => [
       square
       color="neutral"
       class="w-full data-[state=open]:bg-elevated overflow-hidden"
+      size="xl"
+      icon="i-lucide-circle-user-round"
       variant="ghost"
       trailing-icon="i-lucide-chevrons-up-down"
       :ui="{
-        trailingIcon: 'ms-auto',
+        base: 'justify-start',
+        leadingIcon: 'shrink-0',
+        trailingIcon: 'ms-auto shrink-0',
       }"
       :label="username"
     />
