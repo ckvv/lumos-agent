@@ -88,11 +88,10 @@ Main UI surfaces:
 
 - `AuthenticatedFrame`: protected application shell
 - `src/renderer/pages/chat.vue`: parent workspace shell + shared chat context provider
-- `src/renderer/pages/chat/index.vue`: new conversation child route
-- `src/renderer/pages/chat/[id].vue`: conversation child route
-- `ChatWorkspaceView`: child-route workspace view
-- `ChatWorkspaceHeader`: focused workspace header and runtime controls
-- `ChatConversationCanvas`: active conversation canvas and composer
+- `src/renderer/pages/chat/index.vue`: new conversation child route, directly renders `ChatNewConversationView`
+- `src/renderer/pages/chat/[id].vue`: conversation child route, directly renders `ChatConversationView`
+- `ChatNewConversationView`: new conversation title + centered composer
+- `ChatConversationView`: loading / empty / message-list conversation surface
 - `ChatHistorySlideover`: on-demand conversation history panel
 - `ConversationSidebar`: conversation CRUD and selection inside the history panel
 - `MessageBubble`: Markdown/thinking rendering through `markstream-vue`

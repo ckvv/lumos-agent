@@ -1,36 +1,21 @@
 <script setup lang="ts">
-import type { ChatModelSwitchGroup } from '#renderer/components/chat/types'
-import type { ConversationMessageRecord } from '#shared/chat/types'
-import type { AssistantMessage } from '@mariozechner/pi-ai'
+import type {
+  ChatConversationViewProps,
+  ChatRuntimeChangePayload,
+} from '#renderer/components/chat/view-contracts'
 import ChatComposerPanel from '#renderer/components/chat/ChatComposerPanel.vue'
 import MessageBubble from '#renderer/components/chat/MessageBubble.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = withDefaults(defineProps<{
-  canSend: boolean
-  conversationTitle?: string | null
-  errorMessage: string | null
-  isLoading?: boolean
-  isNewConversationView?: boolean
-  isSending?: boolean
-  messages: readonly ConversationMessageRecord[]
-  modelSwitchGroups: ChatModelSwitchGroup[]
-  modelName: string | null
-  partialAssistantMessage: AssistantMessage | null
-  providerLoadError: string | null
-  providerName: string | null
-  selectedModelId: string | null
-  selectedProviderId: number | null
-}>(), {
+const props = withDefaults(defineProps<ChatConversationViewProps>(), {
   conversationTitle: null,
   isLoading: false,
-  isNewConversationView: false,
   isSending: false,
 })
 
 const emit = defineEmits<{
-  runtimeChange: [value: { providerConfigId: number, modelId: string }]
+  runtimeChange: [value: ChatRuntimeChangePayload]
   send: []
   stop: []
 }>()
@@ -49,26 +34,24 @@ const showLoading = computed(() =>
   props.isLoading && !hasMessages.value,
 )
 
-const showCenteredComposer = computed(() =>
-  !showLoading.value && (props.isNewConversationView || !hasMessages.value),
+const showEmptyConversation = computed(() =>
+  !showLoading.value && !hasMessages.value,
 )
 
-const centeredTitle = computed(() =>
-  props.isNewConversationView
-    ? t('chat.workspace.newConversation')
-    : props.conversationTitle ?? t('chat.workspace.emptyConversation'),
+const emptyConversationTitle = computed(() =>
+  props.conversationTitle ?? t('chat.workspace.emptyConversation'),
 )
 </script>
 
 <template>
   <section class="flex h-full min-h-0 flex-col overflow-hidden rounded-[1.8rem] border border-default/70 bg-default/95 shadow-sm">
     <div
-      v-if="showCenteredComposer"
+      v-if="showEmptyConversation"
       class="flex min-h-0 flex-1 items-center justify-center overflow-y-auto px-4 py-6 sm:px-6 sm:py-8"
     >
       <div class="grid w-full max-w-4xl gap-6">
-        <h1 class="text-center m-0 text-3xl font-semibold tracking-tight text-highlighted sm:text-4xl">
-          {{ centeredTitle }}
+        <h1 class="m-0 text-center text-3xl font-semibold tracking-tight text-highlighted sm:text-4xl">
+          {{ emptyConversationTitle }}
         </h1>
 
         <ChatComposerPanel
