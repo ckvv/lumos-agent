@@ -17,9 +17,9 @@ const { t } = useI18n()
 
 <template>
   <section class="flex h-full min-h-0 flex-col overflow-hidden rounded-[1.8rem] border border-default/70 bg-default/95 shadow-sm">
-    <div class="flex min-h-0 flex-1 items-center justify-center overflow-y-auto px-4 py-6 sm:px-6 sm:py-8">
+    <div class="flex min-h-0 flex-1 items-center justify-center overflow-y-auto px-6 py-8">
       <div class="grid w-full max-w-4xl gap-6">
-        <h1 class="m-0 text-center text-3xl font-semibold tracking-tight text-highlighted sm:text-4xl">
+        <h1 class="m-0 text-center text-4xl font-semibold tracking-tight text-highlighted">
           {{ t('chat.workspace.newConversation') }}
         </h1>
 

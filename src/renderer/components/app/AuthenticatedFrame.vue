@@ -13,7 +13,7 @@ const hasSidebar = computed(() => Boolean(slots.sidebar))
 
 <template>
   <main class="h-screen overflow-hidden bg-transparent">
-    <div class="grid h-full min-h-0 overflow-hidden p-3 sm:p-4 lg:p-6">
+    <div class="grid h-full min-h-0 overflow-hidden p-6">
       <AuthInitState
         v-if="bootstrap.viewState.value === 'initializing' || bootstrap.viewState.value === 'failed'"
         :error-message="bootstrap.initializationErrorMessage.value"
@@ -25,10 +25,10 @@ const hasSidebar = computed(() => Boolean(slots.sidebar))
       <div
         v-else
         class="grid h-full min-h-0 gap-4 overflow-hidden"
-        :class="hasSidebar ? 'lg:grid-cols-[18.5rem_minmax(0,1fr)]' : 'grid-rows-[auto_minmax(0,1fr)]'"
+        :class="hasSidebar ? 'grid-cols-[18.5rem_minmax(0,1fr)]' : 'grid-rows-[auto_minmax(0,1fr)]'"
       >
         <template v-if="hasSidebar">
-          <aside class="hidden min-h-0 overflow-hidden lg:block">
+          <aside class="min-h-0 overflow-hidden">
             <div class="h-full min-h-0 overflow-hidden">
               <slot name="sidebar" />
             </div>

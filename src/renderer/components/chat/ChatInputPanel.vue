@@ -40,13 +40,13 @@ function handleComposerKeydown(event: KeyboardEvent) {
       variant="none"
       :ui="{
         base: [
-          'chat-input-panel__field min-h-28 resize-none px-4 pt-4 pb-3 text-base leading-7 text-highlighted sm:min-h-28 sm:px-5 sm:pt-5',
+          'chat-input-panel__field min-h-28 resize-none px-5 pt-5 pb-3 text-base leading-7 text-highlighted',
         ],
       }"
       @keydown="handleComposerKeydown"
     />
 
-    <div class="grid grid-cols-[1fr_auto] items-end gap-3 px-3 py-3 sm:px-4">
+    <div class="grid grid-cols-[1fr_auto] items-end gap-3 px-4 py-3">
       <ChatModelSwitcher
         class="min-w-0 max-w-full justify-self-start"
         :is-busy="props.isSending"

@@ -23,7 +23,6 @@ export function createChatWorkspace() {
   const chatStream = createChatStreamState()
 
   const composerValue = shallowRef('')
-  const isHistoryOpen = shallowRef(false)
 
   const routeState = createChatRouteState(route, router)
   const runtimeState = createChatRuntimeState({
@@ -39,15 +38,6 @@ export function createChatWorkspace() {
     effectiveRuntimeConfig: runtimeState.effectiveRuntimeConfig,
     navigateToConversation: routeState.navigateToConversation,
     selectedConversationId: routeState.selectedConversationId,
-  })
-
-  const selectedConversationTitle = computed(() => {
-    if (!routeState.routeConversationState.value.hasParam)
-      return t('chat.workspace.newConversation')
-
-    return conversationDetail.conversation.value?.title
-      ?? conversationList.conversations.value.find(item => item.id === routeState.selectedConversationId.value)?.title
-      ?? t('chat.workspace.activeConversation')
   })
 
   const isConversationListBusy = computed(() =>
@@ -89,14 +79,6 @@ export function createChatWorkspace() {
     })
   }
 
-  function handleToggleHistory() {
-    isHistoryOpen.value = !isHistoryOpen.value
-  }
-
-  function handleCloseHistory() {
-    isHistoryOpen.value = false
-  }
-
   registerChatRouteSyncEffects({
     conversationDetail,
     conversationList,
@@ -128,10 +110,8 @@ export function createChatWorkspace() {
   return {
     actions: {
       changeRuntime: runtimeState.handleRuntimeChange,
-      closeHistory: handleCloseHistory,
       createConversation: handleCreateConversation,
       deleteConversation: handleDeleteConversation,
-      toggleHistory: handleToggleHistory,
       renameConversation: handleRenameConversation,
       selectConversation: routeState.handleConversationSelection,
       sendMessage: messagingState.handleSendMessage,
@@ -157,10 +137,8 @@ export function createChatWorkspace() {
       conversations: conversationList.conversations,
       errorMessage: conversationList.errorMessage,
       isBusy: isConversationListBusy,
-      isHistoryOpen,
       isLoading: conversationList.isLoading,
       selectedConversationId: routeState.selectedConversationId,
-      selectedConversationTitle,
       streamingConversationIds: chatStream.streamingConversationIds,
     },
   }

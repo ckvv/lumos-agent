@@ -42,7 +42,7 @@ const showLoading = computed(() =>
 
 <template>
   <section class="flex h-full min-h-0 flex-col overflow-hidden rounded-[1.8rem] border border-default/70 bg-default/95 shadow-sm">
-    <div class="flex min-h-0 flex-1 flex-col overflow-hidden px-4 pt-4 sm:px-6 sm:pt-6">
+    <div class="flex min-h-0 flex-1 flex-col overflow-hidden px-6 pt-6">
       <div
         v-if="showLoading"
         class="mx-auto grid w-full max-w-4xl gap-3"
@@ -55,7 +55,7 @@ const showLoading = computed(() =>
       <div
         v-else
         ref="messageListElement"
-        class="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col gap-4 overflow-y-auto pr-1 pb-4 sm:pr-2"
+        class="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col gap-4 overflow-y-auto pr-2 pb-4"
         @scroll="handleMessageListScroll"
       >
         <MessageBubble
@@ -72,7 +72,7 @@ const showLoading = computed(() =>
       </div>
     </div>
 
-    <footer class="shrink-0 p-4 sm:p-5">
+    <footer class="shrink-0 p-5">
       <div class="mx-auto w-full max-w-4xl">
         <ChatInputPanel
           v-model:composer-value="composerValue"
