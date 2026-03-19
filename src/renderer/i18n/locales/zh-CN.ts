@@ -131,8 +131,6 @@ export const zhCN = {
       history: '会话历史',
       historyCount: '共 {count} 个会话',
       historyDescription: '把历史记录收进侧边面板，主区域只保留当前对话与配置。',
-      historyDrawerDescription: '最近使用的对话都在这里，按需切换即可。',
-      historyDrawerTitle: '会话历史',
       historyLoadError: '会话列表加载失败',
       modelMenu: '切换模型',
       newConversation: '新建对话',

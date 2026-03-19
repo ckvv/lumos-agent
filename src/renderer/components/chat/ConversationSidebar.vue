@@ -8,6 +8,7 @@ import { useI18n } from 'vue-i18n'
 const props = defineProps<{
   conversations: readonly ConversationSummary[]
   currentUsername: string | null
+  errorMessage?: string | null
   isBusy?: boolean
   isLoading?: boolean
   selectedConversationId: number | null
@@ -18,8 +19,6 @@ const emit = defineEmits<{
   create: []
   delete: [conversationId: number]
   logout: []
-  openAbout: []
-  openProviderSettings: []
   rename: [payload: { id: number, title: string }]
   select: [conversationId: number]
 }>()
@@ -120,6 +119,14 @@ function getConversationMenuItems(conversation: ConversationSummary): DropdownMe
       </h2>
     </div>
     <div class="flex min-h-0 flex-1 flex-col gap-4">
+      <UAlert
+        v-if="props.errorMessage"
+        color="warning"
+        :description="props.errorMessage"
+        :title="t('chat.workspace.historyLoadError')"
+        variant="soft"
+      />
+
       <div
         v-if="isLoading && !hasConversations"
         class="grid gap-3"
@@ -206,8 +213,6 @@ function getConversationMenuItems(conversation: ConversationSummary): DropdownMe
         <AuthenticatedUserMenu
           :current-username="currentUsername"
           @logout="emit('logout')"
-          @open-about="emit('openAbout')"
-          @open-provider-settings="emit('openProviderSettings')"
         />
       </div>
     </div>

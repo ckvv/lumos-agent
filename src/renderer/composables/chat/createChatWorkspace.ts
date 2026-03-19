@@ -89,8 +89,12 @@ export function createChatWorkspace() {
     })
   }
 
-  function handleOpenHistory() {
-    isHistoryOpen.value = true
+  function handleToggleHistory() {
+    isHistoryOpen.value = !isHistoryOpen.value
+  }
+
+  function handleCloseHistory() {
+    isHistoryOpen.value = false
   }
 
   registerChatRouteSyncEffects({
@@ -124,9 +128,10 @@ export function createChatWorkspace() {
   return {
     actions: {
       changeRuntime: runtimeState.handleRuntimeChange,
+      closeHistory: handleCloseHistory,
       createConversation: handleCreateConversation,
       deleteConversation: handleDeleteConversation,
-      openHistory: handleOpenHistory,
+      toggleHistory: handleToggleHistory,
       renameConversation: handleRenameConversation,
       selectConversation: routeState.handleConversationSelection,
       sendMessage: messagingState.handleSendMessage,

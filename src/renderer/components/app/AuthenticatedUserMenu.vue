@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { AppLocale } from '#renderer/composables/useLocale'
+import AboutModal from '#renderer/components/app/AboutModal.vue'
+import ProviderSettingsModal from '#renderer/components/providers/ProviderSettingsModal.vue'
 import { useLocale } from '#renderer/composables/useLocale'
-import { computed } from 'vue'
+import { computed, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = withDefaults(defineProps<{
@@ -12,13 +14,13 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-  openAbout: []
-  openProviderSettings: []
   logout: []
 }>()
 
 const { t } = useI18n()
 const { locale, localeOptions } = useLocale()
+const isAboutOpen = shallowRef(false)
+const isProviderSettingsOpen = shallowRef(false)
 
 const username = computed(() => props.currentUsername ?? '-')
 
@@ -47,12 +49,16 @@ const menuItems = computed(() => [
     {
       icon: 'i-lucide-sliders-horizontal',
       label: t('navigation.routes.providers'),
-      onSelect: () => emit('openProviderSettings'),
+      onSelect: () => {
+        isProviderSettingsOpen.value = true
+      },
     },
     {
       icon: 'i-lucide-info',
       label: t('navigation.routes.about'),
-      onSelect: () => emit('openAbout'),
+      onSelect: () => {
+        isAboutOpen.value = true
+      },
     },
   ],
   [
@@ -101,4 +107,8 @@ const menuItems = computed(() => [
       :label="username"
     />
   </UDropdownMenu>
+
+  <AboutModal v-model:open="isAboutOpen" />
+
+  <ProviderSettingsModal v-model:open="isProviderSettingsOpen" />
 </template>

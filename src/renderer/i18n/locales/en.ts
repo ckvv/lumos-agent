@@ -133,8 +133,6 @@ export const en = {
       history: 'History',
       historyCount: '{count} conversations',
       historyDescription: 'History lives in a side panel so the main surface can stay focused on the current exchange.',
-      historyDrawerDescription: 'Recent conversations stay here and can be reopened whenever you need them.',
-      historyDrawerTitle: 'Conversation history',
       historyLoadError: 'Failed to load conversations',
       modelMenu: 'Switch model',
       newConversation: 'New conversation',
