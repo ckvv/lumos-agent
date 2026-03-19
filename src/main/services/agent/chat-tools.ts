@@ -1,16 +1,19 @@
 import type { ActiveMcpRegistryEntry } from '#main/services/agent/mcp'
 import type { ChatInvocationMetadata, ChatToolResultDetails, SkillDetail } from '#shared/agent/types'
-import type { AgentTool } from '@mariozechner/pi-agent-core'
 import type { ImageContent, TextContent } from '@mariozechner/pi-ai'
+import type { CreateAgentSessionOptions } from '@mariozechner/pi-coding-agent'
+import { getEnabledBuiltinTools } from '#main/services/agent/builtin-tools'
 import { getActiveMcpRegistry } from '#main/services/agent/mcp'
 import { getActiveSkillRegistry } from '#main/services/agent/skills'
 import { buildMcpToolName, buildMcpWrapperToolName, buildSkillToolName } from '#shared/agent/tool-names'
 import { ORPCError } from '@orpc/server'
 
+type ChatAgentTool = NonNullable<CreateAgentSessionOptions['tools']>[number]
+
 export interface ChatToolBinding {
   displayLabel: string
   source: ChatToolResultDetails['source']
-  tool: AgentTool<any, ChatToolResultDetails>
+  tool: ChatAgentTool
 }
 
 export interface PreparedChatCapabilities {
@@ -45,7 +48,7 @@ function buildTextBlocksFromUnknown(payload: unknown): TextContent[] {
   }]
 }
 
-function buildSource(kind: 'mcp' | 'skill', id: number | string, label: string) {
+function buildSource(kind: ChatToolResultDetails['source']['kind'], id: number | string, label: string) {
   return {
     id,
     kind,
@@ -327,12 +330,17 @@ function buildMcpToolBindings(entry: ActiveMcpRegistryEntry): ChatToolBinding[] 
 }
 
 export async function prepareChatCapabilities(explicitSkillName: string | null): Promise<PreparedChatCapabilities> {
-  const [activeMcpEntries, activeSkills] = await Promise.all([
+  const [activeBuiltinTools, activeMcpEntries, activeSkills] = await Promise.all([
+    getEnabledBuiltinTools(),
     getActiveMcpRegistry(),
     getActiveSkillRegistry(),
   ])
 
   const invocationMetadata: ChatInvocationMetadata = {
+    activeBuiltinTools: activeBuiltinTools.map(tool => ({
+      id: tool.summary.name,
+      label: tool.summary.label,
+    })),
     activeMcpServers: activeMcpEntries.map(entry => ({
       id: entry.detail.id,
       label: entry.detail.displayName,
@@ -344,6 +352,14 @@ export async function prepareChatCapabilities(explicitSkillName: string | null):
     explicitSkillId: null,
     explicitSkillName: null,
   }
+
+  const builtinToolBindings = activeBuiltinTools.map((tool) => {
+    return {
+      displayLabel: tool.summary.label,
+      source: buildSource('builtin', tool.summary.name, tool.summary.label),
+      tool: tool.tool,
+    } satisfies ChatToolBinding
+  })
 
   const autonomousSkillBindings = activeSkills
     .filter(skill => !skill.disableModelInvocation)
@@ -366,6 +382,7 @@ export async function prepareChatCapabilities(explicitSkillName: string | null):
   }
 
   const toolBindings = [
+    ...builtinToolBindings,
     ...activeMcpEntries.flatMap(entry => buildMcpToolBindings(entry)),
     ...autonomousSkillBindings,
   ]
@@ -378,6 +395,9 @@ export async function prepareChatCapabilities(explicitSkillName: string | null):
     : null
 
   const systemPromptSegments = [
+    builtinToolBindings.length > 0
+      ? 'Enabled built-in workspace tools are exposed as tools. Use them for local inspection, search, editing, file writes, and shell commands when managed workspace access would materially help.'
+      : '',
     activeMcpEntries.length > 0
       ? 'Enabled MCP servers are already connected and exposed as tools. Use them whenever external actions, resources, or prompts would improve the answer.'
       : '',

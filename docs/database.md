@@ -42,6 +42,7 @@ Chat:
 Agent Capabilities:
 
 - `managed_skills`: enable/disable state for skills discovered under the app-managed skill workspace
+- `builtin_tools`: enable/disable state for built-in workspace tools exposed to chat
 
 ## Storage Notes
 
@@ -50,7 +51,7 @@ Agent Capabilities:
 - The app prefers Electron `safeStorage`; if encryption is unavailable it falls back to plaintext storage and exposes that state through provider/bootstrap summaries.
 - Chat messages are persisted as the raw `@mariozechner/pi-ai` `Message` JSON so future tool, MCP, and skill message variants can be added without replacing the message table.
 - `runtimeSnapshotJson` is stored per message to preserve the exact provider/model/runtime configuration used for that response.
-- `invocationMetadataJson` is stored per message to preserve active MCP servers, active skills, and any explicit slash-triggered skill wake-up used by that request.
+- `invocationMetadataJson` is stored per message to preserve active built-in tools, active MCP servers, active skills, and any explicit slash-triggered skill wake-up used by that request.
 
 ## Updating the Schema
 

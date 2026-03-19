@@ -141,8 +141,8 @@ const explicitSkillLabel = computed(() =>
       <div class="flex flex-wrap items-center gap-2">
         <UBadge
           v-if="toolResultDetails?.source"
-          :color="toolResultDetails.source.kind === 'mcp' ? 'primary' : 'secondary'"
-          :label="toolResultDetails.source.kind === 'mcp' ? 'MCP' : 'Skill'"
+          :color="toolResultDetails.source.kind === 'mcp' ? 'primary' : toolResultDetails.source.kind === 'skill' ? 'secondary' : 'neutral'"
+          :label="toolResultDetails.source.kind === 'mcp' ? 'MCP' : toolResultDetails.source.kind === 'skill' ? 'Skill' : 'Builtin'"
           variant="soft"
         />
         <UBadge

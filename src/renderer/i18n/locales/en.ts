@@ -269,6 +269,20 @@ export const en = {
       },
       title: 'Skill settings',
     },
+    tools: {
+      access: {
+        execute: 'Execute',
+        read: 'Read only',
+        write: 'Write',
+      },
+      body: 'These built-in tools are attached to the chat agent against the app-managed workspace. Enable read, write, and shell access individually as needed.',
+      eyebrow: 'Builtin Tools',
+      summary: {
+        enabled: '{count} built-in tools enabled',
+      },
+      title: 'Built-in tool settings',
+      workspaceRoot: 'Built-in tool workspace',
+    },
     states: {
       connected: 'Connected',
       disabled: 'Disabled',
@@ -280,6 +294,7 @@ export const en = {
       mcp: 'MCP',
       providers: 'Providers',
       skills: 'Skills',
+      tools: 'Tools',
     },
   },
   home: {

@@ -7,6 +7,8 @@ import { onMessagePortClose, RPCLink } from '@orpc/client/message-port'
 export type Client = RouterClient<typeof router>
 export type AppBootstrapSnapshot = Awaited<ReturnType<Client['app']['getBootstrap']>>
 export type AppInfo = Awaited<ReturnType<Client['app']['getInfo']>>
+export type BuiltinToolListSnapshot = Awaited<ReturnType<Client['agent']['tools']['list']>>
+export type BuiltinToolSummarySnapshot = BuiltinToolListSnapshot['tools'][number]
 export type McpServerSummarySnapshot = Awaited<ReturnType<Client['agent']['mcp']['list']>>[number]
 export type McpServerDetailSnapshot = Awaited<ReturnType<Client['agent']['mcp']['getDetail']>>
 export type SkillListSnapshot = Awaited<ReturnType<Client['agent']['skills']['list']>>

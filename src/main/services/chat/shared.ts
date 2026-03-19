@@ -110,7 +110,18 @@ export function parseRuntimeConfig(value: string | null | undefined) {
 }
 
 export function parseInvocationMetadata(value: string | null | undefined) {
-  return parseJson<ChatInvocationMetadata | null>(value, null)
+  const parsedMetadata = parseJson<ChatInvocationMetadata | null>(value, null)
+
+  if (!parsedMetadata)
+    return null
+
+  return {
+    activeBuiltinTools: parsedMetadata.activeBuiltinTools ?? [],
+    activeMcpServers: parsedMetadata.activeMcpServers ?? [],
+    activeSkills: parsedMetadata.activeSkills ?? [],
+    explicitSkillId: parsedMetadata.explicitSkillId ?? null,
+    explicitSkillName: parsedMetadata.explicitSkillName ?? null,
+  }
 }
 
 export function parseCompatibleCompat(value: string | null | undefined) {

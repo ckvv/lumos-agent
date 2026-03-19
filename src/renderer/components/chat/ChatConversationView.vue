@@ -18,7 +18,7 @@ interface ChatConversationViewProps extends ChatComposerStateProps {
     result: unknown | null
     source: {
       id: number | string
-      kind: 'mcp' | 'skill'
+      kind: 'builtin' | 'mcp' | 'skill'
       label: string
     }
     status: 'error' | 'running' | 'success'
@@ -88,8 +88,8 @@ const showLoading = computed(() =>
         >
           <div class="flex flex-wrap items-center gap-2">
             <UBadge
-              :color="execution.source.kind === 'mcp' ? 'primary' : 'secondary'"
-              :label="execution.source.kind === 'mcp' ? 'MCP' : 'Skill'"
+              :color="execution.source.kind === 'mcp' ? 'primary' : execution.source.kind === 'skill' ? 'secondary' : 'neutral'"
+              :label="execution.source.kind === 'mcp' ? 'MCP' : execution.source.kind === 'skill' ? 'Skill' : 'Builtin'"
               variant="soft"
             />
             <UBadge

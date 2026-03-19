@@ -267,6 +267,20 @@ export const zhCN = {
       },
       title: 'Skill 设置中心',
     },
+    tools: {
+      access: {
+        execute: '执行',
+        read: '只读',
+        write: '写入',
+      },
+      body: '这些内置 tool 会挂载到聊天 Agent 上，用于访问应用托管工作区。你可以按需单独启用读、写和命令执行能力。',
+      eyebrow: 'Builtin Tools',
+      summary: {
+        enabled: '已启用 {count} 个 Builtin Tool',
+      },
+      title: '内置 Tool 设置',
+      workspaceRoot: '内置 Tool 工作区',
+    },
     states: {
       connected: '已连接',
       disabled: '已停用',
@@ -278,6 +292,7 @@ export const zhCN = {
       mcp: 'MCP',
       providers: 'Providers',
       skills: 'Skills',
+      tools: 'Tools',
     },
   },
   home: {

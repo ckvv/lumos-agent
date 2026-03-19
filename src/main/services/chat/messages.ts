@@ -1,12 +1,13 @@
-import type { ChatInvocationMetadata } from '#shared/agent/types'
+import type { ChatToolBinding } from '#main/services/agent/chat-tools'
+import type { ChatInvocationMetadata, ChatToolResultDetails } from '#shared/agent/types'
 import type { ChatRuntimeConfig, ChatStreamEvent } from '#shared/chat/types'
-import type { AgentEvent, AgentMessage } from '@mariozechner/pi-agent-core'
 import type { AssistantMessage, Message } from '@mariozechner/pi-ai'
+import type { AgentSessionEvent, ToolDefinition } from '@mariozechner/pi-coding-agent'
 import { prepareChatCapabilities } from '#main/services/agent/chat-tools'
+import { getPiCodingAgentModule } from '#main/services/agent/pi-coding-agent'
 import { appendConversationMessage, getConversationMessages, getConversationSummary, updateConversationRuntimeConfig } from '#main/services/chat/conversations'
 import { resolveProviderRuntime } from '#main/services/chat/providers'
 import { buildDefaultRuntimeConfig } from '#main/services/chat/shared'
-import { Agent } from '@mariozechner/pi-agent-core'
 import { ORPCError } from '@orpc/server'
 
 export interface SendConversationMessageInput {
@@ -171,7 +172,7 @@ function getMessagePersistenceKey(message: Message) {
   return `${message.role}:${JSON.stringify(message)}`
 }
 
-function toAgentMessages(messages: Message[]): AgentMessage[] {
+function toAgentMessages(messages: Message[]) {
   return messages.map(message => structuredClone(message))
 }
 
@@ -189,9 +190,54 @@ function persistAgentMessage(
   )
 }
 
-function mapAgentEventToChatToolEvent(event: Extract<AgentEvent, { type: 'tool_execution_end' | 'tool_execution_start' | 'tool_execution_update' }>, toolMetadata: Map<string, {
+function toToolDefinitions(toolBindings: ChatToolBinding[]): ToolDefinition[] {
+  return toolBindings.map((binding) => {
+    return {
+      description: binding.tool.description,
+      execute: async (toolCallId, params, signal, onUpdate) => {
+        const result = await binding.tool.execute(toolCallId, params, signal, onUpdate)
+
+        if (binding.source.kind !== 'builtin')
+          return result
+
+        return {
+          content: result.content,
+          details: {
+            payload: result.details ?? null,
+            source: binding.source,
+            summary: null,
+            toolDisplayLabel: binding.displayLabel,
+          } satisfies ChatToolResultDetails,
+        }
+      },
+      label: binding.tool.label,
+      name: binding.tool.name,
+      parameters: binding.tool.parameters as never,
+    }
+  })
+}
+
+function createChatSettingsManager(SettingsManager: Awaited<ReturnType<typeof getPiCodingAgentModule>>['SettingsManager']) {
+  return SettingsManager.inMemory({
+    compaction: {
+      enabled: false,
+    },
+    enableSkillCommands: false,
+    retry: {
+      enabled: false,
+    },
+  })
+}
+
+function resolveSessionSystemPrompt(systemPrompt: string) {
+  // AgentSession 在 customPrompt 为空时会退回到默认 coding prompt，
+  // 这里保持一个最小非空值，避免改变现有聊天语义。
+  return systemPrompt.trim() ? systemPrompt : '\n'
+}
+
+function mapAgentEventToChatToolEvent(event: Extract<AgentSessionEvent, { type: 'tool_execution_end' | 'tool_execution_start' | 'tool_execution_update' }>, toolMetadata: Map<string, {
   displayLabel: string
-  source: ChatInvocationMetadata['activeMcpServers'][number] & { kind: 'mcp' | 'skill' }
+  source: ChatToolBinding['source']
 }>, args: unknown) {
   const metadata = toolMetadata.get(event.toolName)
 
@@ -200,7 +246,7 @@ function mapAgentEventToChatToolEvent(event: Extract<AgentEvent, { type: 'tool_e
     displayLabel: metadata?.displayLabel ?? event.toolName,
     source: metadata?.source ?? {
       id: event.toolName,
-      kind: 'skill' as const,
+      kind: 'builtin' as const,
       label: event.toolName,
     },
     toolCallId: event.toolCallId,
@@ -244,6 +290,7 @@ export async function* sendConversationMessage(
 
   const resolvedRuntime = await resolveProviderRuntime(normalizedRuntimeConfig.providerConfigId!, normalizedRuntimeConfig.modelId!)
   const preparedCapabilities = await prepareChatCapabilities(explicitSkillName)
+  const previousConversationMessages = getConversationMessages(input.conversationId).map(message => message.message)
   const requestSystemPrompt = buildAgentSystemPrompt(
     resolveRequestSystemPrompt(normalizedRuntimeConfig, resolvedRuntime.model.api),
     preparedCapabilities.systemPromptSegments,
@@ -274,12 +321,23 @@ export async function* sendConversationMessage(
     type: 'started',
   }
 
-  const conversationMessages = getConversationMessages(input.conversationId).map(message => message.message)
   const eventQueue = createAsyncEventQueue<ChatStreamEvent>()
   const persistedMessageKeys = new Set<string>()
   const toolCallArgs = new Map<string, unknown>()
   let partialMessage: AssistantMessage | null = null
   let persistedFailureMessage: ReturnType<typeof appendConversationMessage> | null = null
+  const {
+    AuthStorage,
+    createAgentSession,
+    DefaultResourceLoader,
+    SessionManager,
+    SettingsManager,
+  } = await getPiCodingAgentModule()
+  const settingsManager = createChatSettingsManager(SettingsManager)
+  const authStorage = AuthStorage.inMemory()
+  const toolDefinitions = toToolDefinitions(preparedCapabilities.toolBindings)
+
+  authStorage.setRuntimeApiKey(resolvedRuntime.model.provider, resolvedRuntime.apiKey)
 
   const toolMetadata = new Map(preparedCapabilities.toolBindings.map((binding) => {
     return [binding.tool.name, {
@@ -288,21 +346,34 @@ export async function* sendConversationMessage(
     }]
   }))
 
-  const agent = new Agent({
-    getApiKey: () => resolvedRuntime.apiKey,
-    initialState: {
-      messages: toAgentMessages(conversationMessages),
-      model: resolvedRuntime.model,
-      systemPrompt: requestSystemPrompt,
-      thinkingLevel: resolvedRuntime.model.reasoning ? 'medium' : 'off',
-      tools: preparedCapabilities.toolBindings.map(binding => binding.tool),
-    },
-    sessionId: `conversation-${input.conversationId}`,
+  const resourceLoader = new DefaultResourceLoader({
+    agentsFilesOverride: () => ({ agentsFiles: [] }),
+    noExtensions: true,
+    noPromptTemplates: true,
+    noSkills: true,
+    noThemes: true,
+    settingsManager,
+    systemPrompt: resolveSessionSystemPrompt(requestSystemPrompt),
   })
 
-  const initialMessageCount = agent.state.messages.length
+  await resourceLoader.reload()
 
-  const unsubscribe = agent.subscribe((event) => {
+  const { session } = await createAgentSession({
+    authStorage,
+    customTools: toolDefinitions,
+    model: resolvedRuntime.model,
+    resourceLoader,
+    sessionManager: SessionManager.inMemory(),
+    settingsManager,
+    thinkingLevel: resolvedRuntime.model.reasoning ? 'medium' : 'off',
+    tools: [],
+  })
+
+  session.agent.replaceMessages(toAgentMessages(previousConversationMessages))
+
+  const initialMessageCount = session.agent.state.messages.length
+
+  const unsubscribe = session.subscribe((event) => {
     if (event.type === 'message_update' && event.message.role === 'assistant') {
       partialMessage = cloneAssistantMessage(event.message)
 
@@ -387,20 +458,22 @@ export async function* sendConversationMessage(
     })
   })
 
-  const abortAgent = () => {
-    agent.abort()
+  const abortSession = () => {
+    void session.abort()
   }
 
-  signal?.addEventListener('abort', abortAgent, { once: true })
+  signal?.addEventListener('abort', abortSession, { once: true })
 
   const runPromise = Promise.resolve().then(async () => {
     try {
-      await agent.continue()
+      await session.prompt(normalizedText, {
+        expandPromptTemplates: false,
+      })
 
       if (isCanceledStream(signal))
         return
 
-      const newMessages = agent.state.messages.slice(initialMessageCount)
+      const newMessages = session.agent.state.messages.slice(initialMessageCount)
 
       for (const message of newMessages) {
         if (message.role !== 'assistant' && message.role !== 'toolResult')
@@ -430,13 +503,13 @@ export async function* sendConversationMessage(
         })
       }
 
-      const latestAgentMessage = agent.state.messages.at(-1)
+      const latestAgentMessage = session.agent.state.messages.at(-1)
 
       if (latestAgentMessage?.role === 'assistant' && latestAgentMessage.stopReason === 'error') {
         eventQueue.push({
           assistantMessage: persistedFailureMessage,
           conversation: getConversationSummary(input.conversationId),
-          errorMessage: latestAgentMessage.errorMessage ?? agent.state.error ?? 'The chat request failed',
+          errorMessage: latestAgentMessage.errorMessage ?? session.agent.state.error ?? 'The chat request failed',
           partialMessage,
           type: 'failed',
         })
@@ -464,7 +537,8 @@ export async function* sendConversationMessage(
     }
     finally {
       unsubscribe()
-      signal?.removeEventListener('abort', abortAgent)
+      signal?.removeEventListener('abort', abortSession)
+      session.dispose()
       eventQueue.close()
     }
   })

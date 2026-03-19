@@ -1,3 +1,5 @@
+import type { BuiltinChatToolAccessKind, BuiltinChatToolName } from '#shared/agent/builtin-tools'
+
 export const mcpTransportKinds = [
   'stdio',
   'streamableHttp',
@@ -6,6 +8,7 @@ export const mcpTransportKinds = [
 export type McpTransportKind = (typeof mcpTransportKinds)[number]
 
 export const chatToolSourceKinds = [
+  'builtin',
   'mcp',
   'skill',
 ] as const
@@ -119,12 +122,26 @@ export interface SkillListResult {
   skills: SkillSummary[]
 }
 
+export interface BuiltinToolSummary {
+  access: BuiltinChatToolAccessKind
+  description: string
+  isEnabled: boolean
+  label: string
+  name: BuiltinChatToolName
+}
+
+export interface BuiltinToolListResult {
+  tools: BuiltinToolSummary[]
+  workspaceRoot: string
+}
+
 export interface CapabilitySnapshotItem {
   id: number | string
   label: string
 }
 
 export interface ChatInvocationMetadata {
+  activeBuiltinTools: CapabilitySnapshotItem[]
   activeMcpServers: CapabilitySnapshotItem[]
   activeSkills: CapabilitySnapshotItem[]
   explicitSkillId: string | null

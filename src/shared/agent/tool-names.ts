@@ -1,3 +1,5 @@
+import { getBuiltinChatToolDefinition } from '#shared/agent/builtin-tools'
+
 const INVALID_TOOL_NAME_RE = /[^\w-]+/g
 const MULTIPLE_UNDERSCORE_RE = /_+/g
 const LEADING_OR_TRAILING_UNDERSCORE_RE = /^_+|_+$/g
@@ -48,6 +50,16 @@ export function buildMcpWrapperToolName(
 }
 
 export function parseChatToolName(toolName: string) {
+  const builtinToolDefinition = getBuiltinChatToolDefinition(toolName)
+
+  if (builtinToolDefinition) {
+    return {
+      displayLabel: builtinToolDefinition.label,
+      kind: 'builtin' as const,
+      sourceId: builtinToolDefinition.name,
+    }
+  }
+
   if (toolName.startsWith('skill__')) {
     const skillName = toolName.slice('skill__'.length)
 

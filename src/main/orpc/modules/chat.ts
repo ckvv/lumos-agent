@@ -58,6 +58,7 @@ const capabilitySnapshotItemSchema = z.object({
 })
 
 const invocationMetadataSchema = z.object({
+  activeBuiltinTools: z.array(capabilitySnapshotItemSchema),
   activeMcpServers: z.array(capabilitySnapshotItemSchema),
   activeSkills: z.array(capabilitySnapshotItemSchema),
   explicitSkillId: z.string().nullable(),

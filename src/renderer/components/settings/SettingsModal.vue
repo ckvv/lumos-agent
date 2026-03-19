@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import AppModalShell from '#renderer/components/app/AppModalShell.vue'
 import ProviderSettingsView from '#renderer/components/providers/ProviderSettingsView.vue'
+import BuiltinToolSettingsView from '#renderer/components/settings/BuiltinToolSettingsView.vue'
 import McpSettingsView from '#renderer/components/settings/McpSettingsView.vue'
 import SkillSettingsView from '#renderer/components/settings/SkillSettingsView.vue'
 import { computed, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-type SettingsTab = 'mcp' | 'providers' | 'skills'
+type SettingsTab = 'mcp' | 'providers' | 'skills' | 'tools'
 
 const { t } = useI18n()
 
@@ -28,6 +29,10 @@ const tabItems = computed(() => [
   {
     id: 'skills' as const,
     label: t('settings.tabs.skills'),
+  },
+  {
+    id: 'tools' as const,
+    label: t('settings.tabs.tools'),
   },
 ])
 
@@ -57,6 +62,7 @@ watch(open, (isOpen) => {
       <ProviderSettingsView v-if="activeTab === 'providers' && open" />
       <McpSettingsView v-else-if="activeTab === 'mcp' && open" />
       <SkillSettingsView v-else-if="activeTab === 'skills' && open" />
+      <BuiltinToolSettingsView v-else-if="activeTab === 'tools' && open" />
     </section>
   </AppModalShell>
 </template>

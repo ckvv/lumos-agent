@@ -21,6 +21,7 @@ declare module 'vue' {
     AuthForm: typeof import('./src/renderer/components/auth/AuthForm.vue')['default']
     AuthGate: typeof import('./src/renderer/components/auth/AuthGate.vue')['default']
     AuthInitState: typeof import('./src/renderer/components/auth/AuthInitState.vue')['default']
+    BuiltinToolSettingsView: typeof import('./src/renderer/components/settings/BuiltinToolSettingsView.vue')['default']
     ChatComposerPanel: typeof import('./src/renderer/components/chat/ChatComposerPanel.vue')['default']
     ChatConversationView: typeof import('./src/renderer/components/chat/ChatConversationView.vue')['default']
     ChatHistorySlideover: typeof import('./src/renderer/components/chat/ChatHistorySlideover.vue')['default']

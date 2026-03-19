@@ -87,6 +87,12 @@ export const managedSkills = sqliteTable('managed_skills', {
   ...auditColumns,
 })
 
+export const builtinTools = sqliteTable('builtin_tools', {
+  name: text('name').primaryKey(),
+  isEnabled: integer('is_enabled', { mode: 'boolean' }).notNull().default(false),
+  ...auditColumns,
+})
+
 export const conversationMessages = sqliteTable('conversation_messages', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   conversationId: integer('conversation_id').notNull().references(() => conversations.id, { onDelete: 'cascade' }),
@@ -99,6 +105,7 @@ export const conversationMessages = sqliteTable('conversation_messages', {
 })
 
 export const databaseSchema = {
+  builtinTools,
   conversationMessages,
   conversations,
   managedSkills,
@@ -115,5 +122,6 @@ export type ConversationRecord = typeof conversations.$inferSelect
 export type ConversationMessageRecord = typeof conversationMessages.$inferSelect
 export type McpServerRecord = typeof mcpServers.$inferSelect
 export type ManagedSkillRecord = typeof managedSkills.$inferSelect
+export type BuiltinToolRecord = typeof builtinTools.$inferSelect
 export type UserRecord = typeof users.$inferSelect
 export type SessionRecord = typeof sessions.$inferSelect

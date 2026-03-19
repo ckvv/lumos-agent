@@ -9,6 +9,7 @@ Settings tabs:
 - `Providers`: existing provider configuration flows
 - `MCP`: persistent MCP server management
 - `Skills`: persistent managed skill management
+- `Tools`: built-in workspace tool enablement
 
 There is no dedicated `/settings/*` route. The entry lives in the authenticated user menu and opens an in-workspace modal.
 
@@ -55,9 +56,34 @@ Behavior:
 - explicit wake-up strips the slash prefix from the persisted user message and records the choice in invocation metadata
 - a skill with frontmatter `disable-model-invocation: true` stays available for explicit wake-up, but is not exposed for autonomous invocation unless explicitly requested
 
+## Built-in Tools
+
+Built-in tools are backed by `@mariozechner/pi-coding-agent`, but activation state is managed by Lumos in SQLite table `builtin_tools`.
+
+Managed workspace:
+
+- `app.getPath('userData')/agent-project`
+
+Behavior:
+
+- each built-in tool can be enabled or disabled globally
+- enabled tools are attached to chat requests as concrete tool bindings using the package's built-in implementations
+- enabled tools are scoped to the managed workspace root instead of the repository root or process cwd
+- the settings UI shows coarse access level (`read`, `write`, `execute`) so shell and file mutation capabilities can be gated independently
+
+Current built-in tools exposed by the app:
+
+- `read`
+- `grep`
+- `find`
+- `ls`
+- `edit`
+- `write`
+- `bash`
+
 ## Chat Streaming Contract
 
-Chat now runs through `@mariozechner/pi-agent-core` instead of a direct `pi-ai stream()` call.
+Chat now runs through `@mariozechner/pi-coding-agent` `AgentSession` instead of a direct `pi-ai stream()` call.
 
 Streaming events:
 
@@ -78,6 +104,7 @@ Streaming events:
 
 Invocation metadata records:
 
+- active built-in tools at send time
 - active MCP servers at send time
 - active skills at send time
 - explicit slash-triggered skill, if present

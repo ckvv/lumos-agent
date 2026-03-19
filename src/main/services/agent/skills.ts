@@ -1,19 +1,15 @@
 import type { ManagedSkillRecord } from '#main/database/schema'
 import type { SkillDetail, SkillListResult, SkillSummary } from '#shared/agent/types'
-import { mkdirSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs'
+import { readdirSync, readFileSync, rmSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { db } from '#main/database/database'
 import { managedSkills } from '#main/database/schema'
 import { logger } from '#main/logger'
+import { ensureManagedSkillsRootPath } from '#main/services/agent/paths'
+import { getPiCodingAgentModule } from '#main/services/agent/pi-coding-agent'
 import { requireAuthenticatedUser } from '#main/services/auth'
 import { ORPCError } from '@orpc/server'
 import { and, eq } from 'drizzle-orm'
-import { app } from 'electron'
-
-type PiCodingAgentModule = Pick<
-  typeof import('@mariozechner/pi-coding-agent'),
-  'loadSkillsFromDir' | 'parseFrontmatter'
->
 
 interface SkillCandidate {
   diagnostics: SkillSummary['diagnostics']
@@ -29,30 +25,8 @@ interface SkillCandidate {
 }
 
 let activeSkillRegistry: SkillDetail[] = []
-let piCodingAgentModulePromise: Promise<PiCodingAgentModule> | null = null
-
-function getPiCodingAgentModule() {
-  // 依赖只暴露 ESM 入口，主进程又保持 CJS bundle，这里交给 Node 运行时做互操作。
-  piCodingAgentModulePromise ??= import('@mariozechner/pi-coding-agent')
-  return piCodingAgentModulePromise
-}
-
 function ensureAgentAccess() {
   requireAuthenticatedUser()
-}
-
-function getManagedAgentProjectPath() {
-  return path.join(app.getPath('userData'), 'agent-project')
-}
-
-export function getManagedSkillsRootPath() {
-  return path.join(getManagedAgentProjectPath(), '.pi', 'skills')
-}
-
-function ensureManagedSkillsRootPath() {
-  const rootPath = getManagedSkillsRootPath()
-  mkdirSync(rootPath, { recursive: true })
-  return rootPath
 }
 
 function toPosixRelativePath(rootPath: string, targetPath: string) {

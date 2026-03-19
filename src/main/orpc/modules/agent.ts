@@ -1,3 +1,4 @@
+import { listBuiltinTools, setBuiltinToolEnabled } from '#main/services/agent/builtin-tools'
 import {
   deleteManagedMcpServer,
   getManagedMcpServerDetail,
@@ -12,6 +13,7 @@ import {
   listManagedSkills,
   setManagedSkillEnabled,
 } from '#main/services/agent/skills'
+import { builtinChatToolAccessKinds, builtinChatToolNames } from '#shared/agent/builtin-tools'
 import { mcpTransportKinds } from '#shared/agent/types'
 import { os } from '@orpc/server'
 import { z } from 'zod'
@@ -126,6 +128,19 @@ const skillListResultSchema = z.object({
   skills: z.array(skillSummarySchema),
 })
 
+const builtinToolSummarySchema = z.object({
+  access: z.enum(builtinChatToolAccessKinds),
+  description: z.string(),
+  isEnabled: z.boolean(),
+  label: z.string(),
+  name: z.enum(builtinChatToolNames),
+})
+
+const builtinToolListResultSchema = z.object({
+  tools: z.array(builtinToolSummarySchema),
+  workspaceRoot: z.string(),
+})
+
 const numericIdInputSchema = z.object({
   id: z.number().int(),
 })
@@ -139,6 +154,17 @@ const okSchema = z.object({
 })
 
 export const agentRouter = {
+  tools: {
+    list: os.output(builtinToolListResultSchema).handler(async () =>
+      await listBuiltinTools(),
+    ),
+    setEnabled: os.input(z.object({
+      isEnabled: z.boolean(),
+      name: z.enum(builtinChatToolNames),
+    })).output(builtinToolSummarySchema).handler(async ({ input }) =>
+      await setBuiltinToolEnabled(input.name, input.isEnabled),
+    ),
+  },
   mcp: {
     delete: os.input(numericIdInputSchema).output(okSchema).handler(async ({ input }) => {
       await deleteManagedMcpServer(input.id)
