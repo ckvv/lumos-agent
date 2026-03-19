@@ -9,23 +9,32 @@
 
 ## 打包行为
 
-工作流会在两个原生 runner 上分别执行 `pnpm make`：
+工作流会在三个原生 runner / 目标组合上分别执行打包：
 
-- `macos-latest`
-- `windows-latest`
+- `macos-latest` + `darwin/arm64`
+- `macos-15-intel` + `darwin/x64`
+- `windows-latest` + `win32/x64`
 
-这样可以直接复用 [`forge.config.ts`](../forge.config.ts) 里的 Electron Forge makers，而不需要做跨平台交叉打包。
+工作流会显式执行：
+
+```bash
+pnpm exec electron-forge make --platform=<target> --arch=<arch>
+```
+
+这样可以直接复用 [`forge.config.ts`](../forge.config.ts) 里的 Electron Forge makers，同时明确区分 Intel Mac 和 Apple Silicon Mac 产物，而不依赖 runner 默认架构。
 
 ## 产物位置
 
 每个平台都会把 `out/make/` 下的构建结果上传成独立 artifact：
 
-- `lumos-macos`
-- `lumos-windows`
+- `lumos-macos-arm64`
+- `lumos-macos-x64`
+- `lumos-windows-x64`
 
 当前产物格式由 Electron Forge 配置决定：
 
-- macOS：ZIP 包
+- macOS ARM64：ZIP 包，适用于 Apple Silicon（M1/M2/M3/M4）
+- macOS x64：ZIP 包，适用于 Intel Mac
 - Windows：Squirrel 安装包及相关更新文件
 
 ## 注意事项

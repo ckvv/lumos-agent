@@ -11,18 +11,27 @@ permissions:
 
 jobs:
   package:
-    name: Package ${{ matrix.platform.label }}
-    runs-on: ${{ matrix.platform.os }}
+    name: Package ${{ matrix.target.label }}
+    runs-on: ${{ matrix.target.runner }}
     strategy:
       fail-fast: false
       matrix:
-        platform:
-          - label: macOS
-            os: macos-latest
-            artifact_name: lumos-macos
+        target:
+          - label: macOS Apple Silicon
+            runner: macos-latest
+            platform: darwin
+            arch: arm64
+            artifact_name: lumos-macos-arm64
+          - label: macOS Intel
+            runner: macos-15-intel
+            platform: darwin
+            arch: x64
+            artifact_name: lumos-macos-x64
           - label: Windows
-            os: windows-latest
-            artifact_name: lumos-windows
+            runner: windows-latest
+            platform: win32
+            arch: x64
+            artifact_name: lumos-windows-x64
 
     steps:
       - name: Checkout source
@@ -45,12 +54,12 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build distributables
-        run: pnpm make
+        run: pnpm exec electron-forge make --platform=${{ matrix.target.platform }} --arch=${{ matrix.target.arch }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.platform.artifact_name }}
+          name: ${{ matrix.target.artifact_name }}
           path: out/make/**
           if-no-files-found: error
           retention-days: 14

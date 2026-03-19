@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "lib": [
-      "ES2020",
+      "ESNext",
       "DOM",
       "DOM.Iterable"
     ],
