@@ -1,31 +1,39 @@
 <script setup lang="ts">
-import { useChatInputContext } from '#renderer/components/chat/chat-input-context'
+import type { ChatComposerRuntimeSelection, ChatComposerStateProps } from '#renderer/components/chat/types'
 import ChatModelSwitcher from '#renderer/components/chat/ChatModelSwitcher.vue'
 import { useI18n } from 'vue-i18n'
 
+const props = defineProps<ChatComposerStateProps>()
+const emit = defineEmits<{
+  runtimeChange: [value: ChatComposerRuntimeSelection]
+  send: []
+  stop: []
+}>()
+const composerValue = defineModel<string>('composerValue', {
+  required: true,
+})
 const { t } = useI18n()
-const input = useChatInputContext()
 
 function handleComposerKeydown(event: KeyboardEvent) {
   if (event.isComposing || event.key !== 'Enter' || event.shiftKey)
     return
 
-  if (!input.state.canSend.value)
+  if (!props.canSend)
     return
 
   event.preventDefault()
-  void input.actions.handleSendMessage()
+  emit('send')
 }
 </script>
 
 <template>
   <div class="chat-input-panel rounded-[1.6rem] border border-default/70 bg-default/95 shadow-sm transition-shadow focus-within:shadow-md">
     <UTextarea
-      v-model="input.state.composerValue.value"
+      v-model="composerValue"
       autoresize
       class="w-full"
       color="neutral"
-      :disabled="input.state.isSending.value"
+      :disabled="props.isSending"
       :maxrows="6"
       :placeholder="t('chat.composer.placeholder')"
       :rows="2"
@@ -41,25 +49,25 @@ function handleComposerKeydown(event: KeyboardEvent) {
     <div class="grid grid-cols-[1fr_auto] items-end gap-3 px-3 py-3 sm:px-4">
       <ChatModelSwitcher
         class="min-w-0 max-w-full justify-self-start"
-        :is-busy="input.state.isSending.value"
-        :model-name="input.state.selectedModelName.value"
-        :provider-name="input.state.selectedProviderName.value"
-        :selected-model-id="input.state.selectedModelId.value"
-        :selected-provider-id="input.state.selectedProviderId.value"
-        :switch-groups="input.state.modelSwitchGroups.value"
-        @change="input.actions.handleRuntimeChange"
+        :is-busy="props.isSending"
+        :model-name="props.selectedModelName"
+        :provider-name="props.selectedProviderName"
+        :selected-model-id="props.selectedModelId"
+        :selected-provider-id="props.selectedProviderId"
+        :switch-groups="props.modelSwitchGroups"
+        @change="emit('runtimeChange', $event)"
       />
 
       <UButton
         class="shrink-0 rounded-full shadow-sm"
-        :aria-label="input.state.isSending.value ? t('chat.composer.pause') : t('chat.composer.send')"
-        :color="input.state.isSending.value ? 'warning' : 'primary'"
-        :disabled="input.state.isSending.value ? false : !input.state.canSend.value"
-        :icon="input.state.isSending.value ? 'i-lucide-square' : 'i-lucide-send-horizontal'"
+        :aria-label="props.isSending ? t('chat.composer.pause') : t('chat.composer.send')"
+        :color="props.isSending ? 'warning' : 'primary'"
+        :disabled="props.isSending ? false : !props.canSend"
+        :icon="props.isSending ? 'i-lucide-square' : 'i-lucide-send-horizontal'"
         size="lg"
         square
-        :title="input.state.isSending.value ? t('chat.composer.pause') : t('chat.composer.send')"
-        @click="input.state.isSending.value ? input.actions.handleStopMessage() : input.actions.handleSendMessage()"
+        :title="props.isSending ? t('chat.composer.pause') : t('chat.composer.send')"
+        @click="props.isSending ? emit('stop') : emit('send')"
       />
     </div>
   </div>

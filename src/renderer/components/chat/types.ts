@@ -1,3 +1,6 @@
+import type { ConversationMessageRecord } from '#shared/chat/types'
+import type { AssistantMessage } from '@mariozechner/pi-ai'
+
 export interface ChatModelSwitchOption {
   modelId: string
   modelName: string
@@ -9,4 +12,25 @@ export interface ChatModelSwitchGroup {
   providerConfigId: number
   providerName: string
   models: ChatModelSwitchOption[]
+}
+
+export interface ChatComposerStateProps {
+  canSend: boolean
+  isSending: boolean
+  modelSwitchGroups: ChatModelSwitchGroup[]
+  selectedModelId: string | null
+  selectedModelName: string | null
+  selectedProviderId: number | null
+  selectedProviderName: string | null
+}
+
+export interface ChatComposerRuntimeSelection {
+  providerConfigId: number
+  modelId: string
+}
+
+export interface ChatWorkspaceViewProps extends ChatComposerStateProps {
+  isConversationLoading?: boolean
+  messages?: readonly ConversationMessageRecord[]
+  partialAssistantMessage?: AssistantMessage | null
 }

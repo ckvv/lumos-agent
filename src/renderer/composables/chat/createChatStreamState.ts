@@ -13,14 +13,6 @@ interface ConversationStreamState {
   partialAssistantMessage: AssistantMessage | null
 }
 
-const idleStreamState = createIdleStreamState()
-const streamStateRefs = new Map<number, ShallowRef<ConversationStreamState>>()
-const stopStreams = new Map<number, () => Promise<void>>()
-// iterator.return() 只表示“发起停止”，真正的 abort/error 可能稍后才回到 onError/onFinish。
-// 这里单独记住用户的停止意图，避免迟到的 abort 被再次渲染成“聊天请求失败”。
-const stopRequests = new Map<number, { preservePartial: boolean }>()
-const streamingConversationIds = shallowRef<number[]>([])
-
 function createIdleStreamState(): ConversationStreamState {
   return {
     errorMessage: null,
@@ -30,76 +22,84 @@ function createIdleStreamState(): ConversationStreamState {
   }
 }
 
-function getConversationStreamStateRef(conversationId: number) {
-  let stateRef = streamStateRefs.get(conversationId)
-
-  if (!stateRef) {
-    stateRef = shallowRef(createIdleStreamState())
-    streamStateRefs.set(conversationId, stateRef)
-  }
-
-  return stateRef
-}
-
-function getConversationStreamStateValue(conversationId: number | null) {
-  if (!conversationId)
-    return idleStreamState
-
-  return getConversationStreamStateRef(conversationId).value
-}
-
-function syncStreamingConversationId(conversationId: number, isSending: boolean) {
-  const hasConversation = streamingConversationIds.value.includes(conversationId)
-
-  if (isSending === hasConversation)
-    return
-
-  streamingConversationIds.value = isSending
-    ? [...streamingConversationIds.value, conversationId]
-    : streamingConversationIds.value.filter(id => id !== conversationId)
-}
-
-function patchConversationStreamState(
-  conversationId: number,
-  patch: Partial<ConversationStreamState>,
-) {
-  const stateRef = getConversationStreamStateRef(conversationId)
-  stateRef.value = {
-    ...stateRef.value,
-    ...patch,
-  }
-  syncStreamingConversationId(conversationId, stateRef.value.isSending)
-}
-
-function replaceConversationStreamState(conversationId: number, nextState: ConversationStreamState) {
-  const stateRef = getConversationStreamStateRef(conversationId)
-  stateRef.value = nextState
-  syncStreamingConversationId(conversationId, nextState.isSending)
-}
-
-function clearConversationStreamState(conversationId: number) {
-  const stateRef = streamStateRefs.get(conversationId)
-
-  if (!stateRef) {
-    syncStreamingConversationId(conversationId, false)
-    return
-  }
-
-  stateRef.value = createIdleStreamState()
-  syncStreamingConversationId(conversationId, false)
-}
-
-function rememberStopRequest(conversationId: number, options?: { preservePartial?: boolean }) {
-  const preservePartial = options?.preservePartial ?? false
-  const currentRequest = stopRequests.get(conversationId)
-
-  stopRequests.set(conversationId, {
-    preservePartial: (currentRequest?.preservePartial ?? false) || preservePartial,
-  })
-}
-
-export function useChatStream() {
+export function createChatStreamState() {
   const appToast = useAppToast()
+
+  const idleStreamState = createIdleStreamState()
+  const streamStateRefs = new Map<number, ShallowRef<ConversationStreamState>>()
+  const stopStreams = new Map<number, () => Promise<void>>()
+  // iterator.return() 只表示“发起停止”，真正的 abort/error 可能稍后才回到 onError/onFinish。
+  // 这里单独记住用户的停止意图，避免迟到的 abort 被再次渲染成“聊天请求失败”。
+  const stopRequests = new Map<number, { preservePartial: boolean }>()
+  const streamingConversationIds = shallowRef<number[]>([])
+
+  function getConversationStreamStateRef(conversationId: number) {
+    let stateRef = streamStateRefs.get(conversationId)
+
+    if (!stateRef) {
+      stateRef = shallowRef(createIdleStreamState())
+      streamStateRefs.set(conversationId, stateRef)
+    }
+
+    return stateRef
+  }
+
+  function getConversationStreamStateValue(conversationId: number | null) {
+    if (!conversationId)
+      return idleStreamState
+
+    return getConversationStreamStateRef(conversationId).value
+  }
+
+  function syncStreamingConversationId(conversationId: number, isSending: boolean) {
+    const hasConversation = streamingConversationIds.value.includes(conversationId)
+
+    if (isSending === hasConversation)
+      return
+
+    streamingConversationIds.value = isSending
+      ? [...streamingConversationIds.value, conversationId]
+      : streamingConversationIds.value.filter(id => id !== conversationId)
+  }
+
+  function patchConversationStreamState(
+    conversationId: number,
+    patch: Partial<ConversationStreamState>,
+  ) {
+    const stateRef = getConversationStreamStateRef(conversationId)
+    stateRef.value = {
+      ...stateRef.value,
+      ...patch,
+    }
+    syncStreamingConversationId(conversationId, stateRef.value.isSending)
+  }
+
+  function replaceConversationStreamState(conversationId: number, nextState: ConversationStreamState) {
+    const stateRef = getConversationStreamStateRef(conversationId)
+    stateRef.value = nextState
+    syncStreamingConversationId(conversationId, nextState.isSending)
+  }
+
+  function clearConversationStreamState(conversationId: number) {
+    const stateRef = streamStateRefs.get(conversationId)
+
+    if (!stateRef) {
+      syncStreamingConversationId(conversationId, false)
+      return
+    }
+
+    stateRef.value = createIdleStreamState()
+    syncStreamingConversationId(conversationId, false)
+  }
+
+  function rememberStopRequest(conversationId: number, options?: { preservePartial?: boolean }) {
+    const preservePartial = options?.preservePartial ?? false
+    const currentRequest = stopRequests.get(conversationId)
+
+    stopRequests.set(conversationId, {
+      preservePartial: (currentRequest?.preservePartial ?? false) || preservePartial,
+    })
+  }
 
   function notifyStreamError(conversationId: number, message: string) {
     appToast.error(message, {
@@ -288,9 +288,9 @@ export function useChatStream() {
 
       return getConversationStreamStateRef(resolvedConversationId).value
     }),
-    streamingConversationIds: shallowReadonly(streamingConversationIds),
     sendMessage,
     stopAllStreams,
     stopConversationStream,
+    streamingConversationIds: shallowReadonly(streamingConversationIds),
   }
 }

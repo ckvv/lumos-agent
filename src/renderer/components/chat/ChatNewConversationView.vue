@@ -1,7 +1,17 @@
 <script setup lang="ts">
+import type { ChatComposerRuntimeSelection, ChatComposerStateProps } from '#renderer/components/chat/types'
 import ChatInputPanel from '#renderer/components/chat/ChatInputPanel.vue'
 import { useI18n } from 'vue-i18n'
 
+const props = defineProps<ChatComposerStateProps>()
+const emit = defineEmits<{
+  runtimeChange: [value: ChatComposerRuntimeSelection]
+  send: []
+  stop: []
+}>()
+const composerValue = defineModel<string>('composerValue', {
+  required: true,
+})
 const { t } = useI18n()
 </script>
 
@@ -13,7 +23,19 @@ const { t } = useI18n()
           {{ t('chat.workspace.newConversation') }}
         </h1>
 
-        <ChatInputPanel />
+        <ChatInputPanel
+          v-model:composer-value="composerValue"
+          :can-send="props.canSend"
+          :is-sending="props.isSending"
+          :model-switch-groups="props.modelSwitchGroups"
+          :selected-model-id="props.selectedModelId"
+          :selected-model-name="props.selectedModelName"
+          :selected-provider-id="props.selectedProviderId"
+          :selected-provider-name="props.selectedProviderName"
+          @runtime-change="emit('runtimeChange', $event)"
+          @send="emit('send')"
+          @stop="emit('stop')"
+        />
       </div>
     </div>
   </section>

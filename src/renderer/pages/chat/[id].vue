@@ -1,32 +1,33 @@
 <script setup lang="ts">
+import type { ChatComposerRuntimeSelection, ChatWorkspaceViewProps } from '#renderer/components/chat/types'
 import ChatConversationView from '#renderer/components/chat/ChatConversationView.vue'
-import { useChatWorkspace } from '#renderer/composables/useChatWorkspace'
-import { useI18n } from 'vue-i18n'
 
-const workspace = useChatWorkspace()
-const { t } = useI18n()
+const props = defineProps<ChatWorkspaceViewProps>()
+const emit = defineEmits<{
+  runtimeChange: [value: ChatComposerRuntimeSelection]
+  send: []
+  stop: []
+}>()
+const composerValue = defineModel<string>('composerValue', {
+  required: true,
+})
 </script>
 
 <template>
-  <section class="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-3 overflow-hidden lg:grid-rows-[minmax(0,1fr)] lg:gap-0">
-    <div class="flex items-center justify-between gap-3 lg:hidden">
-      <UButton
-        color="neutral"
-        icon="i-lucide-panel-left"
-        :label="t('chat.workspace.history')"
-        variant="soft"
-        @click="workspace.isHistoryOpen.value = true"
-      />
-
-      <p class="m-0 truncate text-sm font-medium text-highlighted">
-        {{ workspace.selectedConversationTitle.value }}
-      </p>
-    </div>
-
-    <ChatConversationView
-      :is-loading="workspace.isConversationLoading.value"
-      :messages="workspace.messages.value"
-      :partial-assistant-message="workspace.partialAssistantMessage.value"
-    />
-  </section>
+  <ChatConversationView
+    v-model:composer-value="composerValue"
+    :can-send="props.canSend"
+    :is-loading="props.isConversationLoading"
+    :is-sending="props.isSending"
+    :messages="props.messages"
+    :model-switch-groups="props.modelSwitchGroups"
+    :partial-assistant-message="props.partialAssistantMessage"
+    :selected-model-id="props.selectedModelId"
+    :selected-model-name="props.selectedModelName"
+    :selected-provider-id="props.selectedProviderId"
+    :selected-provider-name="props.selectedProviderName"
+    @runtime-change="emit('runtimeChange', $event)"
+    @send="emit('send')"
+    @stop="emit('stop')"
+  />
 </template>

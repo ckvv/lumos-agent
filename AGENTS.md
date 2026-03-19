@@ -19,6 +19,7 @@ This repository is an Electron Forge desktop app with a Vite + Vue 3 renderer.
 - `src/main/database/`: database bootstrap, schema, and low-level connection utilities.
 - `src/preload/`: secure bridge APIs exposed to the renderer through preload scripts.
 - `src/renderer/`: Vue application code, including `pages/`, `components/`, `layouts/`, `router/`, `composables/`, `i18n/`, and shared styles.
+- `src/renderer/composables/chat/`: instance-scoped chat workspace orchestration, including route sync, runtime selection, message sending, and conversation state factories.
 - `src/shared/`: true cross-runtime types, constants, and protocol definitions that are safe to import from multiple runtimes.
 - `drizzle/`: generated SQLite migration files that ship with packaged builds.
 - `docs/`: contributor-facing documentation such as [`docs/i18n.md`](./docs/i18n.md).
@@ -46,7 +47,8 @@ Keep business orchestration in `src/main/services/` instead of mixing it into da
 - Add necessary Chinese comments for non-obvious logic, edge cases, or important constraints; avoid comments that only restate the code literally.
 - Use 2-space indentation.
 - Name Vue components in PascalCase, for example `LocaleSwitcher.vue`.
-- Name composables as `useX.ts`, for example `useLocale.ts`.
+- Name reusable composables as `useX.ts`, for example `useLocale.ts`.
+- Name instance-scoped feature state factories as `createX.ts` or `createXState.ts` when they assemble private refs/actions for a single screen or workspace lifecycle.
 - Place route-level pages under `src/renderer/pages/`.
 - Keep code simple, typed, and consistent with existing module boundaries.
 - Follow the repository linting baseline provided by `@antfu/eslint-config`.

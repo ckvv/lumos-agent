@@ -2,12 +2,13 @@ import type { ChatRuntimeConfig, ConversationDetail, ConversationMessageRecord, 
 import { getORPCErrorMessage, runWithORPCClient } from '#renderer/composables/useORPCRequest'
 import { computed, shallowReadonly, shallowRef } from 'vue'
 
-const detail = shallowRef<ConversationDetail | null>(null)
-const errorMessage = shallowRef<string | null>(null)
-const isLoading = shallowRef(false)
-let activeLoadToken = 0
+export function createConversationDetailState() {
+  const detail = shallowRef<ConversationDetail | null>(null)
+  const errorMessage = shallowRef<string | null>(null)
+  const isLoading = shallowRef(false)
 
-export function useConversationDetail() {
+  let activeLoadToken = 0
+
   async function load(id: number) {
     const loadToken = ++activeLoadToken
 

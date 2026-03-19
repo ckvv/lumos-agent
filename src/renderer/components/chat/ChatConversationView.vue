@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ChatComposerRuntimeSelection, ChatComposerStateProps } from '#renderer/components/chat/types'
 import type { ConversationMessageRecord } from '#shared/chat/types'
 import type { AssistantMessage } from '@mariozechner/pi-ai'
 import ChatInputPanel from '#renderer/components/chat/ChatInputPanel.vue'
@@ -6,19 +7,28 @@ import { useChatAutoScroll } from '#renderer/components/chat/composables/useChat
 import MessageBubble from '#renderer/components/chat/MessageBubble.vue'
 import { computed } from 'vue'
 
-interface ChatConversationViewProps {
+interface ChatConversationViewProps extends ChatComposerStateProps {
   isLoading?: boolean
-  messages: readonly ConversationMessageRecord[]
-  partialAssistantMessage: AssistantMessage | null
+  messages?: readonly ConversationMessageRecord[]
+  partialAssistantMessage?: AssistantMessage | null
 }
 
 const props = withDefaults(defineProps<ChatConversationViewProps>(), {
   isLoading: false,
+  messages: () => [],
+  partialAssistantMessage: null,
 })
-
+const emit = defineEmits<{
+  runtimeChange: [value: ChatComposerRuntimeSelection]
+  send: []
+  stop: []
+}>()
+const composerValue = defineModel<string>('composerValue', {
+  required: true,
+})
 const { handleMessageListScroll, messageListElement } = useChatAutoScroll({
   messages: () => props.messages,
-  partialAssistantMessage: () => props.partialAssistantMessage,
+  partialAssistantMessage: () => props.partialAssistantMessage ?? null,
 })
 
 const hasMessages = computed(() =>
@@ -64,7 +74,19 @@ const showLoading = computed(() =>
 
     <footer class="shrink-0 p-4 sm:p-5">
       <div class="mx-auto w-full max-w-4xl">
-        <ChatInputPanel />
+        <ChatInputPanel
+          v-model:composer-value="composerValue"
+          :can-send="props.canSend"
+          :is-sending="props.isSending"
+          :model-switch-groups="props.modelSwitchGroups"
+          :selected-model-id="props.selectedModelId"
+          :selected-model-name="props.selectedModelName"
+          :selected-provider-id="props.selectedProviderId"
+          :selected-provider-name="props.selectedProviderName"
+          @runtime-change="emit('runtimeChange', $event)"
+          @send="emit('send')"
+          @stop="emit('stop')"
+        />
       </div>
     </footer>
   </section>

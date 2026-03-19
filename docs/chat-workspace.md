@@ -21,6 +21,8 @@ The actual chat canvas is rendered by nested child routes:
 The parent `/chat` route owns shared workspace state so draft input, runtime selection, and stream control survive child-route switches.
 Conversation history is still available, but no longer stays pinned on the main canvas by default.
 
+The parent route is also the only orchestration entry for chat UI state. Child route views and leaf components should receive explicit props and emit explicit events instead of reaching into injected chat state.
+
 ## Startup and Routing
 
 The renderer bootstraps through `app.getBootstrap()`.
@@ -76,28 +78,38 @@ That structure lets the app add tool call, tool result, MCP, or skill-specific m
 
 ## Renderer Composition
 
-Main renderer composables:
+Main renderer state boundaries:
 
-- `useAppBootstrap`
-- `useProviderSettings`
-- `useConversationList`
-- `useConversationDetail`
-- `useChatStream`
+- `useAppBootstrap`: app-level auth bootstrap and logout
+- `useProviderSettings`: shared provider configuration state used by the chat workspace and provider settings UI
+- `src/renderer/composables/chat/createChatWorkspace.ts`: chat feature composition root
+- `src/renderer/composables/chat/chat-route-state.ts`: URL normalization, selection sync, and invalid conversation fallback
+- `src/renderer/composables/chat/chat-runtime-state.ts`: model / provider selection and runtime config persistence
+- `src/renderer/composables/chat/chat-messaging-state.ts`: send / stop actions and stream-to-detail synchronization
+- `src/renderer/composables/chat/createConversationListState.ts`: instance-scoped conversation list state
+- `src/renderer/composables/chat/createConversationDetailState.ts`: instance-scoped active conversation detail state
+- `src/renderer/composables/chat/createChatStreamState.ts`: instance-scoped streaming state and abort handling
 
 Main UI surfaces:
 
 - `AuthenticatedFrame`: protected application shell
-- `src/renderer/pages/chat.vue`: parent workspace shell + shared chat context provider
-- `src/renderer/pages/chat/index.vue`: new conversation child route, directly renders `ChatNewConversationView`
-- `src/renderer/pages/chat/[id].vue`: conversation child route, directly renders `ChatConversationView`
-- `ChatNewConversationView`: new conversation title + centered composer
-- `ChatConversationView`: loading / empty / message-list conversation surface
+- `src/renderer/pages/chat.vue`: parent workspace shell and the only chat orchestration entry; wires sidebar, mobile header, route view props, and chat actions
+- `src/renderer/pages/chat/index.vue`: new conversation route wrapper; passes explicit composer props/events into `ChatNewConversationView`
+- `src/renderer/pages/chat/[id].vue`: conversation route wrapper; passes explicit conversation/composer props/events into `ChatConversationView`
+- `ChatNewConversationView`: new conversation title + centered composer surface
+- `ChatConversationView`: loading / message-list conversation surface + footer composer slot
+- `ChatInputPanel`: pure composer UI contract (`v-model:composerValue`, `runtime-change`, `send`, `stop`)
 - `ChatHistorySlideover`: on-demand conversation history panel
 - `ConversationSidebar`: conversation CRUD and selection inside the history panel
 - `MessageBubble`: Markdown/thinking rendering through `markstream-vue`
 - `ProviderSettingsView`: provider configuration UI
 
-Vue components should keep using composables as the feature boundary instead of calling the oRPC client directly.
+Data-flow rules for chat:
+
+- `src/renderer/pages/chat.vue` owns the workspace instance and passes view data down.
+- Route pages stay thin and should not create or inject chat state.
+- Leaf chat components should emit events upward instead of mutating shared state directly.
+- Only composables under `src/renderer/composables/chat/` may talk to chat oRPC endpoints or coordinate streaming side effects.
 
 ## Streaming and Failure Handling
 

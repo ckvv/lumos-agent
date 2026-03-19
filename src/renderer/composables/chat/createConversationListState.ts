@@ -2,11 +2,6 @@ import type { ChatRuntimeConfig, ConversationSummary } from '#shared/chat/types'
 import { getORPCErrorMessage, runWithORPCClient } from '#renderer/composables/useORPCRequest'
 import { computed, shallowReadonly, shallowRef } from 'vue'
 
-const conversations = shallowRef<ConversationSummary[]>([])
-const errorMessage = shallowRef<string | null>(null)
-const isLoading = shallowRef(false)
-const isMutating = shallowRef(false)
-
 function sortConversations(items: ConversationSummary[]) {
   const sortedItems = [...items]
   sortedItems.sort((left, right) => {
@@ -19,7 +14,12 @@ function sortConversations(items: ConversationSummary[]) {
   return sortedItems
 }
 
-export function useConversationList() {
+export function createConversationListState() {
+  const conversations = shallowRef<ConversationSummary[]>([])
+  const errorMessage = shallowRef<string | null>(null)
+  const isLoading = shallowRef(false)
+  const isMutating = shallowRef(false)
+
   async function load() {
     isLoading.value = true
     errorMessage.value = null
