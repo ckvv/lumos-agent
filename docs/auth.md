@@ -6,7 +6,7 @@ Authentication is still local-only and stays fully inside the Electron main proc
 
 Route shape:
 
-- `/`: public about page
+- `/`: bootstrap redirect entry
 - `/auth`: public login / registration page
 - `/chat`: authenticated chat workspace shell + new conversation view
 - `/chat/:id`: authenticated chat workspace shell + conversation view
@@ -51,7 +51,7 @@ Passwords are hashed with `node:crypto` `scrypt` plus a random salt. Plaintext p
 
 ## Router Guard Strategy
 
-- `/` is always public.
+- `/` is the bootstrap redirect entry and will forward based on the latest app state.
 - `/auth` is public, but authenticated users are redirected to `bootstrap.routing.recommendedRoute`.
 - `/chat` and `/chat/:id` both live under the same authenticated parent route.
 - Routes with `meta.requiresAuth = true` require an authenticated session.

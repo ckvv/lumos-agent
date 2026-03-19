@@ -6,7 +6,7 @@ The authenticated application now centers on a chatbot workspace instead of the 
 
 Route layout:
 
-- `/`: public about page
+- `/`: bootstrap redirect entry
 - `/auth`: public login / registration
 - `/chat`: protected workspace shell + new conversation view
 - `/chat/:id`: protected workspace shell + conversation view
