@@ -59,6 +59,15 @@ function submitRename(id: number) {
   stopRenaming()
 }
 
+function confirmRenameOnBlur(id: number) {
+  if (!editingTitle.value.trim()) {
+    stopRenaming()
+    return
+  }
+
+  submitRename(id)
+}
+
 function selectConversation(conversationId: number) {
   emit('select', conversationId)
 }
@@ -146,21 +155,9 @@ function getConversationMenuItems(conversation: ConversationSummary): DropdownMe
               v-model="editingTitle"
               class="min-w-0 flex-1"
               autofocus
-              @keyup.enter="submitRename(conversation.id)"
-            />
-            <UButton
-              color="neutral"
-              :label="t('chat.sidebar.cancelRename')"
-              size="xs"
-              variant="outline"
-              @click="stopRenaming"
-            />
-            <UButton
-              color="primary"
-              :disabled="!editingTitle.trim()"
-              :label="t('chat.sidebar.saveRename')"
-              size="xs"
-              @click="submitRename(conversation.id)"
+              @blur="confirmRenameOnBlur(conversation.id)"
+              @keydown.enter.prevent="submitRename(conversation.id)"
+              @keydown.esc.prevent="stopRenaming"
             />
           </template>
 
