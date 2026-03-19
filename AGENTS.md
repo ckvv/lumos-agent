@@ -24,6 +24,7 @@ This repository is an Electron Forge desktop app with a Vite + Vue 3 renderer.
 - `src/shared/`: true cross-runtime types, constants, and protocol definitions that are safe to import from multiple runtimes.
 - `src/shared/agent/`: cross-runtime MCP / skill contracts and tool-name helpers shared by main-process orchestration and renderer rendering.
 - `drizzle/`: generated SQLite migration files that ship with packaged builds.
+- `.github/workflows/`: repository automation workflows, including CI packaging for Electron distributables.
 - `docs/`: contributor-facing documentation such as [`docs/i18n.md`](./docs/i18n.md).
 - Root config: `vite.*`, `forge.config.ts`, `drizzle.config.ts`, `tsconfig.json`, `eslint.config.mjs`.
 
@@ -72,6 +73,12 @@ There is no dedicated automated test framework configured yet. Until one is adde
 
 Run `pnpm lint` and `pnpm typecheck` before opening a pull request.
 When changing the database schema, also run `pnpm db:generate` and commit the updated `drizzle/` migration files.
+
+## Release Packaging
+
+- GitHub Actions packaging lives in `.github/workflows/package-electron.yml`.
+- The workflow runs `pnpm make` on native macOS and Windows runners and uploads `out/make/` as workflow artifacts.
+- Contributor-facing packaging details should stay documented in `docs/github-actions-packaging.md`.
 
 ## Commit & Pull Request Guidelines
 

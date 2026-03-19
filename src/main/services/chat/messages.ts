@@ -503,7 +503,8 @@ export async function* sendConversationMessage(
         })
       }
 
-      const latestAgentMessage = session.agent.state.messages.at(-1)
+      const agentMessages = session.agent.state.messages
+      const latestAgentMessage = agentMessages.at(-1)
 
       if (latestAgentMessage?.role === 'assistant' && latestAgentMessage.stopReason === 'error') {
         eventQueue.push({

@@ -52,6 +52,8 @@ pnpm make
 - `pnpm package`：构建应用但不生成安装包
 - `pnpm make`：生成平台分发产物
 
+GitHub Actions 打包流程说明见：[docs/github-actions-packaging.md](./docs/github-actions-packaging.md)
+
 ## 目录结构
 
 ```text
