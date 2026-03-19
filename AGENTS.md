@@ -77,7 +77,7 @@ When changing the database schema, also run `pnpm db:generate` and commit the up
 ## Release Packaging
 
 - GitHub Actions packaging lives in `.github/workflows/package-electron.yml`.
-- The workflow runs Electron Forge packaging on native macOS Apple Silicon, macOS Intel, and Windows runners, and uploads `out/make/` as workflow artifacts.
+- The workflow runs Electron Forge packaging on native macOS Apple Silicon, macOS Intel, and Windows runners, uploads `out/make/` as workflow artifacts, and uploads release assets for `v*` tag builds.
 - Contributor-facing packaging details should stay documented in `docs/github-actions-packaging.md`.
 
 ## Commit & Pull Request Guidelines

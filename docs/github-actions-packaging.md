@@ -25,11 +25,13 @@ pnpm exec electron-forge make --platform=<target> --arch=<arch>
 
 ## 产物位置
 
-每个平台都会把 `out/make/` 下的构建结果上传成独立 artifact：
+工作流始终会把 `out/make/` 下的构建结果上传成独立 Actions artifact：
 
 - `lumos-macos-arm64`
 - `lumos-macos-x64`
 - `lumos-windows-x64`
+
+当工作流由 `v*` tag 触发时，还会自动创建或复用同名 GitHub Release，并把 `out/make/` 下的实际构建文件上传到 release assets。
 
 当前产物格式由 Electron Forge 配置决定：
 
@@ -40,4 +42,5 @@ pnpm exec electron-forge make --platform=<target> --arch=<arch>
 ## 注意事项
 
 - 该工作流目前不包含代码签名和 notarization。
-- 如果后续需要发布正式安装包，建议再补充 Apple / Windows 签名证书与 release 资产上传步骤。
+- 手动在分支上触发时，只会生成 Actions artifact，不会上传到 GitHub Release。
+- 如果后续需要发布正式安装包，建议再补充 Apple / Windows 签名证书与 notarization。
