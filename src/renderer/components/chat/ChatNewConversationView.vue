@@ -13,7 +13,7 @@ const { t } = useI18n()
           {{ t('chat.workspace.newConversation') }}
         </h1>
 
-        <ChatInputPanel :is-centered="true" />
+        <ChatInputPanel />
       </div>
     </div>
   </section>

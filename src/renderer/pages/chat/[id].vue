@@ -24,7 +24,6 @@ const { t } = useI18n()
     </div>
 
     <ChatConversationView
-      :conversation-title="workspace.selectedConversationTitle.value"
       :is-loading="workspace.isConversationLoading.value"
       :messages="workspace.messages.value"
       :partial-assistant-message="workspace.partialAssistantMessage.value"

@@ -1,22 +1,25 @@
 <script setup lang="ts">
-import type { ChatConversationViewProps } from '#renderer/components/chat/view-contracts'
+import type { ConversationMessageRecord } from '#shared/chat/types'
+import type { AssistantMessage } from '@mariozechner/pi-ai'
 import ChatInputPanel from '#renderer/components/chat/ChatInputPanel.vue'
+import { useChatAutoScroll } from '#renderer/components/chat/composables/useChatAutoScroll'
 import MessageBubble from '#renderer/components/chat/MessageBubble.vue'
-import { computed, nextTick, onBeforeUnmount, shallowRef, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { computed } from 'vue'
+
+interface ChatConversationViewProps {
+  isLoading?: boolean
+  messages: readonly ConversationMessageRecord[]
+  partialAssistantMessage: AssistantMessage | null
+}
 
 const props = withDefaults(defineProps<ChatConversationViewProps>(), {
-  conversationTitle: null,
   isLoading: false,
 })
 
-const { t } = useI18n()
-const messageListElement = shallowRef<HTMLDivElement | null>(null)
-const isPinnedToBottom = shallowRef(true)
-
-let scrollAnimationFrameId: number | null = null
-
-const AUTO_SCROLL_THRESHOLD = 80
+const { handleMessageListScroll, messageListElement } = useChatAutoScroll({
+  messages: () => props.messages,
+  partialAssistantMessage: () => props.partialAssistantMessage,
+})
 
 const hasMessages = computed(() =>
   props.messages.length > 0 || Boolean(props.partialAssistantMessage),
@@ -25,131 +28,44 @@ const hasMessages = computed(() =>
 const showLoading = computed(() =>
   props.isLoading && !hasMessages.value,
 )
-
-const showEmptyConversation = computed(() =>
-  !showLoading.value && !hasMessages.value,
-)
-
-const emptyConversationTitle = computed(() =>
-  props.conversationTitle ?? t('chat.workspace.emptyConversation'),
-)
-
-function updatePinnedToBottomState() {
-  const element = messageListElement.value
-
-  if (!element)
-    return
-
-  const distanceToBottom = element.scrollHeight - element.clientHeight - element.scrollTop
-  isPinnedToBottom.value = distanceToBottom <= AUTO_SCROLL_THRESHOLD
-}
-
-function scheduleScrollToBottom(options?: { force?: boolean }) {
-  if (!options?.force && !isPinnedToBottom.value)
-    return
-
-  if (scrollAnimationFrameId !== null)
-    cancelAnimationFrame(scrollAnimationFrameId)
-
-  scrollAnimationFrameId = requestAnimationFrame(() => {
-    scrollAnimationFrameId = null
-
-    const element = messageListElement.value
-
-    if (!element)
-      return
-
-    element.scrollTop = element.scrollHeight
-    updatePinnedToBottomState()
-  })
-}
-
-function handleMessageListScroll() {
-  updatePinnedToBottomState()
-}
-
-watch(
-  () => props.messages[0]?.conversationId ?? null,
-  async () => {
-    isPinnedToBottom.value = true
-    await nextTick()
-    scheduleScrollToBottom({ force: true })
-  },
-)
-
-watch(
-  () => props.messages.length,
-  async () => {
-    await nextTick()
-    scheduleScrollToBottom()
-  },
-)
-
-watch(
-  () => props.partialAssistantMessage,
-  async () => {
-    await nextTick()
-    scheduleScrollToBottom()
-  },
-)
-
-onBeforeUnmount(() => {
-  if (scrollAnimationFrameId !== null)
-    cancelAnimationFrame(scrollAnimationFrameId)
-})
 </script>
 
 <template>
   <section class="flex h-full min-h-0 flex-col overflow-hidden rounded-[1.8rem] border border-default/70 bg-default/95 shadow-sm">
-    <div
-      v-if="showEmptyConversation"
-      class="flex min-h-0 flex-1 items-center justify-center overflow-y-auto px-4 py-6 sm:px-6 sm:py-8"
-    >
-      <div class="grid w-full max-w-4xl gap-6">
-        <h1 class="m-0 text-center text-3xl font-semibold tracking-tight text-highlighted sm:text-4xl">
-          {{ emptyConversationTitle }}
-        </h1>
+    <div class="flex min-h-0 flex-1 flex-col overflow-hidden px-4 pt-4 sm:px-6 sm:pt-6">
+      <div
+        v-if="showLoading"
+        class="mx-auto grid w-full max-w-4xl gap-3"
+      >
+        <USkeleton class="h-24 rounded-[1.3rem]" />
+        <USkeleton class="ml-auto h-28 max-w-[70%] rounded-[1.3rem]" />
+        <USkeleton class="h-40 rounded-[1.3rem]" />
+      </div>
 
-        <ChatInputPanel :is-centered="true" />
+      <div
+        v-else
+        ref="messageListElement"
+        class="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col gap-4 overflow-y-auto pr-1 pb-4 sm:pr-2"
+        @scroll="handleMessageListScroll"
+      >
+        <MessageBubble
+          v-for="message in messages"
+          :key="message.id"
+          :message="message.message"
+        />
+
+        <MessageBubble
+          v-if="partialAssistantMessage"
+          :is-partial="true"
+          :message="partialAssistantMessage"
+        />
       </div>
     </div>
 
-    <template v-else>
-      <div class="flex min-h-0 flex-1 flex-col overflow-hidden px-4 pt-4 sm:px-6 sm:pt-6">
-        <div
-          v-if="showLoading"
-          class="mx-auto grid w-full max-w-4xl gap-3"
-        >
-          <USkeleton class="h-24 rounded-[1.3rem]" />
-          <USkeleton class="ml-auto h-28 max-w-[70%] rounded-[1.3rem]" />
-          <USkeleton class="h-40 rounded-[1.3rem]" />
-        </div>
-
-        <div
-          v-else
-          ref="messageListElement"
-          class="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col gap-4 overflow-y-auto pr-1 pb-4 sm:pr-2"
-          @scroll="handleMessageListScroll"
-        >
-          <MessageBubble
-            v-for="message in messages"
-            :key="message.id"
-            :message="message.message"
-          />
-
-          <MessageBubble
-            v-if="partialAssistantMessage"
-            :is-partial="true"
-            :message="partialAssistantMessage"
-          />
-        </div>
+    <footer class="shrink-0 p-4 sm:p-5">
+      <div class="mx-auto w-full max-w-4xl">
+        <ChatInputPanel />
       </div>
-
-      <footer class="shrink-0 p-4 sm:p-5">
-        <div class="mx-auto w-full max-w-4xl">
-          <ChatInputPanel />
-        </div>
-      </footer>
-    </template>
+    </footer>
   </section>
 </template>
