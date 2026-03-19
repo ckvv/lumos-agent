@@ -18,7 +18,12 @@ import type {
 import { db } from '#main/database/database'
 import { providerConfigs, providerModels } from '#main/database/schema'
 import { createOAuthEventQueue, createOAuthManualCodeSession, openOAuthUrl, submitOAuthManualCode as submitOAuthManualCodeValue } from '#main/services/chat/oauth-login'
-import { decryptSecret, encryptSecret, getSecretStorageState } from '#main/services/chat/secure-storage'
+import {
+  decryptSecret,
+  encryptSecret,
+  getSecretStorageState,
+  SecretDecryptionError,
+} from '#main/services/chat/secure-storage'
 import { getBuiltinModels, parseCompatibleCompat, parseJson, serializeJson, toProviderModelOption } from '#main/services/chat/shared'
 import { getOAuthApiKey, getOAuthProvider, getOAuthProviders } from '@mariozechner/pi-ai/oauth'
 import { ORPCError } from '@orpc/server'
@@ -72,6 +77,11 @@ export interface ResolvedProviderRuntime {
   model: Model<Api>
 }
 
+interface StoredCredentialState<T> {
+  unreadable: boolean
+  value: T | null
+}
+
 function normalizeBaseUrl(baseUrl: string) {
   return baseUrl.trim().replace(TRAILING_SLASHES_RE, '')
 }
@@ -113,21 +123,95 @@ function getCompatibleModelRecords(providerConfigId: number) {
     .all()
 }
 
-function parseStoredOAuthCredentials(record: ProviderConfigRecord) {
-  if (!record.encryptedSecret)
-    return null
+function readStoredSecret(record: ProviderConfigRecord): StoredCredentialState<string> {
+  if (!record.encryptedSecret) {
+    return {
+      unreadable: false,
+      value: null,
+    }
+  }
 
-  return parseJson<OAuthCredentials | null>(decryptSecret(record.encryptedSecret), null)
+  try {
+    return {
+      unreadable: false,
+      value: decryptSecret(record.encryptedSecret),
+    }
+  }
+  catch (error) {
+    if (!(error instanceof SecretDecryptionError))
+      throw error
+
+    return {
+      unreadable: true,
+      value: null,
+    }
+  }
 }
 
-function parseStoredApiKey(record: ProviderConfigRecord) {
-  if (!record.encryptedSecret)
-    return null
+function parseStoredOAuthCredentials(record: ProviderConfigRecord): StoredCredentialState<OAuthCredentials> {
+  const secretState = readStoredSecret(record)
 
-  return decryptSecret(record.encryptedSecret)
+  if (!secretState.value) {
+    return {
+      unreadable: secretState.unreadable,
+      value: null,
+    }
+  }
+
+  return {
+    unreadable: secretState.unreadable,
+    value: parseJson<OAuthCredentials | null>(secretState.value, null),
+  }
 }
 
-function getProviderModelOptions(record: ProviderConfigRecord) {
+function parseStoredApiKey(record: ProviderConfigRecord): StoredCredentialState<string> {
+  const secretState = readStoredSecret(record)
+
+  return {
+    unreadable: secretState.unreadable,
+    value: secretState.value?.trim() || null,
+  }
+}
+
+function getUnreadableProviderCredentialMessage(record: ProviderConfigRecord) {
+  if (record.authMode === 'oauth') {
+    return 'Stored OAuth credentials can no longer be decrypted on this app build. Sign in again for this provider.'
+  }
+
+  return 'Stored API credentials can no longer be decrypted on this app build. Re-enter the API key for this provider.'
+}
+
+function requireStoredApiKey(record: ProviderConfigRecord, missingMessage: string) {
+  const apiKeyState = parseStoredApiKey(record)
+
+  if (apiKeyState.unreadable) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: getUnreadableProviderCredentialMessage(record),
+    })
+  }
+
+  if (!apiKeyState.value) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: missingMessage,
+    })
+  }
+
+  return apiKeyState.value
+}
+
+function requireStoredOAuthCredentials(record: ProviderConfigRecord) {
+  const oauthCredentialsState = parseStoredOAuthCredentials(record)
+
+  if (oauthCredentialsState.unreadable) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: getUnreadableProviderCredentialMessage(record),
+    })
+  }
+
+  return oauthCredentialsState.value
+}
+
+function getProviderModelOptions(record: ProviderConfigRecord, oauthCredentials?: OAuthCredentials | null) {
   if (record.kind === 'openaiCompatible') {
     return getCompatibleModelRecords(record.id)
       .filter(model => model.isEnabled)
@@ -150,7 +234,6 @@ function getProviderModelOptions(record: ProviderConfigRecord) {
   }
 
   const oauthProvider = record.authMode === 'oauth' ? getOAuthProvider(record.providerId) : undefined
-  const oauthCredentials = record.authMode === 'oauth' ? parseStoredOAuthCredentials(record) : null
   const builtinModels = getBuiltinModels(record.providerId)
   const resolvedModels = oauthProvider?.modifyModels && oauthCredentials
     ? oauthProvider.modifyModels(builtinModels, oauthCredentials)
@@ -159,13 +242,22 @@ function getProviderModelOptions(record: ProviderConfigRecord) {
   return resolvedModels.map(model => toProviderModelOption(model, 'builtin'))
 }
 
-function isProviderConfigUsable(record: ProviderConfigRecord, models: ProviderModelOption[]) {
-  return record.isEnabled && Boolean(record.encryptedSecret) && models.length > 0
+function isProviderConfigUsable(record: ProviderConfigRecord, models: ProviderModelOption[], hasReadableCredentials: boolean) {
+  return record.isEnabled && hasReadableCredentials && models.length > 0
 }
 
 function mapProviderConfigDetail(record: ProviderConfigRecord): ProviderConfigDetail {
-  const models = getProviderModelOptions(record)
+  const oauthCredentialState = record.authMode === 'oauth'
+    ? parseStoredOAuthCredentials(record)
+    : null
+  const apiKeyState = record.authMode === 'oauth'
+    ? null
+    : parseStoredApiKey(record)
+  const models = getProviderModelOptions(record, oauthCredentialState?.value)
   const oauthProvider = record.authMode === 'oauth' ? getOAuthProvider(record.providerId) : undefined
+  const hasReadableCredentials = record.authMode === 'oauth'
+    ? Boolean(oauthCredentialState?.value) && !oauthCredentialState?.unreadable
+    : Boolean(apiKeyState?.value) && !apiKeyState?.unreadable
 
   return {
     authMode: record.authMode as ProviderConfigDetail['authMode'],
@@ -176,7 +268,7 @@ function mapProviderConfigDetail(record: ProviderConfigRecord): ProviderConfigDe
     hasCredentials: Boolean(record.encryptedSecret),
     id: record.id,
     isEnabled: record.isEnabled,
-    isUsable: isProviderConfigUsable(record, models),
+    isUsable: isProviderConfigUsable(record, models, hasReadableCredentials),
     kind: record.kind as ProviderConfigDetail['kind'],
     lastSyncError: record.lastSyncError,
     models,
@@ -245,12 +337,23 @@ async function fetchCompatibleModelIds(record: ProviderConfigRecord, apiKey: str
     })
   }
 
-  const response = await fetch(`${baseUrl}/models`, {
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-  })
+  let response: Response
+
+  try {
+    response = await fetch(`${baseUrl}/models`, {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+    })
+  }
+  catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown fetch error'
+
+    throw new ORPCError('BAD_GATEWAY', {
+      message: `Model discovery request failed: ${message}`,
+    })
+  }
 
   if (!response.ok) {
     throw new ORPCError('BAD_GATEWAY', {
@@ -286,7 +389,7 @@ async function persistOAuthCredentials(provider: OAuthProviderInterface, credent
 }
 
 async function resolveBuiltinOAuthApiKey(record: ProviderConfigRecord) {
-  const oauthCredentials = parseStoredOAuthCredentials(record)
+  const oauthCredentials = requireStoredOAuthCredentials(record)
 
   if (!oauthCredentials) {
     throw new ORPCError('UNAUTHORIZED', {
@@ -440,13 +543,7 @@ export async function syncCompatibleProviderModels(providerConfigId: number) {
     })
   }
 
-  const apiKey = parseStoredApiKey(record)
-
-  if (!apiKey) {
-    throw new ORPCError('BAD_REQUEST', {
-      message: 'This provider does not have an API key yet',
-    })
-  }
+  const apiKey = requireStoredApiKey(record, 'This provider does not have an API key yet')
 
   try {
     const discoveredModelIds = await fetchCompatibleModelIds(record, apiKey)
@@ -674,7 +771,7 @@ export async function resolveProviderRuntime(providerConfigId: number, modelId: 
     const selectedModel = getCompatibleModelRecords(record.id)
       .find(model => model.modelId === modelId && model.isEnabled)
 
-    const apiKey = parseStoredApiKey(record)
+    const apiKey = requireStoredApiKey(record, 'This provider does not have valid credentials yet')
 
     if (!selectedModel || !apiKey) {
       throw new ORPCError('BAD_REQUEST', {
@@ -709,7 +806,7 @@ export async function resolveProviderRuntime(providerConfigId: number, modelId: 
 
   const rawApiKey = record.authMode === 'oauth'
     ? await resolveBuiltinOAuthApiKey(record)
-    : parseStoredApiKey(record)
+    : requireStoredApiKey(record, 'This provider does not have valid credentials yet')
 
   if (!rawApiKey) {
     throw new ORPCError('BAD_REQUEST', {
@@ -729,7 +826,7 @@ export async function resolveProviderRuntime(providerConfigId: number, modelId: 
   const builtinModels = getBuiltinModels(record.providerId)
   const oauthProvider = record.authMode === 'oauth' ? getOAuthProvider(record.providerId) : undefined
   const oauthCredentials = record.authMode === 'oauth'
-    ? parseStoredOAuthCredentials(ensureProviderConfigRecord(record.id))
+    ? requireStoredOAuthCredentials(ensureProviderConfigRecord(record.id))
     : null
 
   const models = oauthProvider?.modifyModels && oauthCredentials

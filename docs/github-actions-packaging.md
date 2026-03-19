@@ -42,5 +42,6 @@ pnpm exec electron-forge make --platform=<target> --arch=<arch>
 ## 注意事项
 
 - 该工作流目前不包含代码签名和 notarization。
+- 如果用户数据里已经保存了通过系统安全存储加密的 provider / MCP 凭据，而新下载的安装包无法继续解密这些密文，应用现在会把对应配置降级为不可用并提示重新录入，而不是在 bootstrap 或设置页直接抛出通用 `internal server error`。
 - 手动在分支上触发时，只会生成 Actions artifact，不会上传到 GitHub Release。
 - 如果后续需要发布正式安装包，建议再补充 Apple / Windows 签名证书与 notarization。

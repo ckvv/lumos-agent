@@ -10,6 +10,16 @@ export interface SecretPayload {
   value: string
 }
 
+export class SecretDecryptionError extends Error {
+  constructor(
+    message = 'Stored secret can no longer be decrypted on this device or app build.',
+    options?: ErrorOptions,
+  ) {
+    super(message, options)
+    this.name = 'SecretDecryptionError'
+  }
+}
+
 export function getSecretStorageState() {
   return {
     available: safeStorage.isEncryptionAvailable(),
@@ -39,7 +49,15 @@ export function decryptSecret(payload: string) {
     const encrypted = payload.slice(SAFE_STORAGE_PREFIX.length)
     const buffer = Buffer.from(encrypted, 'base64')
 
-    return safeStorage.decryptString(buffer)
+    try {
+      return safeStorage.decryptString(buffer)
+    }
+    catch (error) {
+      // 打包版切换构建来源、签名上下文或系统密钥链状态时，旧密文可能无法继续解开。
+      throw new SecretDecryptionError(undefined, {
+        cause: error instanceof Error ? error : undefined,
+      })
+    }
   }
 
   if (payload.startsWith(PLAIN_TEXT_PREFIX))

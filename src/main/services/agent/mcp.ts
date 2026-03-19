@@ -4,7 +4,12 @@ import { db } from '#main/database/database'
 import { mcpServers } from '#main/database/schema'
 import { logger } from '#main/logger'
 import { requireAuthenticatedUser } from '#main/services/auth'
-import { decryptSecret, encryptSecret, getSecretStorageState } from '#main/services/chat/secure-storage'
+import {
+  decryptSecret,
+  encryptSecret,
+  getSecretStorageState,
+  SecretDecryptionError,
+} from '#main/services/chat/secure-storage'
 import { parseJson, serializeJson } from '#main/services/chat/shared'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
@@ -30,6 +35,11 @@ interface StoredMcpSecret {
 interface PersistedSecretPayload {
   encryptedSecret: string | null
   secretStorageMode: McpServerRecord['secretStorageMode']
+}
+
+interface StoredMcpSecretState {
+  secret: StoredMcpSecret
+  unreadable: boolean
 }
 
 interface McpRuntimeState {
@@ -92,11 +102,33 @@ function parseStoredMcpConfig(record: McpServerRecord) {
   return parseJson<StoredMcpConfig>(record.configJson, {})
 }
 
-function parseStoredMcpSecret(record: McpServerRecord) {
-  if (!record.encryptedSecret)
-    return {}
+function getUnreadableMcpSecretMessage() {
+  return 'Stored MCP credentials can no longer be decrypted on this app build. Re-enter the env vars or headers for this server.'
+}
 
-  return parseJson<StoredMcpSecret>(decryptSecret(record.encryptedSecret), {})
+function parseStoredMcpSecret(record: McpServerRecord): StoredMcpSecretState {
+  if (!record.encryptedSecret) {
+    return {
+      secret: {},
+      unreadable: false,
+    }
+  }
+
+  try {
+    return {
+      secret: parseJson<StoredMcpSecret>(decryptSecret(record.encryptedSecret), {}),
+      unreadable: false,
+    }
+  }
+  catch (error) {
+    if (!(error instanceof SecretDecryptionError))
+      throw error
+
+    return {
+      secret: {},
+      unreadable: true,
+    }
+  }
 }
 
 function isErrnoException(error: unknown): error is NodeJS.ErrnoException {
@@ -176,7 +208,15 @@ async function buildInspectionSnapshot(client: Client): Promise<McpInspectionSna
 
 function buildTransport(record: McpServerRecord): ConnectedMcpTransport {
   const config = parseStoredMcpConfig(record)
-  const secret = parseStoredMcpSecret(record)
+  const secretState = parseStoredMcpSecret(record)
+
+  if (secretState.unreadable) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: getUnreadableMcpSecretMessage(),
+    })
+  }
+
+  const secret = secretState.secret
 
   if (record.transport === 'stdio') {
     if (!config.command) {
@@ -213,9 +253,10 @@ async function connectRuntimeEntry(record: McpServerRecord) {
   const client = new Client(getClientInfo(), {
     capabilities: {},
   })
-  const transport = buildTransport(record)
+  let transport: ConnectedMcpTransport | null = null
 
   try {
+    transport = buildTransport(record)
     await client.connect(transport)
     const snapshot = await buildInspectionSnapshot(client)
 
@@ -240,13 +281,16 @@ async function connectRuntimeEntry(record: McpServerRecord) {
   }
   catch (error) {
     const errorMessage = getMcpConnectionErrorMessage(record, error)
-    runtimeEntries.set(record.id, {
-      client,
-      isConnected: false,
-      lastError: errorMessage,
-      snapshot: null,
-      transport,
-    })
+
+    if (transport) {
+      runtimeEntries.set(record.id, {
+        client,
+        isConnected: false,
+        lastError: errorMessage,
+        snapshot: null,
+        transport,
+      })
+    }
 
     db.update(mcpServers)
       .set({
@@ -313,7 +357,7 @@ function getMcpSummary(record: McpServerRecord): McpServerSummary {
 
 function getMcpDetail(record: McpServerRecord): McpServerDetail {
   const config = parseStoredMcpConfig(record)
-  const secret = parseStoredMcpSecret(record)
+  const secretState = parseStoredMcpSecret(record)
   const summary = getMcpSummary(record)
   const runtimeState = runtimeEntries.get(record.id)
   const inspectResult = runtimeState?.snapshot
@@ -325,8 +369,8 @@ function getMcpDetail(record: McpServerRecord): McpServerDetail {
     command: config.command ?? null,
     createdAt: record.createdAt,
     cwd: config.cwd ?? null,
-    envKeys: Object.keys(secret.env ?? {}).sort((left, right) => left.localeCompare(right)),
-    headerKeys: Object.keys(secret.headers ?? {}).sort((left, right) => left.localeCompare(right)),
+    envKeys: Object.keys(secretState.secret.env ?? {}).sort((left, right) => left.localeCompare(right)),
+    headerKeys: Object.keys(secretState.secret.headers ?? {}).sort((left, right) => left.localeCompare(right)),
     inspectResult,
     updatedAt: record.updatedAt,
     url: config.url ?? null,
