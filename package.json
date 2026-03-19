@@ -31,10 +31,15 @@
     "release": "npx changelogen --patch --release --push"
   },
   "dependencies": {
+    "@mariozechner/pi-agent-core": "^0.60.0",
     "@mariozechner/pi-ai": "0.60.0",
+    "@mariozechner/pi-coding-agent": "^0.60.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "@nuxt/ui": "^4.5.1",
     "@orpc/client": "^1.13.7",
     "@orpc/server": "^1.13.7",
+    "@visual-json/core": "^0.3.1",
+    "@visual-json/vue": "^0.3.1",
     "@vueuse/core": "^14.2.1",
     "drizzle-orm": "1.0.0-beta.18-5cac498",
     "electron-squirrel-startup": "^1.0.1",
