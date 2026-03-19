@@ -1,7 +1,7 @@
 {
   "name": "lumos",
   "productName": "lumos",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "private": true,
   "description": "Electron + Vite desktop app starter with Vue renderer, preload bridge, routing, and i18n.",
   "author": {
