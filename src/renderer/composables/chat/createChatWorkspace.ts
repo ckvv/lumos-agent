@@ -6,6 +6,7 @@ import { createConversationDetailState } from '#renderer/composables/chat/create
 import { createConversationListState } from '#renderer/composables/chat/createConversationListState'
 import { useAppToast } from '#renderer/composables/useAppToast'
 import { useProviderSettings } from '#renderer/composables/useProviderSettings'
+import { useSkillSettings } from '#renderer/composables/useSkillSettings'
 import { confirmAction } from '#renderer/utils/confirm'
 import { computed, onMounted, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -18,6 +19,7 @@ export function createChatWorkspace() {
   const router = useRouter()
 
   const providerSettings = useProviderSettings()
+  const skillSettings = useSkillSettings()
   const conversationList = createConversationListState()
   const conversationDetail = createConversationDetailState()
   const chatStream = createChatStreamState()
@@ -91,6 +93,7 @@ export function createChatWorkspace() {
   onMounted(async () => {
     await Promise.all([
       providerSettings.load(),
+      skillSettings.load(),
       conversationList.load(),
     ])
   })
@@ -118,6 +121,7 @@ export function createChatWorkspace() {
       stopMessage: messagingState.handleStopMessage,
     },
     composer: {
+      activeSkills: skillSettings.activeSkills,
       canSend: messagingState.canSend,
       isSending: messagingState.isSending,
       modelSwitchGroups: runtimeState.modelSwitchGroups,
@@ -132,6 +136,9 @@ export function createChatWorkspace() {
       isNewConversationView: routeState.isNewConversationView,
       messages: conversationDetail.messages,
       partialAssistantMessage: messagingState.partialAssistantMessage,
+      transientToolExecutions: computed(() =>
+        chatStream.getConversationStreamState(routeState.selectedConversationId).value.transientToolExecutions,
+      ),
     },
     sidebar: {
       conversations: conversationList.conversations,

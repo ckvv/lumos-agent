@@ -1,3 +1,8 @@
+import type {
+  ChatToolExecutionEndPayload,
+  ChatToolExecutionPayload,
+  ChatToolExecutionUpdatePayload,
+} from '#shared/agent/types'
 import type { ChatRuntimeConfig, ChatStreamEvent } from '#shared/chat/types'
 import type { AssistantMessage } from '@mariozechner/pi-ai'
 import type { MaybeRefOrGetter, ShallowRef } from 'vue'
@@ -6,11 +11,18 @@ import { getORPCErrorMessage, runWithORPCClient } from '#renderer/composables/us
 import { consumeEventIterator } from '@orpc/client'
 import { computed, onBeforeUnmount, shallowReadonly, shallowRef, toValue } from 'vue'
 
+interface ToolExecutionState extends ChatToolExecutionPayload {
+  partialResult: unknown | null
+  result: unknown | null
+  status: 'error' | 'running' | 'success'
+}
+
 interface ConversationStreamState {
   errorMessage: string | null
   isSending: boolean
   isStopping: boolean
   partialAssistantMessage: AssistantMessage | null
+  transientToolExecutions: ToolExecutionState[]
 }
 
 function createIdleStreamState(): ConversationStreamState {
@@ -19,6 +31,7 @@ function createIdleStreamState(): ConversationStreamState {
     isSending: false,
     isStopping: false,
     partialAssistantMessage: null,
+    transientToolExecutions: [],
   }
 }
 
@@ -107,6 +120,36 @@ export function createChatStreamState() {
     })
   }
 
+  function upsertToolExecution(
+    conversationId: number,
+    payload: ChatToolExecutionPayload | ChatToolExecutionUpdatePayload | ChatToolExecutionEndPayload,
+    patch: Partial<ToolExecutionState>,
+  ) {
+    const state = getConversationStreamStateValue(conversationId)
+    const nextExecutions = [...state.transientToolExecutions]
+    const currentIndex = nextExecutions.findIndex(execution => execution.toolCallId === payload.toolCallId)
+    const nextExecution: ToolExecutionState = {
+      args: payload.args,
+      displayLabel: payload.displayLabel,
+      partialResult: 'partialResult' in payload ? payload.partialResult : currentIndex !== -1 ? nextExecutions[currentIndex].partialResult : null,
+      result: 'result' in payload ? payload.result : currentIndex !== -1 ? nextExecutions[currentIndex].result : null,
+      source: payload.source,
+      status: currentIndex !== -1 ? nextExecutions[currentIndex].status : 'running',
+      toolCallId: payload.toolCallId,
+      toolName: payload.toolName,
+      ...patch,
+    }
+
+    if (currentIndex === -1)
+      nextExecutions.push(nextExecution)
+    else
+      nextExecutions[currentIndex] = nextExecution
+
+    patchConversationStreamState(conversationId, {
+      transientToolExecutions: nextExecutions,
+    })
+  }
+
   async function sendMessage(
     payload: {
       conversationId: number
@@ -127,6 +170,7 @@ export function createChatStreamState() {
       isSending: true,
       isStopping: false,
       partialAssistantMessage: null,
+      transientToolExecutions: [],
     })
 
     try {
@@ -151,10 +195,39 @@ export function createChatStreamState() {
             })
           }
 
+          if (event.type === 'tool_execution_start') {
+            upsertToolExecution(conversationId, event.execution, {
+              partialResult: null,
+              result: null,
+              status: 'running',
+            })
+          }
+
+          if (event.type === 'tool_execution_update') {
+            upsertToolExecution(conversationId, event.execution, {
+              partialResult: event.execution.partialResult,
+              status: 'running',
+            })
+          }
+
+          if (event.type === 'tool_execution_end') {
+            upsertToolExecution(conversationId, event.execution, {
+              result: event.execution.result,
+              status: event.execution.isError ? 'error' : 'success',
+            })
+          }
+
+          if (event.type === 'message_persisted' && event.message.role === 'assistant') {
+            patchConversationStreamState(conversationId, {
+              partialAssistantMessage: null,
+            })
+          }
+
           if (event.type === 'completed') {
             patchConversationStreamState(conversationId, {
               errorMessage: null,
               partialAssistantMessage: null,
+              transientToolExecutions: [],
             })
           }
 
@@ -184,6 +257,7 @@ export function createChatStreamState() {
               isSending: false,
               isStopping: false,
               partialAssistantMessage: stopRequest.preservePartial ? state.partialAssistantMessage : null,
+              transientToolExecutions: [],
             }
 
             if (!nextState.partialAssistantMessage) {
@@ -201,6 +275,7 @@ export function createChatStreamState() {
             ...state,
             isSending: false,
             isStopping: false,
+            transientToolExecutions: state.errorMessage ? state.transientToolExecutions : [],
           }
 
           if (!nextState.errorMessage && !nextState.partialAssistantMessage) {

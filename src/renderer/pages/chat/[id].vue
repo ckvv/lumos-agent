@@ -16,6 +16,7 @@ const composerValue = defineModel<string>('composerValue', {
 <template>
   <ChatConversationView
     v-model:composer-value="composerValue"
+    :active-skills="props.activeSkills"
     :can-send="props.canSend"
     :is-loading="props.isConversationLoading"
     :is-sending="props.isSending"
@@ -26,6 +27,7 @@ const composerValue = defineModel<string>('composerValue', {
     :selected-model-name="props.selectedModelName"
     :selected-provider-id="props.selectedProviderId"
     :selected-provider-name="props.selectedProviderName"
+    :transient-tool-executions="props.transientToolExecutions"
     @runtime-change="emit('runtimeChange', $event)"
     @send="emit('send')"
     @stop="emit('stop')"

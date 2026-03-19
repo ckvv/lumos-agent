@@ -11,12 +11,28 @@ interface ChatConversationViewProps extends ChatComposerStateProps {
   isLoading?: boolean
   messages?: readonly ConversationMessageRecord[]
   partialAssistantMessage?: AssistantMessage | null
+  transientToolExecutions?: ReadonlyArray<{
+    args: unknown
+    displayLabel: string
+    partialResult: unknown | null
+    result: unknown | null
+    source: {
+      id: number | string
+      kind: 'mcp' | 'skill'
+      label: string
+    }
+    status: 'error' | 'running' | 'success'
+    toolCallId: string
+    toolName: string
+  }>
 }
 
 const props = withDefaults(defineProps<ChatConversationViewProps>(), {
+  activeSkills: () => [],
   isLoading: false,
   messages: () => [],
   partialAssistantMessage: null,
+  transientToolExecutions: () => [],
 })
 const emit = defineEmits<{
   runtimeChange: [value: ChatComposerRuntimeSelection]
@@ -62,7 +78,35 @@ const showLoading = computed(() =>
           v-for="message in messages"
           :key="message.id"
           :message="message.message"
+          :message-record="message"
         />
+
+        <article
+          v-for="execution in props.transientToolExecutions"
+          :key="execution.toolCallId"
+          class="grid gap-2 rounded-[1.15rem] border border-default/70 bg-elevated/50 p-4"
+        >
+          <div class="flex flex-wrap items-center gap-2">
+            <UBadge
+              :color="execution.source.kind === 'mcp' ? 'primary' : 'secondary'"
+              :label="execution.source.kind === 'mcp' ? 'MCP' : 'Skill'"
+              variant="soft"
+            />
+            <UBadge
+              :color="execution.status === 'error' ? 'error' : execution.status === 'success' ? 'success' : 'warning'"
+              :label="execution.status"
+              variant="soft"
+            />
+            <span class="text-sm font-medium text-highlighted">{{ execution.displayLabel }}</span>
+          </div>
+          <p class="m-0 text-xs uppercase tracking-[0.18em] text-toned">
+            {{ execution.source.label }}
+          </p>
+          <pre
+            v-if="execution.partialResult || execution.result"
+            class="overflow-x-auto rounded-xl border border-default/70 bg-muted/40 p-3 text-xs leading-6 text-toned"
+          >{{ JSON.stringify(execution.result ?? execution.partialResult, null, 2) }}</pre>
+        </article>
 
         <MessageBubble
           v-if="partialAssistantMessage"
@@ -76,6 +120,7 @@ const showLoading = computed(() =>
       <div class="mx-auto w-full max-w-4xl">
         <ChatInputPanel
           v-model:composer-value="composerValue"
+          :active-skills="props.activeSkills"
           :can-send="props.canSend"
           :is-sending="props.isSending"
           :model-switch-groups="props.modelSwitchGroups"

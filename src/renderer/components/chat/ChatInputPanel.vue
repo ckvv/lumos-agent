@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ChatComposerRuntimeSelection, ChatComposerStateProps } from '#renderer/components/chat/types'
 import ChatModelSwitcher from '#renderer/components/chat/ChatModelSwitcher.vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps<ChatComposerStateProps>()
@@ -13,6 +14,35 @@ const composerValue = defineModel<string>('composerValue', {
   required: true,
 })
 const { t } = useI18n()
+
+const slashSkillQuery = computed(() => {
+  if (!composerValue.value.startsWith('/'))
+    return null
+
+  const rawQuery = composerValue.value.slice(1)
+
+  if (rawQuery.includes(' '))
+    return null
+
+  return rawQuery.trim().toLowerCase()
+})
+
+const filteredSlashSkills = computed(() => {
+  if (slashSkillQuery.value === null)
+    return []
+
+  return props.activeSkills.filter(skill =>
+    skill.name.toLowerCase().includes(slashSkillQuery.value ?? ''),
+  )
+})
+
+const showSlashSkills = computed(() =>
+  slashSkillQuery.value !== null && filteredSlashSkills.value.length > 0,
+)
+
+function handleSelectSkill(name: string) {
+  composerValue.value = `/${name} `
+}
 
 function handleComposerKeydown(event: KeyboardEvent) {
   if (event.isComposing || event.key !== 'Enter' || event.shiftKey)
@@ -45,6 +75,27 @@ function handleComposerKeydown(event: KeyboardEvent) {
       }"
       @keydown="handleComposerKeydown"
     />
+
+    <div
+      v-if="showSlashSkills"
+      class="grid gap-2 border-t border-default/70 px-4 pt-3"
+    >
+      <p class="m-0 text-xs uppercase tracking-[0.2em] text-toned">
+        {{ t('chat.composer.skillWakeup') }}
+      </p>
+
+      <div class="flex flex-wrap gap-2 pb-1">
+        <UButton
+          v-for="skill in filteredSlashSkills"
+          :key="skill.id"
+          color="neutral"
+          :label="`/${skill.name}`"
+          size="sm"
+          variant="soft"
+          @click="handleSelectSkill(skill.name)"
+        />
+      </div>
+    </div>
 
     <div class="grid grid-cols-[1fr_auto] items-end gap-3 px-4 py-3">
       <ChatModelSwitcher

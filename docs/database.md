@@ -32,18 +32,25 @@ Providers:
 
 - `provider_configs`: one row per provider configuration, including builtin API key providers, OAuth-backed providers, and OpenAI-compatible endpoints
 - `provider_models`: discovered or manually maintained models for OpenAI-compatible providers
+- `mcp_servers`: MCP server configs, encrypted secrets, activation state, and latest inspection snapshot
 
 Chat:
 
 - `conversations`: per-user chat sessions, including persisted `runtimeConfigJson`
-- `conversation_messages`: ordered per-conversation messages, storing raw `messageJson` plus `runtimeSnapshotJson`
+- `conversation_messages`: ordered per-conversation messages, storing raw `messageJson`, `runtimeSnapshotJson`, and `invocationMetadataJson`
+
+Agent Capabilities:
+
+- `managed_skills`: enable/disable state for skills discovered under the app-managed skill workspace
 
 ## Storage Notes
 
 - Provider secrets are stored in `provider_configs.encrypted_secret`.
+- MCP secrets are stored in `mcp_servers.encrypted_secret`.
 - The app prefers Electron `safeStorage`; if encryption is unavailable it falls back to plaintext storage and exposes that state through provider/bootstrap summaries.
 - Chat messages are persisted as the raw `@mariozechner/pi-ai` `Message` JSON so future tool, MCP, and skill message variants can be added without replacing the message table.
 - `runtimeSnapshotJson` is stored per message to preserve the exact provider/model/runtime configuration used for that response.
+- `invocationMetadataJson` is stored per message to preserve active MCP servers, active skills, and any explicit slash-triggered skill wake-up used by that request.
 
 ## Updating the Schema
 

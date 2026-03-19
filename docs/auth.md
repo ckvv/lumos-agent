@@ -10,7 +10,8 @@ Route shape:
 - `/auth`: public login / registration page
 - `/chat`: authenticated chat workspace shell + new conversation view
 - `/chat/:id`: authenticated chat workspace shell + conversation view
-- `/settings/providers`: authenticated provider settings
+
+Settings are opened through the authenticated workspace modal instead of a dedicated `/settings/*` route.
 
 The renderer never reads SQLite directly and never handles credential storage itself.
 
@@ -29,8 +30,8 @@ Startup flow:
 - `auth`: `hasUser`, `isAuthenticated`, `currentUsername`, `state`
 - `providerSummary`: configured counts, usable-provider flag, secret-storage flags
 - `chatSummary`: conversation count and latest conversation id
-- `routing`: `recommendedRoute`, chat access flag, provider-settings redirect flag
-- `capabilityFlags`: reserved feature flags for future tool / MCP / skill support
+- `routing`: `recommendedRoute` and chat access flag
+- `capabilityFlags`: high-level availability flags for tool / MCP / skill integrations
 
 ## Auth State Flow
 
@@ -55,7 +56,7 @@ Passwords are hashed with `node:crypto` `scrypt` plus a random salt. Plaintext p
 - `/chat` and `/chat/:id` both live under the same authenticated parent route.
 - Routes with `meta.requiresAuth = true` require an authenticated session.
 - Routes with `meta.requiresProvider = true` also require `providerSummary.hasUsableProvider = true`.
-- If a user is authenticated but has no usable provider, `/chat` redirects to `/settings/providers`.
+- If a user is authenticated but has no usable provider, `/chat` stays the main destination and the settings modal remains available from the shell.
 - Legacy `#/chat?conversationId=123` links are normalized in the renderer to `#/chat/123` before the workspace syncs conversation state.
 
 ## Failure and Retry Behavior

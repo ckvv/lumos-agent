@@ -17,6 +17,7 @@ import {
   submitOAuthManualCode,
   syncCompatibleProviderModels,
 } from '#main/services/chat/providers'
+import { chatToolSourceKinds } from '#shared/agent/types'
 import {
   capabilityKinds,
   compatibleReasoningFormats,
@@ -49,6 +50,18 @@ const capabilityBindingSchema = z.object({
   enabled: z.boolean(),
   identifier: z.string(),
   kind: z.enum(capabilityKinds),
+})
+
+const capabilitySnapshotItemSchema = z.object({
+  id: z.union([z.number().int(), z.string()]),
+  label: z.string(),
+})
+
+const invocationMetadataSchema = z.object({
+  activeMcpServers: z.array(capabilitySnapshotItemSchema),
+  activeSkills: z.array(capabilitySnapshotItemSchema),
+  explicitSkillId: z.string().nullable(),
+  explicitSkillName: z.string().nullable(),
 })
 
 const runtimeConfigSchema = z.object({
@@ -158,6 +171,7 @@ const conversationMessageRecordSchema = z.object({
   conversationId: z.number().int(),
   createdAt: z.string(),
   id: z.number().int(),
+  invocationMetadata: invocationMetadataSchema.nullable(),
   message: messageSchema,
   role: z.enum(['assistant', 'toolResult', 'user']),
   runtimeSnapshot: runtimeConfigSchema.nullable(),
@@ -169,9 +183,24 @@ const conversationDetailSchema = z.object({
   messages: z.array(conversationMessageRecordSchema),
 })
 
+const toolSourceSchema = z.object({
+  id: z.union([z.number().int(), z.string()]),
+  kind: z.enum(chatToolSourceKinds),
+  label: z.string(),
+})
+
+const toolExecutionPayloadSchema = z.object({
+  args: z.unknown(),
+  displayLabel: z.string(),
+  source: toolSourceSchema,
+  toolCallId: z.string(),
+  toolName: z.string(),
+})
+
 const chatStreamEventSchema = z.discriminatedUnion('type', [
   z.object({
     conversation: conversationSummarySchema,
+    invocationMetadata: invocationMetadataSchema.nullable(),
     runtimeSnapshot: runtimeConfigSchema,
     startedMessage: conversationMessageRecordSchema,
     type: z.literal('started'),
@@ -182,7 +211,31 @@ const chatStreamEventSchema = z.discriminatedUnion('type', [
     type: z.literal('assistant_patch'),
   }),
   z.object({
-    assistantMessage: conversationMessageRecordSchema,
+    conversationId: z.number().int(),
+    execution: toolExecutionPayloadSchema,
+    type: z.literal('tool_execution_start'),
+  }),
+  z.object({
+    conversationId: z.number().int(),
+    execution: toolExecutionPayloadSchema.extend({
+      partialResult: z.unknown(),
+    }),
+    type: z.literal('tool_execution_update'),
+  }),
+  z.object({
+    conversationId: z.number().int(),
+    execution: toolExecutionPayloadSchema.extend({
+      isError: z.boolean(),
+      result: z.unknown(),
+    }),
+    type: z.literal('tool_execution_end'),
+  }),
+  z.object({
+    conversation: conversationSummarySchema,
+    message: conversationMessageRecordSchema,
+    type: z.literal('message_persisted'),
+  }),
+  z.object({
     conversation: conversationSummarySchema,
     type: z.literal('completed'),
   }),

@@ -2,6 +2,7 @@ import type {
   ConversationMessageRecord as ConversationMessageRow,
   ConversationRecord,
 } from '#main/database/schema'
+import type { ChatInvocationMetadata } from '#shared/agent/types'
 import type {
   ChatRuntimeConfig,
   ConversationDetail,
@@ -18,6 +19,7 @@ import {
   compareConversationSummaries,
   getDefaultConversationTitle,
   messageToPreview,
+  parseInvocationMetadata,
   parseJson,
   parseRuntimeConfig,
   sanitizeConversationTitle,
@@ -61,6 +63,7 @@ function mapConversationMessage(record: ConversationMessageRow): ConversationMes
     conversationId: record.conversationId,
     createdAt: record.createdAt,
     id: record.id,
+    invocationMetadata: parseInvocationMetadata(record.invocationMetadataJson),
     message: parseJson<Message>(record.messageJson, {
       content: '',
       role: 'user',
@@ -195,6 +198,7 @@ export function appendConversationMessage(
   conversationId: number,
   message: Message,
   runtimeSnapshot: ChatRuntimeConfig | null,
+  invocationMetadata: ChatInvocationMetadata | null = null,
 ) {
   const user = requireAuthenticatedUser()
   const conversation = ensureConversationRecord(conversationId, user.id)
@@ -203,6 +207,7 @@ export function appendConversationMessage(
   const result = db.insert(conversationMessages)
     .values({
       conversationId: conversation.id,
+      invocationMetadataJson: invocationMetadata ? serializeJson(invocationMetadata) : null,
       messageJson: serializeJson(message),
       role: message.role,
       runtimeSnapshotJson: runtimeSnapshot ? serializeJson(buildDefaultRuntimeConfig(runtimeSnapshot)) : null,

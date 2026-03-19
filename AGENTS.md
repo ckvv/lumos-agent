@@ -16,11 +16,13 @@ This repository is an Electron Forge desktop app with a Vite + Vue 3 renderer.
 
 - `src/main/`: Electron main-process startup, lifecycle, constants, window creation, and other desktop-only logic.
 - `src/main/services/`: main-process business services that orchestrate app use cases and may coordinate database access.
+- `src/main/services/agent/`: MCP registry, managed skill lifecycle, and chat capability assembly for agent-driven conversations.
 - `src/main/database/`: database bootstrap, schema, and low-level connection utilities.
 - `src/preload/`: secure bridge APIs exposed to the renderer through preload scripts.
 - `src/renderer/`: Vue application code, including `pages/`, `components/`, `layouts/`, `router/`, `composables/`, `i18n/`, and shared styles.
 - `src/renderer/composables/chat/`: instance-scoped chat workspace orchestration, including route sync, runtime selection, message sending, and conversation state factories.
 - `src/shared/`: true cross-runtime types, constants, and protocol definitions that are safe to import from multiple runtimes.
+- `src/shared/agent/`: cross-runtime MCP / skill contracts and tool-name helpers shared by main-process orchestration and renderer rendering.
 - `drizzle/`: generated SQLite migration files that ship with packaged builds.
 - `docs/`: contributor-facing documentation such as [`docs/i18n.md`](./docs/i18n.md).
 - Root config: `vite.*`, `forge.config.ts`, `drizzle.config.ts`, `tsconfig.json`, `eslint.config.mjs`.

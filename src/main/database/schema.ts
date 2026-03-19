@@ -65,12 +65,35 @@ export const conversations = sqliteTable('conversations', {
   ...auditColumns,
 })
 
+export const mcpServers = sqliteTable('mcp_servers', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  displayName: text('display_name').notNull(),
+  transport: text('transport').notNull(),
+  configJson: text('config_json').notNull(),
+  encryptedSecret: text('encrypted_secret'),
+  secretStorageMode: text('secret_storage_mode').notNull(),
+  isEnabled: integer('is_enabled', { mode: 'boolean' }).notNull().default(false),
+  lastCheckedAt: text('last_checked_at'),
+  lastError: text('last_error'),
+  lastSnapshotJson: text('last_snapshot_json'),
+  ...auditColumns,
+})
+
+export const managedSkills = sqliteTable('managed_skills', {
+  id: text('id').primaryKey(),
+  filePath: text('file_path').notNull(),
+  skillName: text('skill_name').notNull(),
+  isEnabled: integer('is_enabled', { mode: 'boolean' }).notNull().default(false),
+  ...auditColumns,
+})
+
 export const conversationMessages = sqliteTable('conversation_messages', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   conversationId: integer('conversation_id').notNull().references(() => conversations.id, { onDelete: 'cascade' }),
   sequence: integer('sequence').notNull(),
   role: text('role').notNull(),
   messageJson: text('message_json').notNull(),
+  invocationMetadataJson: text('invocation_metadata_json'),
   runtimeSnapshotJson: text('runtime_snapshot_json'),
   ...auditColumns,
 })
@@ -78,6 +101,8 @@ export const conversationMessages = sqliteTable('conversation_messages', {
 export const databaseSchema = {
   conversationMessages,
   conversations,
+  managedSkills,
+  mcpServers,
   providerConfigs,
   providerModels,
   sessions,
@@ -88,5 +113,7 @@ export type ProviderConfigRecord = typeof providerConfigs.$inferSelect
 export type ProviderModelRecord = typeof providerModels.$inferSelect
 export type ConversationRecord = typeof conversations.$inferSelect
 export type ConversationMessageRecord = typeof conversationMessages.$inferSelect
+export type McpServerRecord = typeof mcpServers.$inferSelect
+export type ManagedSkillRecord = typeof managedSkills.$inferSelect
 export type UserRecord = typeof users.$inferSelect
 export type SessionRecord = typeof sessions.$inferSelect

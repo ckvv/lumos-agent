@@ -24,6 +24,7 @@ const composerValue = computed({
   },
 })
 const chatViewProps = computed<ChatWorkspaceViewProps>(() => ({
+  activeSkills: workspace.composer.activeSkills.value,
   canSend: workspace.composer.canSend.value,
   isConversationLoading: workspace.conversation.isLoading.value,
   isSending: workspace.composer.isSending.value,
@@ -34,6 +35,7 @@ const chatViewProps = computed<ChatWorkspaceViewProps>(() => ({
   selectedModelName: workspace.composer.selectedModelName.value,
   selectedProviderId: workspace.composer.selectedProviderId.value,
   selectedProviderName: workspace.composer.selectedProviderName.value,
+  transientToolExecutions: workspace.conversation.transientToolExecutions.value,
 }))
 
 async function handleLogout() {

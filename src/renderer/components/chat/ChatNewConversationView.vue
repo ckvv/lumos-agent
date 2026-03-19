@@ -25,6 +25,7 @@ const { t } = useI18n()
 
         <ChatInputPanel
           v-model:composer-value="composerValue"
+          :active-skills="props.activeSkills"
           :can-send="props.canSend"
           :is-sending="props.isSending"
           :model-switch-groups="props.modelSwitchGroups"

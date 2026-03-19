@@ -1,3 +1,4 @@
+import type { ChatToolExecutionPayload, SkillSummary } from '#shared/agent/types'
 import type { ConversationMessageRecord } from '#shared/chat/types'
 import type { AssistantMessage } from '@mariozechner/pi-ai'
 
@@ -15,6 +16,7 @@ export interface ChatModelSwitchGroup {
 }
 
 export interface ChatComposerStateProps {
+  activeSkills: SkillSummary[]
   canSend: boolean
   isSending: boolean
   modelSwitchGroups: ChatModelSwitchGroup[]
@@ -33,4 +35,9 @@ export interface ChatWorkspaceViewProps extends ChatComposerStateProps {
   isConversationLoading?: boolean
   messages?: readonly ConversationMessageRecord[]
   partialAssistantMessage?: AssistantMessage | null
+  transientToolExecutions?: readonly (ChatToolExecutionPayload & {
+    partialResult: unknown | null
+    result: unknown | null
+    status: 'error' | 'running' | 'success'
+  })[]
 }

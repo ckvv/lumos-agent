@@ -1,4 +1,10 @@
 import type {
+  ChatInvocationMetadata,
+  ChatToolExecutionEndPayload,
+  ChatToolExecutionPayload,
+  ChatToolExecutionUpdatePayload,
+} from '#shared/agent/types'
+import type {
   AssistantMessage,
   Message,
 } from '@mariozechner/pi-ai'
@@ -188,6 +194,7 @@ export interface ConversationMessageRecord {
   conversationId: number
   createdAt: string
   id: number
+  invocationMetadata: ChatInvocationMetadata | null
   message: Message
   role: Message['role']
   runtimeSnapshot: ChatRuntimeConfig | null
@@ -202,6 +209,7 @@ export interface ConversationDetail {
 export type ChatStreamEvent
   = | {
     conversation: ConversationSummary
+    invocationMetadata: ChatInvocationMetadata | null
     runtimeSnapshot: ChatRuntimeConfig
     startedMessage: ConversationMessageRecord
     type: 'started'
@@ -212,7 +220,26 @@ export type ChatStreamEvent
     type: 'assistant_patch'
   }
   | {
-    assistantMessage: ConversationMessageRecord
+    conversationId: number
+    execution: ChatToolExecutionPayload
+    type: 'tool_execution_start'
+  }
+  | {
+    conversationId: number
+    execution: ChatToolExecutionUpdatePayload
+    type: 'tool_execution_update'
+  }
+  | {
+    conversationId: number
+    execution: ChatToolExecutionEndPayload
+    type: 'tool_execution_end'
+  }
+  | {
+    conversation: ConversationSummary
+    message: ConversationMessageRecord
+    type: 'message_persisted'
+  }
+  | {
     conversation: ConversationSummary
     type: 'completed'
   }

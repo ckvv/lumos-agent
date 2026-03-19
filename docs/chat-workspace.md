@@ -10,9 +10,10 @@ Route layout:
 - `/auth`: public login / registration
 - `/chat`: protected workspace shell + new conversation view
 - `/chat/:id`: protected workspace shell + conversation view
-- `/settings/providers`: protected provider configuration
 
-The protected shell is intentionally thin: top navigation, locale switcher, provider settings entry, logout, conversation sidebar, history slideover, and chat-scoped modals.
+The authenticated shell now opens settings through an in-place modal instead of a dedicated `/settings/*` route.
+
+The protected shell is intentionally thin: top navigation, locale switcher, settings entry, logout, conversation sidebar, history slideover, and chat-scoped modals.
 The actual chat canvas is rendered by nested child routes:
 
 - `/chat` always means a blank "new conversation" workspace
@@ -33,7 +34,7 @@ Routing rules:
 - authenticated users are redirected away from `/auth`
 - `/chat` requires both authentication and a usable provider
 - `/chat/:id` uses the same auth / provider gate as `/chat`
-- authenticated users without a usable provider are redirected to `/settings/providers`
+- authenticated users without a usable provider stay on `/chat`, where the settings modal remains available from the shell
 - legacy `#/chat?conversationId=123` links are immediately normalized to `#/chat/123`
 - invalid, deleted, or inaccessible conversation ids fall back to `#/chat`
 
@@ -71,10 +72,11 @@ Messages persist:
 
 - raw pi-ai `Message` JSON
 - logical role
+- invocation metadata snapshot
 - per-message runtime snapshot
 - stable sequence ordering
 
-That structure lets the app add tool call, tool result, MCP, or skill-specific message blocks later without changing the storage model again.
+That structure now carries assistant/toolResult history, MCP/skill activation snapshots, and explicit slash-skill wake-up metadata without changing the storage model again.
 
 ## Renderer Composition
 
@@ -82,6 +84,8 @@ Main renderer state boundaries:
 
 - `useAppBootstrap`: app-level auth bootstrap and logout
 - `useProviderSettings`: shared provider configuration state used by the chat workspace and provider settings UI
+- `useMcpSettings`: shared MCP settings state used by the settings modal
+- `useSkillSettings`: shared managed-skill settings state used by the settings modal and slash wake-up UI
 - `src/renderer/composables/chat/createChatWorkspace.ts`: chat feature composition root
 - `src/renderer/composables/chat/chat-route-state.ts`: URL normalization, selection sync, and invalid conversation fallback
 - `src/renderer/composables/chat/chat-runtime-state.ts`: model / provider selection and runtime config persistence
@@ -98,11 +102,13 @@ Main UI surfaces:
 - `src/renderer/pages/chat/[id].vue`: conversation route wrapper; passes explicit conversation/composer props/events into `ChatConversationView`
 - `ChatNewConversationView`: new conversation title + centered composer surface
 - `ChatConversationView`: loading / message-list conversation surface + footer composer slot
-- `ChatInputPanel`: pure composer UI contract (`v-model:composerValue`, `runtime-change`, `send`, `stop`)
+- `ChatInputPanel`: composer UI contract (`v-model:composerValue`, `runtime-change`, `send`, `stop`) plus slash-skill wake-up suggestions
 - `ChatHistorySlideover`: on-demand conversation history panel
 - `ConversationSidebar`: conversation CRUD and selection inside the history panel
-- `MessageBubble`: Markdown/thinking rendering through `markstream-vue`
+- `MessageBubble`: user / assistant / toolResult rendering through `markstream-vue`
 - `ProviderSettingsView`: provider configuration UI
+- `McpSettingsView`: MCP activation / inspect UI
+- `SkillSettingsView`: managed skill activation / detail UI
 
 Data-flow rules for chat:
 
@@ -117,8 +123,20 @@ Chat streaming events:
 
 - `started`
 - `assistant_patch`
+- `tool_execution_start`
+- `tool_execution_update`
+- `tool_execution_end`
+- `message_persisted`
 - `completed`
 - `failed`
+
+Chat execution expectations:
+
+- globally enabled MCP servers stay available to every request
+- globally enabled skills are exposed as skill tools
+- `/skill-name` explicitly wakes one enabled skill for a single request
+- tool execution state is rendered while the request is in flight
+- assistant and toolResult messages are persisted incrementally through `message_persisted`
 
 Failure handling expectations:
 

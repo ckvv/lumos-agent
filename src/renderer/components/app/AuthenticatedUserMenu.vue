@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
 import AboutModal from '#renderer/components/app/AboutModal.vue'
-import ProviderSettingsModal from '#renderer/components/providers/ProviderSettingsModal.vue'
+import SettingsModal from '#renderer/components/settings/SettingsModal.vue'
 import { useLocale } from '#renderer/composables/useLocale'
 import { computed, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -17,7 +17,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const { locale, localeOptions } = useLocale()
 const isAboutOpen = shallowRef(false)
-const isProviderSettingsOpen = shallowRef(false)
+const isSettingsOpen = shallowRef(false)
 
 const username = computed(() => props.currentUsername ?? '-')
 
@@ -44,9 +44,9 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
   [
     {
       icon: 'i-lucide-sliders-horizontal',
-      label: t('navigation.routes.providers'),
+      label: t('navigation.routes.settings'),
       onSelect: () => {
-        isProviderSettingsOpen.value = true
+        isSettingsOpen.value = true
       },
     },
     {
@@ -106,5 +106,5 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
 
   <AboutModal v-model:open="isAboutOpen" />
 
-  <ProviderSettingsModal v-model:open="isProviderSettingsOpen" />
+  <SettingsModal v-model:open="isSettingsOpen" />
 </template>

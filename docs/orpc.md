@@ -24,6 +24,9 @@ Transport flow:
 - `app`
   - `getBootstrap()`: unified startup snapshot for database, auth, routing, provider readiness, chat summary, and capability flags
   - `getInfo()`: desktop/runtime metadata
+- `agent`
+  - `mcp.*`: MCP CRUD, activation, detail, and inspect procedures
+  - `skills.*`: managed skill list/detail/activation/delete procedures
 - `auth`
   - `register()`
   - `login()`
@@ -42,7 +45,7 @@ The renderer should not stitch together multiple bootstrap endpoints anymore. Af
 
 - route guards use `bootstrap.routing`
 - auth pages use `bootstrap.auth`
-- provider settings use `chat.providers.*`
+- settings modal uses `chat.providers.*`, `agent.mcp.*`, and `agent.skills.*`
 - chat workspace uses `chat.conversations.*` and `chat.messages.send()`
 
 ## Streaming Procedures
@@ -55,9 +58,10 @@ Two procedures currently use `eventIterator(...)`:
 Event shapes:
 
 - OAuth login: `auth_url | progress | waiting_manual_code | success | failed | canceled`
-- Chat streaming: `started | assistant_patch | completed | failed`
+- Chat streaming: `started | assistant_patch | tool_execution_start | tool_execution_update | tool_execution_end | message_persisted | completed | failed`
 
 `assistant_patch` carries the full partial assistant snapshot so the renderer never has to merge provider deltas itself.
+`message_persisted` carries each stored assistant/toolResult message so the renderer can append history incrementally without reloading the entire conversation on every turn.
 
 ## Error Handling
 

@@ -1,3 +1,4 @@
+import type { ChatInvocationMetadata } from '#shared/agent/types'
 import type {
   ChatRuntimeConfig,
   CompatibleProviderCompat,
@@ -16,9 +17,9 @@ const MULTIPLE_WHITESPACE_RE = /\s+/g
 
 export function buildCapabilityFlags() {
   return {
-    mcp: false,
-    skills: false,
-    tools: false,
+    mcp: true,
+    skills: true,
+    tools: true,
   } as const
 }
 
@@ -106,6 +107,10 @@ export function normalizePreviewText(value: string) {
 
 export function parseRuntimeConfig(value: string | null | undefined) {
   return buildDefaultRuntimeConfig(parseJson<Partial<ChatRuntimeConfig>>(value, {}))
+}
+
+export function parseInvocationMetadata(value: string | null | undefined) {
+  return parseJson<ChatInvocationMetadata | null>(value, null)
 }
 
 export function parseCompatibleCompat(value: string | null | undefined) {

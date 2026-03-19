@@ -16,6 +16,7 @@ const composerValue = defineModel<string>('composerValue', {
 <template>
   <ChatNewConversationView
     v-model:composer-value="composerValue"
+    :active-skills="props.activeSkills"
     :can-send="props.canSend"
     :is-sending="props.isSending"
     :model-switch-groups="props.modelSwitchGroups"

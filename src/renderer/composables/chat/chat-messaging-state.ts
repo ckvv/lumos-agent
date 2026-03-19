@@ -69,6 +69,18 @@ export function createChatMessagingState(options: {
           return
         }
 
+        if (event.type === 'message_persisted') {
+          options.conversationList.upsertConversation(event.conversation)
+
+          if (!isActiveConversation(event.conversation.id))
+            return
+
+          options.conversationDetail.replaceConversation(event.conversation)
+          options.conversationDetail.upsertMessage(event.message)
+
+          return
+        }
+
         if (event.type === 'completed') {
           options.conversationList.upsertConversation(event.conversation)
 
@@ -76,7 +88,6 @@ export function createChatMessagingState(options: {
             return
 
           options.conversationDetail.replaceConversation(event.conversation)
-          options.conversationDetail.replaceLastAssistantMessage(event.assistantMessage)
 
           return
         }
@@ -88,7 +99,7 @@ export function createChatMessagingState(options: {
             return
 
           options.conversationDetail.replaceConversation(event.conversation)
-          options.conversationDetail.replaceLastAssistantMessage(event.assistantMessage)
+          options.conversationDetail.upsertMessage(event.assistantMessage)
         }
       },
       onFinish: () => {

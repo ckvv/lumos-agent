@@ -75,7 +75,7 @@ export function createConversationDetailState() {
     }
   }
 
-  function replaceLastAssistantMessage(message: ConversationMessageRecord | null) {
+  function upsertMessage(message: ConversationMessageRecord | null) {
     if (!detail.value || !message)
       return
 
@@ -112,7 +112,7 @@ export function createConversationDetailState() {
     load,
     messages: computed(() => detail.value?.messages ?? []),
     replaceConversation,
-    replaceLastAssistantMessage,
+    upsertMessage,
     updateRuntimeConfig,
   }
 }
