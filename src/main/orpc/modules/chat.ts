@@ -3,7 +3,7 @@ import type {
   Message,
 } from '@mariozechner/pi-ai'
 import { createConversation, deleteConversation, getConversationDetail, listConversations, renameConversation, updateConversationRuntimeConfig } from '#main/services/chat/conversations'
-import { sendConversationMessage } from '#main/services/chat/messages'
+import { persistAbortedAssistantMessage, sendConversationMessage } from '#main/services/chat/messages'
 import {
   deleteCompatibleModel,
   deleteProviderConfig,
@@ -264,6 +264,17 @@ const sendMessageInputSchema = z.object({
   text: z.string().trim().min(1),
 })
 
+const persistAbortedAssistantMessageInputSchema = z.object({
+  conversationId: z.number().int(),
+  message: assistantMessageSchema,
+  runtimeConfig: runtimeConfigSchema,
+})
+
+const persistAbortedAssistantMessageResultSchema = z.object({
+  assistantMessage: conversationMessageRecordSchema,
+  conversation: conversationSummarySchema,
+})
+
 const okSchema = z.object({
   ok: z.literal(true),
 })
@@ -289,6 +300,10 @@ export const chatRouter = {
     ),
   },
   messages: {
+    persistAborted: os
+      .input(persistAbortedAssistantMessageInputSchema)
+      .output(persistAbortedAssistantMessageResultSchema)
+      .handler(({ input }) => persistAbortedAssistantMessage(input)),
     send: os.input(sendMessageInputSchema).output(eventIterator(chatStreamEventSchema)).handler(({ input, signal }) =>
       sendConversationMessage(input, signal),
     ),

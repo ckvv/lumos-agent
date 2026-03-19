@@ -15,6 +15,9 @@ interface ConversationStreamState {
 const idleStreamState = createIdleStreamState()
 const streamStateRefs = new Map<number, ShallowRef<ConversationStreamState>>()
 const stopStreams = new Map<number, () => Promise<void>>()
+// iterator.return() 只表示“发起停止”，真正的 abort/error 可能稍后才回到 onError/onFinish。
+// 这里单独记住用户的停止意图，避免迟到的 abort 被再次渲染成“聊天请求失败”。
+const stopRequests = new Map<number, { preservePartial: boolean }>()
 const streamingConversationIds = shallowRef<number[]>([])
 
 function createIdleStreamState(): ConversationStreamState {
@@ -85,6 +88,15 @@ function clearConversationStreamState(conversationId: number) {
   syncStreamingConversationId(conversationId, false)
 }
 
+function rememberStopRequest(conversationId: number, options?: { preservePartial?: boolean }) {
+  const preservePartial = options?.preservePartial ?? false
+  const currentRequest = stopRequests.get(conversationId)
+
+  stopRequests.set(conversationId, {
+    preservePartial: (currentRequest?.preservePartial ?? false) || preservePartial,
+  })
+}
+
 export function useChatStream() {
   async function sendMessage(
     payload: {
@@ -100,6 +112,7 @@ export function useChatStream() {
     if (stopStreams.has(payload.conversationId))
       await stopConversationStream(payload.conversationId)
 
+    stopRequests.delete(payload.conversationId)
     replaceConversationStreamState(payload.conversationId, {
       errorMessage: null,
       isSending: true,
@@ -113,7 +126,7 @@ export function useChatStream() {
 
       stopStreams.set(conversationId, consumeEventIterator(iterator, {
         onError: (error) => {
-          if (!getConversationStreamStateValue(conversationId).isStopping) {
+          if (!stopRequests.has(conversationId)) {
             patchConversationStreamState(conversationId, {
               errorMessage: getORPCErrorMessage(error),
             })
@@ -134,7 +147,7 @@ export function useChatStream() {
           }
 
           if (event.type === 'failed') {
-            if (!getConversationStreamStateValue(conversationId).isStopping) {
+            if (!stopRequests.has(conversationId)) {
               patchConversationStreamState(conversationId, {
                 errorMessage: event.errorMessage,
                 partialAssistantMessage: event.assistantMessage ? null : event.partialMessage,
@@ -148,6 +161,29 @@ export function useChatStream() {
           stopStreams.delete(conversationId)
 
           const state = getConversationStreamStateValue(conversationId)
+          const stopRequest = stopRequests.get(conversationId) ?? null
+          stopRequests.delete(conversationId)
+
+          if (stopRequest) {
+            const nextState = {
+              ...state,
+              errorMessage: null,
+              isSending: false,
+              isStopping: false,
+              partialAssistantMessage: stopRequest.preservePartial ? state.partialAssistantMessage : null,
+            }
+
+            if (!nextState.partialAssistantMessage) {
+              clearConversationStreamState(conversationId)
+            }
+            else {
+              replaceConversationStreamState(conversationId, nextState)
+            }
+
+            handlers?.onFinish?.()
+            return
+          }
+
           const nextState = {
             ...state,
             isSending: false,
@@ -164,8 +200,17 @@ export function useChatStream() {
           handlers?.onFinish?.()
         },
       }))
+
+      if (stopRequests.has(conversationId))
+        await stopConversationStream(conversationId, stopRequests.get(conversationId))
     }
     catch (error) {
+      if (stopRequests.has(payload.conversationId)) {
+        stopRequests.delete(payload.conversationId)
+        clearConversationStreamState(payload.conversationId)
+        return
+      }
+
       patchConversationStreamState(payload.conversationId, {
         errorMessage: getORPCErrorMessage(error),
         isSending: false,
@@ -177,13 +222,19 @@ export function useChatStream() {
 
   async function stopConversationStream(conversationId: number, options?: { preservePartial?: boolean }) {
     const preservePartial = options?.preservePartial ?? false
+    const state = getConversationStreamStateValue(conversationId)
     const stopStream = stopStreams.get(conversationId)
 
+    rememberStopRequest(conversationId, options)
+
     if (!stopStream) {
-      if (preservePartial)
+      if (state.isSending)
         return
 
-      const state = getConversationStreamStateValue(conversationId)
+      stopRequests.delete(conversationId)
+
+      if (preservePartial)
+        return
 
       if (!state.errorMessage && !state.partialAssistantMessage)
         return
@@ -197,28 +248,7 @@ export function useChatStream() {
       isStopping: true,
     })
 
-    try {
-      await stopStream()
-    }
-    finally {
-      stopStreams.delete(conversationId)
-
-      const currentState = getConversationStreamStateValue(conversationId)
-      const nextState = {
-        ...currentState,
-        errorMessage: null,
-        isSending: false,
-        isStopping: false,
-        partialAssistantMessage: preservePartial ? currentState.partialAssistantMessage : null,
-      }
-
-      if (!nextState.partialAssistantMessage) {
-        clearConversationStreamState(conversationId)
-      }
-      else {
-        replaceConversationStreamState(conversationId, nextState)
-      }
-    }
+    await stopStream()
   }
 
   async function stopAllStreams(options?: { preservePartial?: boolean }) {

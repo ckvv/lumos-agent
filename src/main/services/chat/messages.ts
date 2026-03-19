@@ -12,6 +12,12 @@ export interface SendConversationMessageInput {
   text: string
 }
 
+export interface PersistAbortedAssistantMessageInput {
+  conversationId: number
+  message: AssistantMessage
+  runtimeConfig: ChatRuntimeConfig
+}
+
 const DEFAULT_CODEX_SYSTEM_PROMPT = 'You are a helpful assistant.'
 
 function cloneAssistantMessage(message: AssistantMessage | null) {
@@ -62,6 +68,25 @@ function ensureUsableRuntimeConfig(runtimeConfig: ChatRuntimeConfig) {
   }
 
   return runtimeConfig
+}
+
+export function persistAbortedAssistantMessage(input: PersistAbortedAssistantMessageInput) {
+  const normalizedRuntimeConfig = ensureUsableRuntimeConfig(buildDefaultRuntimeConfig(input.runtimeConfig))
+  const abortedMessage: AssistantMessage = {
+    ...cloneAssistantMessage(input.message)!,
+    stopReason: 'aborted',
+  }
+
+  const assistantMessage = appendConversationMessage(
+    input.conversationId,
+    abortedMessage,
+    normalizedRuntimeConfig,
+  )
+
+  return {
+    assistantMessage,
+    conversation: getConversationSummary(input.conversationId),
+  }
 }
 
 export async function* sendConversationMessage(

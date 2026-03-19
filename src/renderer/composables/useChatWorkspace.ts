@@ -5,6 +5,7 @@ import type { LocationQuery, LocationQueryRaw } from 'vue-router'
 import { useChatStream } from '#renderer/composables/useChatStream'
 import { useConversationDetail } from '#renderer/composables/useConversationDetail'
 import { useConversationList } from '#renderer/composables/useConversationList'
+import { runWithORPCClient } from '#renderer/composables/useORPCRequest'
 import { useProviderSettings } from '#renderer/composables/useProviderSettings'
 import { confirmAction } from '#renderer/utils/confirm'
 import { computed, inject, onMounted, provide, shallowRef, watch } from 'vue'
@@ -358,9 +359,34 @@ export function createChatWorkspace() {
     if (!selectedConversationId.value)
       return
 
-    await chatStream.stopConversationStream(selectedConversationId.value, {
+    const activeConversationId = selectedConversationId.value
+    const activeStreamState = chatStream.getConversationStreamState(() => activeConversationId)
+
+    await chatStream.stopConversationStream(activeConversationId, {
       preservePartial: true,
     })
+
+    const partialAssistantMessage = activeStreamState.value.partialAssistantMessage
+
+    if (!partialAssistantMessage)
+      return
+
+    const { assistantMessage, conversation } = await runWithORPCClient(client =>
+      client.chat.messages.persistAborted({
+        conversationId: activeConversationId,
+        message: partialAssistantMessage,
+        runtimeConfig: effectiveRuntimeConfig.value,
+      }),
+    )
+
+    conversationList.upsertConversation(conversation)
+
+    if (isActiveConversation(activeConversationId)) {
+      conversationDetail.replaceConversation(conversation)
+      conversationDetail.appendMessage(assistantMessage)
+    }
+
+    await chatStream.stopConversationStream(activeConversationId)
   }
 
   watch(usableConfigs, async (configs) => {
