@@ -1,31 +1,110 @@
 # lumos
 
-一个基于 Electron Forge、Vite 和 Vue 3 的桌面应用模板，内置主进程/预加载/渲染进程分层、Vue Router 页面路由，以及 `vue-i18n` 多语言支持。
+一个使用 AI Coding 协作创建并持续迭代的 Electron 桌面应用项目，当前定位是本地优先的 AI Agent 聊天工作台。项目基于 Electron Forge、Vite、Vue 3 和 TypeScript 构建，围绕“本地账号 + 多模型提供商 + Agent 能力编排 + 桌面端持久化”展开。
 
-## 特性
+## 当前功能
 
-- Electron 主进程、Preload、Renderer 分层清晰
-- Vue 3 Composition API + TypeScript
-- 基于文件的页面组织，接入 `vue-router/auto-routes`
-- 内置中英文切换与语言持久化
-- 预加载脚本通过 `contextBridge` 暴露安全桥接 API
-- 集成 ESLint，支持一键修复
+### 1. 本地认证与启动引导
+
+- 支持本地注册、登录、登出
+- 认证状态由主进程统一管理，渲染进程不直接接触 SQLite 和凭据存储
+- 应用启动通过统一的 `app.getBootstrap()` 拉取数据库状态、认证状态、Provider 可用性、聊天摘要和推荐路由
+- 路由按认证状态控制：
+  - `/`：公开介绍页
+  - `/auth`：登录 / 注册页
+  - `/chat`：受保护的聊天工作区
+  - `/chat/:id`：受保护的会话详情页
+
+### 2. AI 聊天工作区
+
+- 以聊天工作区为主界面，而不是模板式首页
+- 支持新建会话、历史会话列表、会话切换和删除
+- 支持流式响应，展示进行中的工具调用状态
+- 会话消息持久化到 SQLite，保留原始消息、运行时快照和调用元数据
+- 每个会话持久化独立运行时配置：
+  - Provider
+  - Model
+  - System Prompt
+  - Tool Policy
+  - Enabled Capabilities
+- 支持 `/skill-name` 形式的单次技能显式唤醒
+
+### 3. 多提供商模型接入
+
+- 内置 API Key Provider：
+  - OpenAI
+  - Anthropic
+  - Google
+- 支持 `@mariozechner/pi-ai/oauth` 暴露的 OAuth Provider
+- 支持 OpenAI-compatible Provider：
+  - 自定义 `baseUrl`
+  - 自动请求 `${baseUrl}/models` 做模型发现
+  - 发现失败时仍可手动维护模型列表
+- Provider 可用性会汇总到应用启动态与聊天入口守卫中
+
+### 4. Agent 能力编排
+
+- 内置工具支持全局启停，当前已接入：
+  - `read`
+  - `grep`
+  - `find`
+  - `ls`
+  - `edit`
+  - `write`
+  - `bash`
+- 支持持久化管理 MCP Server：
+  - 保存连接配置
+  - 加密保存敏感信息
+  - 记录最近一次检查结果和错误信息
+  - 启用后对后续聊天请求全局生效
+- 支持托管 Skills：
+  - 从应用管理的技能目录发现技能
+  - 支持启停和详情查看
+  - 支持 `disable-model-invocation` 约束
+- 聊天请求通过 `@mariozechner/pi-coding-agent` 的 `AgentSession` 执行，而不是只做单纯模型流式调用
+
+### 5. 数据与桌面能力
+
+- 主进程负责 SQLite 初始化、迁移执行和数据库访问
+- 数据库当前覆盖：
+  - 用户与会话
+  - Provider 配置与模型
+  - MCP Server
+  - Conversations / Messages
+  - Managed Skills
+  - Built-in Tools
+- 优先使用 Electron `safeStorage` 加密 Provider / MCP 敏感信息
+- 通过 Preload + `contextBridge` 暴露受控桌面能力
+- 通过 oRPC 在主进程与渲染进程之间传递类型安全的应用能力
+
+### 6. 界面与基础体验
+
+- Vue 3 Composition API + `<script setup lang="ts">`
+- 使用 `@nuxt/ui` 构建桌面端 UI
+- 支持中文 / 英文切换与持久化
+- Electron 哈希路由，适配桌面分发场景
+- GitHub Actions 支持多平台 Electron 打包
 
 ## 技术栈
 
 - Electron Forge
 - Vite
 - Vue 3
+- TypeScript
+- @nuxt/ui
 - Vue Router
 - Vue I18n
-- TypeScript
+- oRPC
+- Drizzle ORM + SQLite
+- `@mariozechner/pi-ai`
+- `@mariozechner/pi-coding-agent`
 - Tailwind CSS
 - ESLint (`@antfu/eslint-config`)
 
 ## 环境要求
 
 - Node.js 24+
-- pnpm 10+（推荐）
+- pnpm 10+
 
 ## 快速开始
 
@@ -34,107 +113,73 @@ pnpm install
 pnpm start
 ```
 
-开发中常用命令：
+常用命令：
 
 ```bash
 pnpm start
 pnpm lint
 pnpm typecheck
+pnpm db:generate
+pnpm db:delete
+pnpm db:studio
 pnpm package
 pnpm make
 ```
 
-对应脚本说明：
+脚本说明：
 
 - `pnpm start`：启动 Electron Forge 开发环境
 - `pnpm lint`：运行 ESLint 并自动修复可修复问题
-- `pnpm typecheck`：使用 `vue-tsc` 执行 TypeScript 类型检查
+- `pnpm typecheck`：运行 `vue-tsc` 类型检查
+- `pnpm db:generate`：根据 Drizzle Schema 生成 SQLite migration
+- `pnpm db:delete`：删除本地开发数据库
+- `pnpm db:studio`：启动 Drizzle Studio
 - `pnpm package`：构建应用但不生成安装包
 - `pnpm make`：生成平台分发产物
-
-GitHub Actions 打包流程说明见：[docs/github-actions-packaging.md](./docs/github-actions-packaging.md)
 
 ## 目录结构
 
 ```text
 src/
-  main/        Electron 主进程入口、生命周期与窗口管理
-  preload/     预加载脚本与桥接 API
-  renderer/    Vue 渲染进程应用
-docs/
-  i18n.md      多语言实现与扩展说明
+  main/                 Electron 主进程入口、生命周期、窗口与业务服务
+  main/services/        认证、聊天、Provider、Agent 能力编排
+  main/database/        SQLite、Drizzle Schema、迁移引导
+  preload/              预加载桥接 API
+  renderer/             Vue 渲染进程应用
+  renderer/composables/chat/
+                        聊天工作区状态与流式编排
+  shared/               跨进程共享类型与协议
+drizzle/                SQLite migration 文件
+docs/                   贡献者与实现说明文档
 ```
 
-渲染进程中的主要目录：
+## 相关文档
 
-- `src/renderer/components/`：页面组件与通用 UI 组件
-- `src/renderer/layouts/`：布局组件
-- `src/renderer/pages/`：页面文件，路由由文件自动生成
-- `src/renderer/router/`：路由初始化
-- `src/renderer/composables/`：复用逻辑
-- `src/renderer/i18n/`：语言注册、消息定义与运行时配置
-- `src/renderer/shared/styles/`：共享样式
-
-## 架构说明
-
-### Main
-
-`src/main/` 负责 Electron 生命周期、窗口创建与桌面端能力接入。当前主窗口启用了：
-
-- `contextIsolation: true`
-- `sandbox: true`
-- `nodeIntegration: false`
-
-这意味着渲染进程默认无法直接访问 Node.js 能力，需要通过 Preload 层桥接。
-
-### Preload
-
-`src/preload/index.ts` 使用 `contextBridge.exposeInMainWorld()` 将 `lumos` API 注入到渲染进程，用于承载受控的桌面能力访问入口。
-
-### Renderer
-
-`src/renderer/` 是标准 Vue 应用，负责页面、布局、样式与多语言渲染。路由使用哈希模式，适合 Electron 桌面应用场景。
-
-## 路由
-
-页面文件位于 `src/renderer/pages/`，通过 `vue-router/auto-routes` 自动生成路由。
-
-当前页面包括：
-
-- `/`：首页
-- `/about`：关于页
-- `src/renderer/pages/[...path].vue`：兜底路由页
-
-## 国际化
-
-项目已内置多语言切换能力：
-
-- 默认语言：`zh-CN`
-- 已注册语言：`zh-CN`、`en`
-- 当前语言会持久化到 `localStorage`
-- 应用启动时会优先读取本地缓存，否则根据浏览器语言自动匹配
-
-详细说明见：[docs/i18n.md](./docs/i18n.md)
+- [docs/auth.md](./docs/auth.md)：本地认证与统一启动引导
+- [docs/chat-workspace.md](./docs/chat-workspace.md)：聊天工作区、路由与流式消息模型
+- [docs/settings-capabilities.md](./docs/settings-capabilities.md)：Providers / MCP / Skills / Built-in Tools
+- [docs/database.md](./docs/database.md)：SQLite、Drizzle 与当前表结构
+- [docs/i18n.md](./docs/i18n.md)：国际化实现
+- [docs/github-actions-packaging.md](./docs/github-actions-packaging.md)：GitHub Actions 打包流程
 
 ## 开发约定
 
 - 优先使用 `pnpm`
-- 渲染进程代码使用 Vue 3 Composition API 与 `<script setup lang="ts">`
-- 新增桌面能力时，优先放在 `preload` 桥接层，而不是直接暴露 Node 能力到页面
-- 修改公共工具或公共行为时，同步更新 `docs/`
-- 提交 PR 前运行 `pnpm lint`
-- 提交 PR 前运行 `pnpm typecheck`
-- 如需新增生产依赖，请先确认
+- 渲染进程使用 Vue 3 Composition API 与 `<script setup lang="ts">`
+- 桌面端能力通过 `preload` 暴露，不直接向页面开放 Node.js 能力
+- 修改共享行为或公共能力时，同步更新 `docs/`
+- 新增生产依赖前先确认
 
-## 手动验证建议
+## 手动验证
 
-当前仓库未配置独立测试框架，建议至少完成以下检查：
+当前仓库没有独立测试框架，建议至少手动验证以下内容：
 
-1. 运行 `pnpm start`，确认主窗口能够正常打开
-2. 检查首页与 About 页面路由切换是否正常
-3. 切换语言后刷新应用，确认语言选择被持久化
-4. 运行 `pnpm lint`，确认无新增 lint 问题
-5. 运行 `pnpm typecheck`，确认无 TypeScript 类型错误
+1. 运行 `pnpm start`，确认应用能正常启动
+2. 完成注册 / 登录，确认认证和路由守卫工作正常
+3. 配置至少一个可用 Provider，确认可以进入聊天工作区
+4. 验证会话创建、消息发送、历史记录和设置弹窗
+5. 运行 `pnpm lint`
+6. 运行 `pnpm typecheck`
 
 ## License
 
