@@ -137,7 +137,7 @@ The last message in context must be `user` or `toolResult` (not `assistant`).
 
 ## Agent Options
 
-```typescript
+```text
 const agent = new Agent({
   // Initial state
   initialState: {

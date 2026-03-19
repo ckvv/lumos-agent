@@ -933,7 +933,7 @@ RPC mode is preferred when:
 
 The main entry point exports:
 
-```typescript
+```text
 // Factory
 createAgentSession
 
