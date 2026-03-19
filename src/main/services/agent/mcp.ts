@@ -99,6 +99,28 @@ function parseStoredMcpSecret(record: McpServerRecord) {
   return parseJson<StoredMcpSecret>(decryptSecret(record.encryptedSecret), {})
 }
 
+function isErrnoException(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && 'code' in error
+}
+
+function getMcpConnectionErrorMessage(record: McpServerRecord, error: unknown) {
+  const fallbackMessage = error instanceof Error ? error.message : 'Failed to connect to MCP server'
+
+  if (record.transport !== 'stdio')
+    return fallbackMessage
+
+  const config = parseStoredMcpConfig(record)
+
+  if (!config.command || !isErrnoException(error) || error.code !== 'ENOENT')
+    return fallbackMessage
+
+  const availabilityHint = config.command === 'npx'
+    ? 'Make sure Node.js/npm is installed and available to GUI apps.'
+    : 'Make sure the command is installed and available to GUI apps.'
+
+  return `MCP stdio command "${config.command}" was not found in PATH even after loading the login-shell environment. ${availabilityHint} You can also configure this MCP server with an absolute executable path.`
+}
+
 function disconnectRuntimeEntry(id: number) {
   const runtimeState = runtimeEntries.get(id)
 
@@ -217,7 +239,7 @@ async function connectRuntimeEntry(record: McpServerRecord) {
     return snapshot
   }
   catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Failed to connect to MCP server'
+    const errorMessage = getMcpConnectionErrorMessage(record, error)
     runtimeEntries.set(record.id, {
       client,
       isConnected: false,

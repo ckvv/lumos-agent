@@ -30,6 +30,7 @@ Behavior:
 - enabling an MCP server means global activation
 - globally activated MCP servers are connected in the main process and exposed to every later chat request
 - chat does not persist raw secrets back to the renderer; only env/header keys are returned
+- stdio MCP commands inherit a PATH normalized from the user's login shell so packaged GUI launches can still resolve user-installed tools such as Homebrew or nvm-managed binaries; an absolute command path is still the most reliable option
 - if an enabled MCP server cannot reconnect for a chat request, the request fails fast instead of silently dropping the capability
 
 Chat exposes active MCP capabilities as:

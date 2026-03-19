@@ -22,9 +22,7 @@ declare module 'vue' {
     AuthGate: typeof import('./src/renderer/components/auth/AuthGate.vue')['default']
     AuthInitState: typeof import('./src/renderer/components/auth/AuthInitState.vue')['default']
     BuiltinToolSettingsView: typeof import('./src/renderer/components/settings/BuiltinToolSettingsView.vue')['default']
-    ChatComposerPanel: typeof import('./src/renderer/components/chat/ChatComposerPanel.vue')['default']
     ChatConversationView: typeof import('./src/renderer/components/chat/ChatConversationView.vue')['default']
-    ChatHistorySlideover: typeof import('./src/renderer/components/chat/ChatHistorySlideover.vue')['default']
     ChatInputPanel: typeof import('./src/renderer/components/chat/ChatInputPanel.vue')['default']
     ChatModelSwitcher: typeof import('./src/renderer/components/chat/ChatModelSwitcher.vue')['default']
     ChatNewConversationView: typeof import('./src/renderer/components/chat/ChatNewConversationView.vue')['default']
@@ -54,7 +52,6 @@ declare module 'vue' {
     UPageCard: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/PageCard.vue')['default']
     USelect: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Select.vue')['default']
     USkeleton: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Skeleton.vue')['default']
-    USlideover: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Slideover.vue')['default']
     UTextarea: typeof import('./node_modules/@nuxt/ui/dist/runtime/components/Textarea.vue')['default']
   }
 }
