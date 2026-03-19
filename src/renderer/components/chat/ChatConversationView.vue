@@ -5,7 +5,7 @@ import type {
 } from '#renderer/components/chat/view-contracts'
 import ChatComposerPanel from '#renderer/components/chat/ChatComposerPanel.vue'
 import MessageBubble from '#renderer/components/chat/MessageBubble.vue'
-import { computed } from 'vue'
+import { computed, nextTick, onBeforeUnmount, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = withDefaults(defineProps<ChatConversationViewProps>(), {
@@ -25,6 +25,12 @@ const composerValue = defineModel<string>({
 })
 
 const { t } = useI18n()
+const messageListElement = shallowRef<HTMLDivElement | null>(null)
+const isPinnedToBottom = shallowRef(true)
+
+let scrollAnimationFrameId: number | null = null
+
+const AUTO_SCROLL_THRESHOLD = 80
 
 const hasMessages = computed(() =>
   props.messages.length > 0 || Boolean(props.partialAssistantMessage),
@@ -41,6 +47,70 @@ const showEmptyConversation = computed(() =>
 const emptyConversationTitle = computed(() =>
   props.conversationTitle ?? t('chat.workspace.emptyConversation'),
 )
+
+function updatePinnedToBottomState() {
+  const element = messageListElement.value
+
+  if (!element)
+    return
+
+  const distanceToBottom = element.scrollHeight - element.clientHeight - element.scrollTop
+  isPinnedToBottom.value = distanceToBottom <= AUTO_SCROLL_THRESHOLD
+}
+
+function scheduleScrollToBottom(options?: { force?: boolean }) {
+  if (!options?.force && !isPinnedToBottom.value)
+    return
+
+  if (scrollAnimationFrameId !== null)
+    cancelAnimationFrame(scrollAnimationFrameId)
+
+  scrollAnimationFrameId = requestAnimationFrame(() => {
+    scrollAnimationFrameId = null
+
+    const element = messageListElement.value
+
+    if (!element)
+      return
+
+    element.scrollTop = element.scrollHeight
+    updatePinnedToBottomState()
+  })
+}
+
+function handleMessageListScroll() {
+  updatePinnedToBottomState()
+}
+
+watch(
+  () => props.messages[0]?.conversationId ?? null,
+  async () => {
+    isPinnedToBottom.value = true
+    await nextTick()
+    scheduleScrollToBottom({ force: true })
+  },
+)
+
+watch(
+  () => props.messages.length,
+  async () => {
+    await nextTick()
+    scheduleScrollToBottom()
+  },
+)
+
+watch(
+  () => props.partialAssistantMessage,
+  async () => {
+    await nextTick()
+    scheduleScrollToBottom()
+  },
+)
+
+onBeforeUnmount(() => {
+  if (scrollAnimationFrameId !== null)
+    cancelAnimationFrame(scrollAnimationFrameId)
+})
 </script>
 
 <template>
@@ -86,7 +156,9 @@ const emptyConversationTitle = computed(() =>
 
         <div
           v-else
+          ref="messageListElement"
           class="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col gap-4 overflow-y-auto pr-1 pb-4 sm:pr-2"
+          @scroll="handleMessageListScroll"
         >
           <MessageBubble
             v-for="message in messages"
