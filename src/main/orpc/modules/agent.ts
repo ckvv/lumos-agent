@@ -164,21 +164,21 @@ export const agentRouter = {
     ),
   },
   skills: {
-    delete: os.input(skillIdInputSchema).output(okSchema).handler(({ input }) => {
-      deleteManagedSkill(input.id)
+    delete: os.input(skillIdInputSchema).output(okSchema).handler(async ({ input }) => {
+      await deleteManagedSkill(input.id)
       return { ok: true as const }
     }),
-    getDetail: os.input(skillIdInputSchema).output(skillDetailSchema).handler(({ input }) =>
-      getManagedSkillDetail(input.id),
+    getDetail: os.input(skillIdInputSchema).output(skillDetailSchema).handler(async ({ input }) =>
+      await getManagedSkillDetail(input.id),
     ),
-    list: os.output(skillListResultSchema).handler(() =>
-      listManagedSkills(),
+    list: os.output(skillListResultSchema).handler(async () =>
+      await listManagedSkills(),
     ),
     setEnabled: os.input(z.object({
       id: z.string().min(1),
       isEnabled: z.boolean(),
-    })).output(skillDetailSchema).handler(({ input }) =>
-      setManagedSkillEnabled(input.id, input.isEnabled),
+    })).output(skillDetailSchema).handler(async ({ input }) =>
+      await setManagedSkillEnabled(input.id, input.isEnabled),
     ),
   },
 }

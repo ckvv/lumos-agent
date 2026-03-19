@@ -329,7 +329,7 @@ function buildMcpToolBindings(entry: ActiveMcpRegistryEntry): ChatToolBinding[] 
 export async function prepareChatCapabilities(explicitSkillName: string | null): Promise<PreparedChatCapabilities> {
   const [activeMcpEntries, activeSkills] = await Promise.all([
     getActiveMcpRegistry(),
-    Promise.resolve(getActiveSkillRegistry()),
+    getActiveSkillRegistry(),
   ])
 
   const invocationMetadata: ChatInvocationMetadata = {

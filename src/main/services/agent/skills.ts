@@ -6,10 +6,14 @@ import { db } from '#main/database/database'
 import { managedSkills } from '#main/database/schema'
 import { logger } from '#main/logger'
 import { requireAuthenticatedUser } from '#main/services/auth'
-import { loadSkillsFromDir, parseFrontmatter } from '@mariozechner/pi-coding-agent'
 import { ORPCError } from '@orpc/server'
 import { and, eq } from 'drizzle-orm'
 import { app } from 'electron'
+
+type PiCodingAgentModule = Pick<
+  typeof import('@mariozechner/pi-coding-agent'),
+  'loadSkillsFromDir' | 'parseFrontmatter'
+>
 
 interface SkillCandidate {
   diagnostics: SkillSummary['diagnostics']
@@ -25,6 +29,13 @@ interface SkillCandidate {
 }
 
 let activeSkillRegistry: SkillDetail[] = []
+let piCodingAgentModulePromise: Promise<PiCodingAgentModule> | null = null
+
+function getPiCodingAgentModule() {
+  // 依赖只暴露 ESM 入口，主进程又保持 CJS bundle，这里交给 Node 运行时做互操作。
+  piCodingAgentModulePromise ??= import('@mariozechner/pi-coding-agent')
+  return piCodingAgentModulePromise
+}
 
 function ensureAgentAccess() {
   requireAuthenticatedUser()
@@ -93,7 +104,8 @@ function getManagedSkillRecords() {
   return db.select().from(managedSkills).all()
 }
 
-function readSkillCandidate(filePath: string, rootPath: string): SkillCandidate {
+async function readSkillCandidate(filePath: string, rootPath: string): Promise<SkillCandidate> {
+  const { loadSkillsFromDir, parseFrontmatter } = await getPiCodingAgentModule()
   const relativePath = toPosixRelativePath(rootPath, filePath)
   const diagnosticsResult = loadSkillsFromDir({
     dir: path.dirname(filePath),
@@ -168,14 +180,14 @@ function mapSkillSummary(candidate: SkillCandidate, enabledRecord: ManagedSkillR
   }
 }
 
-function listSkillCandidates() {
+async function listSkillCandidates() {
   ensureAgentAccess()
 
   const rootPath = ensureManagedSkillsRootPath()
   const files = collectSkillFiles(rootPath)
   const records = getManagedSkillRecords()
   const recordMap = new Map(records.map(record => [record.id, record]))
-  const candidates = files.map(filePath => readSkillCandidate(filePath, rootPath))
+  const candidates = await Promise.all(files.map(filePath => readSkillCandidate(filePath, rootPath)))
 
   return {
     candidates,
@@ -223,15 +235,19 @@ function upsertSkillRecord(payload: {
     .run()
 }
 
-function rebuildActiveSkillRegistry() {
-  const details = listManagedSkills().skills.filter(skill => skill.isEnabled).map(skill => getManagedSkillDetail(skill.id))
+async function rebuildActiveSkillRegistry() {
+  const details = await Promise.all(
+    (await listManagedSkills()).skills
+      .filter(skill => skill.isEnabled)
+      .map(skill => getManagedSkillDetail(skill.id)),
+  )
 
   activeSkillRegistry = details
   return activeSkillRegistry
 }
 
-export function listManagedSkills(): SkillListResult {
-  const { candidates, recordMap, rootPath } = listSkillCandidates()
+export async function listManagedSkills(): Promise<SkillListResult> {
+  const { candidates, recordMap, rootPath } = await listSkillCandidates()
 
   const summaries = candidates.map(candidate =>
     mapSkillSummary(candidate, recordMap.get(candidate.id) ?? null),
@@ -264,10 +280,10 @@ export function listManagedSkills(): SkillListResult {
   }
 }
 
-export function getManagedSkillDetail(id: string): SkillDetail {
+export async function getManagedSkillDetail(id: string): Promise<SkillDetail> {
   ensureAgentAccess()
 
-  const { candidates, recordMap, rootPath } = listSkillCandidates()
+  const { candidates, recordMap, rootPath } = await listSkillCandidates()
   const candidate = candidates.find(item => item.id === id)
 
   if (!candidate) {
@@ -303,8 +319,8 @@ export function getManagedSkillDetail(id: string): SkillDetail {
   return mapSkillDetail(candidate, recordMap.get(candidate.id) ?? null, rootPath)
 }
 
-export function setManagedSkillEnabled(id: string, isEnabled: boolean) {
-  const detail = getManagedSkillDetail(id)
+export async function setManagedSkillEnabled(id: string, isEnabled: boolean) {
+  const detail = await getManagedSkillDetail(id)
   const detailStats = statSafe(detail.filePath)
 
   if (!detail.filePath || (detail.hasWarnings && !detailStats)) {
@@ -320,7 +336,7 @@ export function setManagedSkillEnabled(id: string, isEnabled: boolean) {
     skillName: detail.name,
   })
 
-  return rebuildActiveSkillRegistry().find(skill => skill.id === detail.id) ?? {
+  return (await rebuildActiveSkillRegistry()).find(skill => skill.id === detail.id) ?? {
     ...detail,
     isEnabled,
   }
@@ -335,8 +351,8 @@ function statSafe(filePath: string) {
   }
 }
 
-export function deleteManagedSkill(id: string) {
-  const detail = getManagedSkillDetail(id)
+export async function deleteManagedSkill(id: string) {
+  const detail = await getManagedSkillDetail(id)
   const rootPath = ensureManagedSkillsRootPath()
 
   ensurePathInsideRoot(detail.filePath, rootPath)
@@ -358,10 +374,10 @@ export function deleteManagedSkill(id: string) {
     ))
     .run()
 
-  rebuildActiveSkillRegistry()
+  await rebuildActiveSkillRegistry()
   logger.info({ skillId: detail.id, targetPath }, 'Managed skill deleted')
 }
 
-export function getActiveSkillRegistry() {
+export async function getActiveSkillRegistry() {
   return rebuildActiveSkillRegistry()
 }

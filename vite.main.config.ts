@@ -9,6 +9,10 @@ export default defineConfig({
       fileName: () => 'main.js',
       formats: ['cjs'],
     },
+    rollupOptions: {
+      // 主进程保持 CJS，但让 Node 在运行时原生处理这个仅提供 ESM 导出的依赖。
+      external: ['@mariozechner/pi-coding-agent'],
+    },
   },
   resolve: {
     alias: {
