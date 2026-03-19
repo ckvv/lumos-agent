@@ -1,17 +1,14 @@
 <script setup lang="ts">
-import type { AppLocale } from '#renderer/composables/useLocale'
+import type { DropdownMenuItem } from '@nuxt/ui'
 import AboutModal from '#renderer/components/app/AboutModal.vue'
 import ProviderSettingsModal from '#renderer/components/providers/ProviderSettingsModal.vue'
 import { useLocale } from '#renderer/composables/useLocale'
 import { computed, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = withDefaults(defineProps<{
+const props = defineProps<{
   currentUsername: string | null
-  side?: 'bottom' | 'top'
-}>(), {
-  side: 'top',
-})
+}>()
 
 const emit = defineEmits<{
   logout: []
@@ -24,20 +21,19 @@ const isProviderSettingsOpen = shallowRef(false)
 
 const username = computed(() => props.currentUsername ?? '-')
 
-function handleLocaleChange(nextLocale: AppLocale) {
-  locale.value = nextLocale
-}
-
-const localeMenuItems = computed(() =>
+const localeMenuItems = computed<DropdownMenuItem[]>(() =>
   localeOptions.map(option => ({
     checked: locale.value === option.value,
-    type: 'checkbox',
     label: t(option.labelKey),
-    onSelect: () => handleLocaleChange(option.value),
+    type: 'checkbox' as const,
+    onUpdateChecked: (checked: boolean) => {
+      if (checked)
+        locale.value = option.value
+    },
   })),
 )
 
-const menuItems = computed(() => [
+const menuItems = computed<DropdownMenuItem[][]>(() => [
   [
     {
       icon: 'i-lucide-circle-user-round',
@@ -84,7 +80,7 @@ const menuItems = computed(() => [
     :content="{
       align: 'start',
       collisionPadding: 16,
-      side: props.side,
+      side: 'top',
       sideOffset: 12,
     }"
     :items="menuItems"
