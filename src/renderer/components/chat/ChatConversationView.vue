@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import type {
-  ChatConversationViewProps,
-  ChatRuntimeChangePayload,
-} from '#renderer/components/chat/view-contracts'
+import type { ChatConversationViewProps } from '#renderer/components/chat/view-contracts'
 import ChatInputPanel from '#renderer/components/chat/ChatInputPanel.vue'
 import MessageBubble from '#renderer/components/chat/MessageBubble.vue'
 import { computed, nextTick, onBeforeUnmount, shallowRef, watch } from 'vue'
@@ -11,17 +8,6 @@ import { useI18n } from 'vue-i18n'
 const props = withDefaults(defineProps<ChatConversationViewProps>(), {
   conversationTitle: null,
   isLoading: false,
-  isSending: false,
-})
-
-const emit = defineEmits<{
-  runtimeChange: [value: ChatRuntimeChangePayload]
-  send: []
-  stop: []
-}>()
-
-const composerValue = defineModel<string>({
-  default: '',
 })
 
 const { t } = useI18n()
@@ -124,20 +110,7 @@ onBeforeUnmount(() => {
           {{ emptyConversationTitle }}
         </h1>
 
-        <ChatInputPanel
-          v-model="composerValue"
-          :can-send="canSend"
-          :is-centered="true"
-          :is-sending="isSending"
-          :model-switch-groups="modelSwitchGroups"
-          :model-name="modelName"
-          :provider-name="providerName"
-          :selected-model-id="selectedModelId"
-          :selected-provider-id="selectedProviderId"
-          @runtime-change="emit('runtimeChange', $event)"
-          @send="emit('send')"
-          @stop="emit('stop')"
-        />
+        <ChatInputPanel :is-centered="true" />
       </div>
     </div>
 
@@ -174,19 +147,7 @@ onBeforeUnmount(() => {
 
       <footer class="shrink-0 p-4 sm:p-5">
         <div class="mx-auto w-full max-w-4xl">
-          <ChatInputPanel
-            v-model="composerValue"
-            :can-send="canSend"
-            :is-sending="isSending"
-            :model-switch-groups="modelSwitchGroups"
-            :model-name="modelName"
-            :provider-name="providerName"
-            :selected-model-id="selectedModelId"
-            :selected-provider-id="selectedProviderId"
-            @runtime-change="emit('runtimeChange', $event)"
-            @send="emit('send')"
-            @stop="emit('stop')"
-          />
+          <ChatInputPanel />
         </div>
       </footer>
     </template>

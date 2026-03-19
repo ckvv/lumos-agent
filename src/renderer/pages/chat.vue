@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AboutModal from '#renderer/components/app/AboutModal.vue'
 import AuthenticatedFrame from '#renderer/components/app/AuthenticatedFrame.vue'
+import { provideChatInputContext } from '#renderer/components/chat/chat-input-context'
 import ChatHistorySlideover from '#renderer/components/chat/ChatHistorySlideover.vue'
 import ConversationSidebar from '#renderer/components/chat/ConversationSidebar.vue'
 import ProviderSettingsModal from '#renderer/components/providers/ProviderSettingsModal.vue'
@@ -19,6 +20,7 @@ definePage({
 const router = useRouter()
 const bootstrap = useAppBootstrap()
 const workspace = provideChatWorkspace(createChatWorkspace())
+provideChatInputContext(workspace)
 const isAboutOpen = shallowRef(false)
 const isProviderSettingsOpen = shallowRef(false)
 

@@ -24,21 +24,10 @@ const { t } = useI18n()
     </div>
 
     <ChatConversationView
-      v-model="workspace.composerValue.value"
-      :can-send="workspace.canSend.value"
       :conversation-title="workspace.selectedConversationTitle.value"
       :is-loading="workspace.isConversationLoading.value"
-      :is-sending="workspace.isSending.value"
       :messages="workspace.messages.value"
-      :model-switch-groups="workspace.modelSwitchGroups.value"
-      :model-name="workspace.selectedModelName.value"
       :partial-assistant-message="workspace.partialAssistantMessage.value"
-      :provider-name="workspace.selectedProviderName.value"
-      :selected-model-id="workspace.selectedModelId.value"
-      :selected-provider-id="workspace.selectedProviderId.value"
-      @runtime-change="workspace.handleRuntimeChange"
-      @send="workspace.handleSendMessage"
-      @stop="workspace.handleStopMessage"
     />
   </section>
 </template>

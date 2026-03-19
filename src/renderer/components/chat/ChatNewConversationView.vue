@@ -1,24 +1,6 @@
 <script setup lang="ts">
-import type {
-  ChatNewConversationViewProps,
-  ChatRuntimeChangePayload,
-} from '#renderer/components/chat/view-contracts'
 import ChatInputPanel from '#renderer/components/chat/ChatInputPanel.vue'
 import { useI18n } from 'vue-i18n'
-
-withDefaults(defineProps<ChatNewConversationViewProps>(), {
-  isSending: false,
-})
-
-const emit = defineEmits<{
-  runtimeChange: [value: ChatRuntimeChangePayload]
-  send: []
-  stop: []
-}>()
-
-const composerValue = defineModel<string>({
-  default: '',
-})
 
 const { t } = useI18n()
 </script>
@@ -31,20 +13,7 @@ const { t } = useI18n()
           {{ t('chat.workspace.newConversation') }}
         </h1>
 
-        <ChatInputPanel
-          v-model="composerValue"
-          :can-send="canSend"
-          :is-centered="true"
-          :is-sending="isSending"
-          :model-switch-groups="modelSwitchGroups"
-          :model-name="modelName"
-          :provider-name="providerName"
-          :selected-model-id="selectedModelId"
-          :selected-provider-id="selectedProviderId"
-          @runtime-change="emit('runtimeChange', $event)"
-          @send="emit('send')"
-          @stop="emit('stop')"
-        />
+        <ChatInputPanel :is-centered="true" />
       </div>
     </div>
   </section>

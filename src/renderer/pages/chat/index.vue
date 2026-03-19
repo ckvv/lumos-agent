@@ -23,18 +23,6 @@ const { t } = useI18n()
       </p>
     </div>
 
-    <ChatNewConversationView
-      v-model="workspace.composerValue.value"
-      :can-send="workspace.canSend.value"
-      :is-sending="workspace.isSending.value"
-      :model-switch-groups="workspace.modelSwitchGroups.value"
-      :model-name="workspace.selectedModelName.value"
-      :provider-name="workspace.selectedProviderName.value"
-      :selected-model-id="workspace.selectedModelId.value"
-      :selected-provider-id="workspace.selectedProviderId.value"
-      @runtime-change="workspace.handleRuntimeChange"
-      @send="workspace.handleSendMessage"
-      @stop="workspace.handleStopMessage"
-    />
+    <ChatNewConversationView />
   </section>
 </template>
