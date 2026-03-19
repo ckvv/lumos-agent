@@ -1,6 +1,7 @@
 import type { ChatRuntimeConfig, ChatStreamEvent } from '#shared/chat/types'
 import type { AssistantMessage } from '@mariozechner/pi-ai'
 import type { MaybeRefOrGetter, ShallowRef } from 'vue'
+import { useAppToast } from '#renderer/composables/useAppToast'
 import { getORPCErrorMessage, runWithORPCClient } from '#renderer/composables/useORPCRequest'
 import { consumeEventIterator } from '@orpc/client'
 import { computed, onBeforeUnmount, shallowReadonly, shallowRef, toValue } from 'vue'
@@ -98,6 +99,14 @@ function rememberStopRequest(conversationId: number, options?: { preservePartial
 }
 
 export function useChatStream() {
+  const appToast = useAppToast()
+
+  function notifyStreamError(conversationId: number, message: string) {
+    appToast.error(message, {
+      id: `chat-stream-error:${conversationId}:${message}`,
+    })
+  }
+
   async function sendMessage(
     payload: {
       conversationId: number
@@ -127,9 +136,12 @@ export function useChatStream() {
       stopStreams.set(conversationId, consumeEventIterator(iterator, {
         onError: (error) => {
           if (!stopRequests.has(conversationId)) {
+            const message = getORPCErrorMessage(error)
+
             patchConversationStreamState(conversationId, {
-              errorMessage: getORPCErrorMessage(error),
+              errorMessage: message,
             })
+            notifyStreamError(conversationId, message)
           }
         },
         onEvent: (event) => {
@@ -152,6 +164,7 @@ export function useChatStream() {
                 errorMessage: event.errorMessage,
                 partialAssistantMessage: event.assistantMessage ? null : event.partialMessage,
               })
+              notifyStreamError(conversationId, event.errorMessage)
             }
           }
 
@@ -211,11 +224,14 @@ export function useChatStream() {
         return
       }
 
+      const message = getORPCErrorMessage(error)
+
       patchConversationStreamState(payload.conversationId, {
-        errorMessage: getORPCErrorMessage(error),
+        errorMessage: message,
         isSending: false,
         isStopping: false,
       })
+      notifyStreamError(payload.conversationId, message)
       throw error
     }
   }

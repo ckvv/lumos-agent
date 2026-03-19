@@ -3,7 +3,7 @@ import type {
   ChatNewConversationViewProps,
   ChatRuntimeChangePayload,
 } from '#renderer/components/chat/view-contracts'
-import ChatComposerPanel from '#renderer/components/chat/ChatComposerPanel.vue'
+import ChatInputPanel from '#renderer/components/chat/ChatInputPanel.vue'
 import { useI18n } from 'vue-i18n'
 
 withDefaults(defineProps<ChatNewConversationViewProps>(), {
@@ -31,15 +31,13 @@ const { t } = useI18n()
           {{ t('chat.workspace.newConversation') }}
         </h1>
 
-        <ChatComposerPanel
+        <ChatInputPanel
           v-model="composerValue"
           :can-send="canSend"
-          :error-message="errorMessage"
           :is-centered="true"
           :is-sending="isSending"
           :model-switch-groups="modelSwitchGroups"
           :model-name="modelName"
-          :provider-load-error="providerLoadError"
           :provider-name="providerName"
           :selected-model-id="selectedModelId"
           :selected-provider-id="selectedProviderId"

@@ -2,6 +2,7 @@ import type { ChatModelSwitchGroup } from '#renderer/components/chat/types'
 import type { ChatRuntimeConfig } from '#shared/chat/types'
 import type { InjectionKey } from 'vue'
 import type { LocationQuery, LocationQueryRaw } from 'vue-router'
+import { useAppToast } from '#renderer/composables/useAppToast'
 import { useChatStream } from '#renderer/composables/useChatStream'
 import { useConversationDetail } from '#renderer/composables/useConversationDetail'
 import { useConversationList } from '#renderer/composables/useConversationList'
@@ -57,6 +58,7 @@ async function reloadConversationListSafely(load: () => Promise<void>) {
 
 export function createChatWorkspace() {
   const { t } = useI18n()
+  const appToast = useAppToast()
   const route = useRoute()
   const router = useRouter()
 
@@ -471,6 +473,18 @@ export function createChatWorkspace() {
     ])
   })
 
+  watch(
+    () => providerSettings.errorMessage.value,
+    (errorMessage, previousErrorMessage) => {
+      if (!errorMessage || errorMessage === previousErrorMessage)
+        return
+
+      appToast.error(errorMessage, {
+        id: `chat-provider-load-error:${errorMessage}`,
+      })
+    },
+  )
+
   return {
     canSend,
     composerValue,
@@ -493,10 +507,6 @@ export function createChatWorkspace() {
     modelSwitchGroups,
     partialAssistantMessage: computed(() =>
       currentConversationStreamState.value.partialAssistantMessage,
-    ),
-    providerLoadError: providerSettings.errorMessage,
-    selectedConversationErrorMessage: computed(() =>
-      currentConversationStreamState.value.errorMessage,
     ),
     selectedConversationId,
     selectedConversationTitle,

@@ -7,21 +7,19 @@ export interface ChatRuntimeChangePayload {
   modelId: string
 }
 
-export interface ChatComposerViewProps {
+export interface ChatInputViewProps {
   canSend: boolean
-  errorMessage: string | null
   isSending?: boolean
   modelSwitchGroups: ChatModelSwitchGroup[]
   modelName: string | null
-  providerLoadError: string | null
   providerName: string | null
   selectedModelId: string | null
   selectedProviderId: number | null
 }
 
-export interface ChatNewConversationViewProps extends ChatComposerViewProps {}
+export interface ChatNewConversationViewProps extends ChatInputViewProps {}
 
-export interface ChatConversationViewProps extends ChatComposerViewProps {
+export interface ChatConversationViewProps extends ChatInputViewProps {
   conversationTitle?: string | null
   isLoading?: boolean
   messages: readonly ConversationMessageRecord[]
