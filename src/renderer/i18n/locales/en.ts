@@ -124,6 +124,7 @@ export const en = {
       rename: 'Rename',
       saveRename: 'Save',
       title: 'Recent Sessions',
+      toggleActions: 'Conversation actions',
     },
     workspace: {
       activeConversation: 'Active conversation',

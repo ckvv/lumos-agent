@@ -122,6 +122,7 @@ export const zhCN = {
       rename: '重命名',
       saveRename: '保存',
       title: '历史会话',
+      toggleActions: '会话操作',
     },
     workspace: {
       activeConversation: '当前会话',

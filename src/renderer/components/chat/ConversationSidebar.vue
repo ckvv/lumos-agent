@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ConversationSummary } from '#shared/chat/types'
+import type { DropdownMenuItem } from '@nuxt/ui'
 import AuthenticatedUserMenu from '#renderer/components/app/AuthenticatedUserMenu.vue'
 import { computed, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -31,6 +32,10 @@ const editingTitle = shallowRef('')
 const hasConversations = computed(() => props.conversations.length > 0)
 const streamingConversationIdSet = computed(() => new Set(props.streamingConversationIds ?? []))
 
+function isSelectedConversation(conversationId: number) {
+  return conversationId === props.selectedConversationId
+}
+
 function startRenaming(conversation: ConversationSummary) {
   editingConversationId.value = conversation.id
   editingTitle.value = conversation.title
@@ -54,8 +59,36 @@ function submitRename(id: number) {
   stopRenaming()
 }
 
+function selectConversation(conversationId: number) {
+  emit('select', conversationId)
+}
+
+function deleteConversation(conversationId: number) {
+  emit('delete', conversationId)
+}
+
 function isConversationStreaming(conversationId: number) {
   return streamingConversationIdSet.value.has(conversationId)
+}
+
+function getConversationMenuItems(conversation: ConversationSummary): DropdownMenuItem[][] {
+  const actionsDisabled = Boolean(props.isBusy || isConversationStreaming(conversation.id))
+
+  return [[
+    {
+      disabled: actionsDisabled,
+      icon: 'i-lucide-pencil-line',
+      label: t('chat.sidebar.rename'),
+      onSelect: () => startRenaming(conversation),
+    },
+    {
+      color: 'error',
+      disabled: actionsDisabled,
+      icon: 'i-lucide-trash-2',
+      label: t('chat.sidebar.delete'),
+      onSelect: () => deleteConversation(conversation.id),
+    },
+  ]]
 }
 </script>
 
@@ -103,10 +136,10 @@ function isConversationStreaming(conversationId: number) {
         <article
           v-for="conversation in conversations"
           :key="conversation.id"
-          class="group flex shrink-0 items-center gap-2 rounded-[1rem] border px-3 py-2 transition-colors hover:border-default hover:bg-elevated/90"
-          :class="conversation.id === selectedConversationId
-            ? 'border-primary/25 bg-primary/6'
-            : 'border-default/70 bg-elevated/45'"
+          class="group flex shrink-0 items-center gap-2 rounded-[1rem] border px-3 py-2 transition-colors"
+          :class="isSelectedConversation(conversation.id)
+            ? 'border-primary/25 bg-primary/6 hover:border-primary/35 hover:bg-primary/8'
+            : 'border-default/70 bg-elevated/45 hover:border-default hover:bg-elevated/90'"
         >
           <template v-if="editingConversationId === conversation.id">
             <UInput
@@ -135,7 +168,7 @@ function isConversationStreaming(conversationId: number) {
             <button
               class="flex min-w-0 flex-1 items-center gap-2 text-left"
               type="button"
-              @click="emit('select', conversation.id)"
+              @click="selectConversation(conversation.id)"
             >
               <span class="flex size-4 shrink-0 items-center justify-center">
                 <UIcon
@@ -150,29 +183,24 @@ function isConversationStreaming(conversationId: number) {
               </span>
             </button>
 
-            <div
-              class="flex shrink-0 items-center gap-1 transition-opacity"
-              :class="conversation.id === selectedConversationId
-                ? 'opacity-100'
-                : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'"
+            <UDropdownMenu
+              :content="{
+                align: 'end',
+                collisionPadding: 16,
+                sideOffset: 8,
+              }"
+              :items="getConversationMenuItems(conversation)"
+              :ui="{ content: 'w-36' }"
             >
               <UButton
+                class="transition-opacity opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 data-[state=open]:opacity-100"
+                :aria-label="t('chat.sidebar.toggleActions')"
                 color="neutral"
-                :disabled="isBusy || isConversationStreaming(conversation.id)"
-                icon="i-lucide-pencil-line"
+                icon="i-lucide-ellipsis"
                 size="xs"
                 variant="ghost"
-                @click="startRenaming(conversation)"
               />
-              <UButton
-                color="error"
-                :disabled="isBusy || isConversationStreaming(conversation.id)"
-                icon="i-lucide-trash-2"
-                size="xs"
-                variant="ghost"
-                @click="emit('delete', conversation.id)"
-              />
-            </div>
+            </UDropdownMenu>
           </template>
         </article>
       </div>
